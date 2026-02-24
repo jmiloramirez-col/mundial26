@@ -1,36 +1,36 @@
 import { useState, useEffect, useCallback } from "react";
 
-// â”€â”€â”€ DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Grupos oficiales â€” Sorteo realizado el 5 de diciembre de 2025, Kennedy Center, Washington D.C.
+// ─── DATA ────────────────────────────────────────────────────────────────────
+// Grupos oficiales — Sorteo realizado el 5 de diciembre de 2025, Kennedy Center, Washington D.C.
 // 6 plazas pendientes de repechaje (marzo 2026): UEFA A, UEFA B, UEFA C, UEFA D, Intercontinental 1, Intercontinental 2
 const GROUPS = {
-  A: ["MÃ©xico", "SudÃ¡frica", "Corea del Sur", "Rep. UEFA D*"],        // *Dinamarca, Macedonia del Norte, Rep. Checa o Irlanda
-  B: ["CanadÃ¡", "Suiza", "Qatar", "Rep. UEFA A*"],                    // *Italia, Irlanda del Norte, Gales o Bosnia
-  C: ["Brasil", "Marruecos", "Escocia", "HaitÃ­"],
-  D: ["Estados Unidos", "Paraguay", "Australia", "Rep. UEFA C*"],     // *TurquÃ­a, RumanÃ­a, Eslovaquia o Kosovo
+  A: ["México", "Sudáfrica", "Corea del Sur", "Rep. UEFA D*"],        // *Dinamarca, Macedonia del Norte, Rep. Checa o Irlanda
+  B: ["Canadá", "Suiza", "Qatar", "Rep. UEFA A*"],                    // *Italia, Irlanda del Norte, Gales o Bosnia
+  C: ["Brasil", "Marruecos", "Escocia", "Haití"],
+  D: ["Estados Unidos", "Paraguay", "Australia", "Rep. UEFA C*"],     // *Turquía, Rumanía, Eslovaquia o Kosovo
   E: ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
-  F: ["PaÃ­ses Bajos", "JapÃ³n", "TÃºnez", "Rep. UEFA B*"],              // *Ucrania, Suecia, Polonia o Albania
-  G: ["BÃ©lgica", "Egipto", "Nueva Zelanda", "Rep. Intercont. 2*"],    // *Bolivia, Surinam o Irak
-  H: ["EspaÃ±a", "Uruguay", "Arabia Saudita", "Cabo Verde"],
+  F: ["Países Bajos", "Japón", "Túnez", "Rep. UEFA B*"],              // *Ucrania, Suecia, Polonia o Albania
+  G: ["Bélgica", "Egipto", "Nueva Zelanda", "Rep. Intercont. 2*"],    // *Bolivia, Surinam o Irak
+  H: ["España", "Uruguay", "Arabia Saudita", "Cabo Verde"],
   I: ["Francia", "Senegal", "Noruega", "Rep. Intercont. 2*"],         // *Bolivia, Surinam o Irak
   J: ["Argentina", "Austria", "Argelia", "Jordania"],
-  K: ["Portugal", "Colombia", "UzbekistÃ¡n", "Rep. Intercont. 1*"],    // *Jamaica, Nueva Caledonia o RD Congo
-  L: ["Inglaterra", "Croacia", "PanamÃ¡", "Ghana"],
+  K: ["Portugal", "Colombia", "Uzbekistán", "Rep. Intercont. 1*"],    // *Jamaica, Nueva Caledonia o RD Congo
+  L: ["Inglaterra", "Croacia", "Panamá", "Ghana"],
 };
 
-// â”€â”€â”€ LOCK DATES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Los pronÃ³sticos se bloquean 1 dÃ­a antes de que empiece cada fase
+// ─── LOCK DATES ──────────────────────────────────────────────────────────────
+// Los pronósticos se bloquean 1 día antes de que empiece cada fase
 const LOCK_DATES = {
-  groups:  new Date("2026-06-10T00:00:00"), // 1 dÃ­a antes del 11 Jun (inicio grupos)
-  round32: new Date("2026-07-01T00:00:00"), // 1 dÃ­a antes del 2 Jul (octavos)
-  quarters:new Date("2026-07-03T00:00:00"), // 1 dÃ­a antes del 4 Jul (cuartos)
-  semis:   new Date("2026-07-14T00:00:00"), // 1 dÃ­a antes del 15 Jul (semis)
-  third:   new Date("2026-07-17T00:00:00"), // 1 dÃ­a antes del 18 Jul
-  final:   new Date("2026-07-18T00:00:00"), // 1 dÃ­a antes del 19 Jul
+  groups:  new Date("2026-06-10T00:00:00"), // 1 día antes del 11 Jun (inicio grupos)
+  round32: new Date("2026-07-01T00:00:00"), // 1 día antes del 2 Jul (octavos)
+  quarters:new Date("2026-07-03T00:00:00"), // 1 día antes del 4 Jul (cuartos)
+  semis:   new Date("2026-07-14T00:00:00"), // 1 día antes del 15 Jul (semis)
+  third:   new Date("2026-07-17T00:00:00"), // 1 día antes del 18 Jul
+  final:   new Date("2026-07-18T00:00:00"), // 1 día antes del 19 Jul
 };
 
 function isPhaseLocked(phase, adminUnlocked = {}) {
-  if (adminUnlocked[phase]) return false; // admin desbloqueÃ³ manualmente
+  if (adminUnlocked[phase]) return false; // admin desbloqueó manualmente
   const lockDate = LOCK_DATES[phase];
   if (!lockDate) return false;
   return new Date() >= lockDate;
@@ -50,7 +50,7 @@ function generateGroupMatches() {
   const matches = [];
   let id = 1;
   const dates = {
-    A:["11 Jun","12 Jun","16 Jun","16 Jun","20 Jun","24 Jun"],  // MÃ©xico vs SudÃ¡frica abre el torneo
+    A:["11 Jun","12 Jun","16 Jun","16 Jun","20 Jun","24 Jun"],  // México vs Sudáfrica abre el torneo
     B:["12 Jun","16 Jun","17 Jun","20 Jun","21 Jun","25 Jun"],
     C:["13 Jun","17 Jun","18 Jun","21 Jun","22 Jun","26 Jun"],
     D:["12 Jun","13 Jun","17 Jun","18 Jun","22 Jun","26 Jun"],
@@ -81,7 +81,7 @@ function generateElimMatches() {
     { phase:"quarters", label:"Cuartos de Final", count:8, date:"4-5 Jul" },
     { phase:"semis", label:"Semifinales", count:4, date:"15-16 Jul" },
     { phase:"third", label:"Tercer Lugar", count:1, date:"18 Jul" },
-    { phase:"final", label:"ðŸ† Gran Final", count:1, date:"19 Jul" },
+    { phase:"final", label:"🏆 Gran Final", count:1, date:"19 Jul" },
   ];
   const matches = [];
   let id = 1000;
@@ -98,7 +98,7 @@ function generateElimMatches() {
 
 const INITIAL_MATCHES = [...generateGroupMatches(), ...generateElimMatches()];
 
-// â”€â”€â”€ SCORING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── SCORING ─────────────────────────────────────────────────────────────────
 function calcPoints(predH, predA, realH, realA) {
   if (realH === null || realA === null || predH === null || predA === null) return null;
   const ph = Number(predH), pa = Number(predA), rh = Number(realH), ra = Number(realA);
@@ -124,7 +124,7 @@ function calcParticipantPoints(predictions, matches) {
   return { total, exact, correct };
 }
 
-// â”€â”€â”€ STORAGE HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── STORAGE HELPERS ─────────────────────────────────────────────────────────
 async function loadData(key) {
   try { const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; }
   catch { return null; }
@@ -134,21 +134,21 @@ async function saveData(key, val) {
   catch { return false; }
 }
 
-// â”€â”€â”€ ICONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── ICONS ───────────────────────────────────────────────────────────────────
 const Icon = {
-  Trophy: () => <span style={{fontSize:"1.2em"}}>ðŸ†</span>,
-  Soccer: () => <span style={{fontSize:"1.2em"}}>âš½</span>,
-  User: () => <span style={{fontSize:"1.2em"}}>ðŸ‘¤</span>,
-  Admin: () => <span style={{fontSize:"1.2em"}}>âš™ï¸</span>,
-  Chart: () => <span style={{fontSize:"1.2em"}}>ðŸ“Š</span>,
-  Check: () => <span style={{fontSize:"1em"}}>âœ…</span>,
-  Medal1: () => <span>ðŸ¥‡</span>,
-  Medal2: () => <span>ðŸ¥ˆ</span>,
-  Medal3: () => <span>ðŸ¥‰</span>,
+  Trophy: () => <span style={{fontSize:"1.2em"}}>🏆</span>,
+  Soccer: () => <span style={{fontSize:"1.2em"}}>⚽</span>,
+  User: () => <span style={{fontSize:"1.2em"}}>👤</span>,
+  Admin: () => <span style={{fontSize:"1.2em"}}>⚙️</span>,
+  Chart: () => <span style={{fontSize:"1.2em"}}>📊</span>,
+  Check: () => <span style={{fontSize:"1em"}}>✅</span>,
+  Medal1: () => <span>🥇</span>,
+  Medal2: () => <span>🥈</span>,
+  Medal3: () => <span>🥉</span>,
   Flag: (c) => <span style={{fontSize:"1em"}}>{c}</span>,
 };
 
-// â”€â”€â”€ STYLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── STYLES ──────────────────────────────────────────────────────────────────
 const S = {
   app: {
     minHeight:"100vh", background:"#0a0e1a",
@@ -261,7 +261,7 @@ const S = {
   }),
 };
 
-// â”€â”€â”€ GOOGLE FONTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GOOGLE FONTS ─────────────────────────────────────────────────────────────
 const FontLink = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
@@ -283,22 +283,22 @@ const FontLink = () => (
   `}</style>
 );
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 // LEADERBOARD VIEW
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 function Leaderboard({ participants, matches }) {
   const ranked = [...participants]
     .map(p => ({ ...p, ...calcParticipantPoints(p.predictions, matches) }))
     .sort((a,b) => b.total - a.total || b.exact - a.exact);
 
-  const medals = ["ðŸ¥‡","ðŸ¥ˆ","ðŸ¥‰"];
+  const medals = ["🥇","🥈","🥉"];
 
   return (
     <div className="fade-in">
-      <div style={S.sectionTitle}><Icon.Chart /> Tabla de ClasificaciÃ³n</div>
+      <div style={S.sectionTitle}><Icon.Chart /> Tabla de Clasificación</div>
       {ranked.length === 0 && (
         <div style={{textAlign:"center",color:"#4a5a7e",padding:40,fontSize:"1.1rem"}}>
-          AÃºn no hay participantes registrados
+          Aún no hay participantes registrados
         </div>
       )}
       {ranked.map((p, i) => (
@@ -309,7 +309,7 @@ function Leaderboard({ participants, matches }) {
           <div style={{flex:1}}>
             <div style={{fontWeight:800,fontSize:"1.05rem",letterSpacing:1}}>{p.name}</div>
             <div style={{color:"#4a5a7e",fontSize:"0.78rem",marginTop:2}}>
-              {p.exact} exactos Â· {p.correct} acertados
+              {p.exact} exactos · {p.correct} acertados
             </div>
           </div>
           <div style={{textAlign:"right"}}>
@@ -322,7 +322,7 @@ function Leaderboard({ participants, matches }) {
       ))}
 
       <div style={{...S.card, marginTop:24}}>
-        <div style={S.sectionTitle}>âš½ Sistema de Puntos</div>
+        <div style={S.sectionTitle}>⚽ Sistema de Puntos</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12}}>
           {[["5 pts","Resultado exacto","#27ae60"],["3 pts","Ganador correcto","#2980b9"],["0 pts","Resultado fallado","#c0392b"]].map(([pts,desc,color])=>(
             <div key={pts} style={{background:"#0d1520",border:`1px solid ${color}44`,borderRadius:10,padding:"14px 16px",textAlign:"center"}}>
@@ -336,9 +336,9 @@ function Leaderboard({ participants, matches }) {
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 // PARTICIPANT FORM
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 function ParticipantForm({ participants, setParticipants, matches, adminUnlocked }) {
   const [step, setStep] = useState("login"); // login | form | done
   const [name, setName] = useState("");
@@ -353,7 +353,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   const groupMatches = matches.filter(m => m.phase === "groups");
   const elimMatches = matches.filter(m => m.phase !== "groups");
   const phases = [...new Set(elimMatches.map(m=>m.phase))];
-  const phaseLabels = {round32:"Octavos de Final",quarters:"Cuartos de Final",semis:"Semifinales",third:"Tercer Lugar",final:"ðŸ† Gran Final"};
+  const phaseLabels = {round32:"Octavos de Final",quarters:"Cuartos de Final",semis:"Semifinales",third:"Tercer Lugar",final:"🏆 Gran Final"};
   const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#c9a84c"};
 
   const groupsLocked = isPhaseLocked("groups", adminUnlocked);
@@ -365,17 +365,17 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       const d = LOCK_DATES[phase];
       if (d) {
         const diff = Math.ceil((d - new Date()) / (1000*60*60*24));
-        if (diff > 0) return { locked: false, msg: `ðŸ”“ Abierto â€” se bloquea en ${diff} dÃ­a${diff!==1?"s":""}` };
+        if (diff > 0) return { locked: false, msg: `🔓 Abierto — se bloquea en ${diff} día${diff!==1?"s":""}` };
       }
-      return { locked: false, msg: "ðŸ”“ Abierto" };
+      return { locked: false, msg: "🔓 Abierto" };
     }
-    return { locked: true, msg: "ðŸ”’ Bloqueado â€” ya no se pueden editar estos pronÃ³sticos" };
+    return { locked: true, msg: "🔒 Bloqueado — ya no se pueden editar estos pronósticos" };
   }
 
   function handleLogin() {
     setError("");
     if (!name.trim()) { setError("Ingresa tu nombre"); return; }
-    if (!pin.trim() || pin.length < 4) { setError("PIN debe tener al menos 4 dÃ­gitos"); return; }
+    if (!pin.trim() || pin.length < 4) { setError("PIN debe tener al menos 4 dígitos"); return; }
     const existing = participants.find(p => p.name.toLowerCase() === name.trim().toLowerCase());
     if (existing) {
       if (existing.pin !== pin) { setError("PIN incorrecto"); return; }
@@ -418,14 +418,14 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     return (
       <div key={m.id} className="match-row-hover" style={{...S.matchRow, opacity: m.home==="Por definir"?.6:1}}>
         <div style={{textAlign:"right",fontSize:"0.9rem",fontWeight:600,color:"#c8d0e0"}}>{m.home}</div>
-        <input type="number" min="0" max="99" placeholder="â€“"
+        <input type="number" min="0" max="99" placeholder="–"
           style={{...S.scoreInput, background: locked?"#0d1520":"#1a2540", cursor: locked?"not-allowed":"text", opacity: locked?.6:1}}
           value={pred.home ?? ""}
           disabled={locked}
           onChange={e => !locked && setPred(m.id, "home", e.target.value)}
         />
         <div style={{textAlign:"center",color:"#4a5a7e",fontWeight:700,fontSize:"0.7rem"}}>VS</div>
-        <input type="number" min="0" max="99" placeholder="â€“"
+        <input type="number" min="0" max="99" placeholder="–"
           style={{...S.scoreInput, background: locked?"#0d1520":"#1a2540", cursor: locked?"not-allowed":"text", opacity: locked?.6:1}}
           value={pred.away ?? ""}
           disabled={locked}
@@ -442,24 +442,24 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       <div style={S.card}>
         <div style={S.sectionTitle}><Icon.User /> Acceso al Concurso</div>
         <p style={{color:"#8899bb",marginBottom:20,lineHeight:1.6}}>
-          Si eres nuevo, escribe tu nombre y crea un PIN de 4+ dÃ­gitos.<br/>
+          Si eres nuevo, escribe tu nombre y crea un PIN de 4+ dígitos.<br/>
           Si ya participas, usa el mismo nombre y PIN.
         </p>
         <div style={{marginBottom:14}}>
           <label style={{fontSize:"0.8rem",letterSpacing:2,color:"#c9a84c",textTransform:"uppercase"}}>Tu Nombre</label>
-          <input style={{...S.input,marginTop:6}} placeholder="Ej: Carlos PÃ©rez"
+          <input style={{...S.input,marginTop:6}} placeholder="Ej: Carlos Pérez"
             value={name} onChange={e=>setName(e.target.value)}
             onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
         </div>
         <div style={{marginBottom:18}}>
-          <label style={{fontSize:"0.8rem",letterSpacing:2,color:"#c9a84c",textTransform:"uppercase"}}>PIN (mÃ­nimo 4 dÃ­gitos)</label>
-          <input style={{...S.input,marginTop:6}} type="password" placeholder="â€¢â€¢â€¢â€¢"
+          <label style={{fontSize:"0.8rem",letterSpacing:2,color:"#c9a84c",textTransform:"uppercase"}}>PIN (mínimo 4 dígitos)</label>
+          <input style={{...S.input,marginTop:6}} type="password" placeholder="••••"
             value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,""))}
             onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
         </div>
-        {error && <div style={{color:"#e74c3c",marginBottom:12,fontSize:"0.9rem"}}>âš  {error}</div>}
+        {error && <div style={{color:"#e74c3c",marginBottom:12,fontSize:"0.9rem"}}>⚠ {error}</div>}
         <button className="btn-hover" style={S.btn()} onClick={handleLogin}>
-          Entrar / Registrarse â†’
+          Entrar / Registrarse →
         </button>
         <div style={{marginTop:12,color:"#4a5a7e",fontSize:"0.78rem"}}>
           {participants.length} participante{participants.length!==1?"s":""} registrado{participants.length!==1?"s":""}
@@ -471,11 +471,11 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   if (step === "done") return (
     <div className="fade-in" style={{maxWidth:500,margin:"0 auto",textAlign:"center"}}>
       <div style={S.card}>
-        <div style={{fontSize:"4rem",marginBottom:16}}>âœ…</div>
-        <div style={{fontSize:"1.4rem",fontWeight:800,color:"#c9a84c",marginBottom:8}}>Â¡PronÃ³sticos guardados!</div>
+        <div style={{fontSize:"4rem",marginBottom:16}}>✅</div>
+        <div style={{fontSize:"1.4rem",fontWeight:800,color:"#c9a84c",marginBottom:8}}>¡Pronósticos guardados!</div>
         <div style={{color:"#8899bb",marginBottom:20}}>Hola <strong style={{color:"#e8eaf0"}}>{currentUser?.name}</strong>, tus predicciones quedaron guardadas.</div>
         <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-          <button className="btn-hover" style={S.btn()} onClick={()=>setStep("form")}>Editar PronÃ³sticos</button>
+          <button className="btn-hover" style={S.btn()} onClick={()=>setStep("form")}>Editar Pronósticos</button>
           <button className="btn-hover" style={S.btn("#8899bb",true)} onClick={()=>{setStep("login");setName("");setPin("");}}>Cambiar Usuario</button>
         </div>
       </div>
@@ -486,12 +486,12 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     <div className="fade-in">
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
         <div>
-          <span style={{color:"#c9a84c",fontWeight:800,fontSize:"1.1rem"}}>âš½ {currentUser?.name}</span>
-          <span style={{color:"#4a5a7e",marginLeft:8,fontSize:"0.85rem"}}>Â· Ingresa tus pronÃ³sticos</span>
+          <span style={{color:"#c9a84c",fontWeight:800,fontSize:"1.1rem"}}>⚽ {currentUser?.name}</span>
+          <span style={{color:"#4a5a7e",marginLeft:8,fontSize:"0.85rem"}}>· Ingresa tus pronósticos</span>
         </div>
         <div style={{display:"flex",gap:8}}>
           <button className="btn-hover" style={{...S.btn("#27ae60"),fontSize:"0.82rem",padding:"7px 16px"}} onClick={handleSave} disabled={saving}>
-            {saving ? "Guardando..." : "ðŸ’¾ Guardar Todo"}
+            {saving ? "Guardando..." : "💾 Guardar Todo"}
           </button>
           <button className="btn-hover" style={{...S.btn("#8899bb",true),fontSize:"0.82rem",padding:"7px 14px"}} onClick={()=>{setStep("login");setName("");setPin("");}}>Salir</button>
         </div>
@@ -502,7 +502,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
         {["groups","elim"].map(ph => (
           <button key={ph} className="nav-btn" style={S.navBtn(activePhase===ph)}
             onClick={()=>setActivePhase(ph)}>
-            {ph==="groups" ? "âš½ Fase de Grupos" : "ðŸ† Eliminatorias"}
+            {ph==="groups" ? "⚽ Fase de Grupos" : "🏆 Eliminatorias"}
           </button>
         ))}
       </div>
@@ -524,16 +524,16 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
           {(() => { const lk = getLockMessage("groups"); return (
             <div style={{background: lk.locked?"#2a0a0a":"#0a2215", border:`1px solid ${lk.locked?"#c0392b88":"#27ae6066"}`, borderRadius:8, padding:"8px 14px", marginBottom:12, fontSize:"0.83rem", color: lk.locked?"#e74c3c":"#2ecc71"}}>
               {lk.locked
-                ? "ðŸ”’ PronÃ³sticos de grupos cerrados â€” ya no se pueden modificar"
+                ? "🔒 Pronósticos de grupos cerrados — ya no se pueden modificar"
                 : lk.msg}
             </div>
           ); })()}
-          <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>Grupo {activeGroup} â€” {GROUPS[activeGroup].join(" Â· ")}</div>
+          <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>Grupo {activeGroup} — {GROUPS[activeGroup].join(" · ")}</div>
           {groupMatches.filter(m=>m.group===activeGroup).map(m => renderMatchRow(m, false, groupsLocked))}
           {!groupsLocked && (
             <div style={{display:"flex",justifyContent:"flex-end",marginTop:12}}>
               <button className="btn-hover" style={{...S.btn("#27ae60"),fontSize:"0.82rem"}} onClick={handleSave} disabled={saving}>
-                {saving ? "Guardando..." : "ðŸ’¾ Guardar"}
+                {saving ? "Guardando..." : "💾 Guardar"}
               </button>
             </div>
           )}
@@ -557,7 +557,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
           {(activeGroup||phases[0]) && (() => { const ph = activeGroup||phases[0]; const lk = getLockMessage(ph); return (
             <div style={{background: lk.locked?"#2a0a0a":"#0a2215", border:`1px solid ${lk.locked?"#c0392b88":"#27ae6066"}`, borderRadius:8, padding:"8px 14px", marginBottom:12, fontSize:"0.83rem", color: lk.locked?"#e74c3c":"#2ecc71"}}>
               {lk.locked
-                ? `ðŸ”’ ${phaseLabels[ph]} cerrado â€” ya no se pueden modificar estos pronÃ³sticos`
+                ? `🔒 ${phaseLabels[ph]} cerrado — ya no se pueden modificar estos pronósticos`
                 : lk.msg}
             </div>
           ); })()}
@@ -568,7 +568,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
                 {!phaseLocked && (
                   <div style={{display:"flex",justifyContent:"flex-end",marginTop:12}}>
                     <button className="btn-hover" style={{...S.btn("#27ae60"),fontSize:"0.82rem"}} onClick={handleSave} disabled={saving}>
-                      {saving ? "Guardando..." : "ðŸ’¾ Guardar"}
+                      {saving ? "Guardando..." : "💾 Guardar"}
                     </button>
                   </div>
                 )}
@@ -581,9 +581,9 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 // FIXTURE VIEW (read-only for participants)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 function FixtureView({ matches }) {
   const [activeGroup, setActiveGroup] = useState("A");
   const [activePhase, setActivePhase] = useState("groups");
@@ -608,7 +608,7 @@ function FixtureView({ matches }) {
           fontSize:"1.1rem",fontWeight:800,
           color: hasResult?"#27ae60":"#4a5a7e",
           minWidth:36, textAlign:"center",
-        }}>{hasResult ? m.realHome : "â€“"}</div>
+        }}>{hasResult ? m.realHome : "–"}</div>
         <div style={{color:"#4a5a7e",fontWeight:700,fontSize:"0.7rem",padding:"0 4px"}}>VS</div>
         <div style={{
           background: hasResult?"#1e3a2e":"#1a2540",
@@ -617,7 +617,7 @@ function FixtureView({ matches }) {
           fontSize:"1.1rem",fontWeight:800,
           color: hasResult?"#27ae60":"#4a5a7e",
           minWidth:36, textAlign:"center",
-        }}>{hasResult ? m.realAway : "â€“"}</div>
+        }}>{hasResult ? m.realAway : "–"}</div>
         <div style={{textAlign:"left",fontWeight:600,fontSize:"0.88rem",color:"#c8d0e0"}}>{m.away}</div>
       </div>
     );
@@ -628,7 +628,7 @@ function FixtureView({ matches }) {
       <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
         {["groups","elim"].map(ph=>(
           <button key={ph} className="nav-btn" style={S.navBtn(activePhase===ph)} onClick={()=>setActivePhase(ph)}>
-            {ph==="groups"?"âš½ Grupos":"ðŸ† Eliminatorias"}
+            {ph==="groups"?"⚽ Grupos":"🏆 Eliminatorias"}
           </button>
         ))}
       </div>
@@ -636,7 +636,7 @@ function FixtureView({ matches }) {
       {activePhase==="groups" && (
         <>
           <div style={{background:"#0d1520",border:"1px solid #c9a84c44",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:"0.8rem",color:"#8899bb",lineHeight:1.7}}>
-            âš ï¸ <strong style={{color:"#c9a84c"}}>6 plazas por repechaje (marzo 2026):</strong> UEFA A (Ita/NIrl/Gal/Bos) Â· UEFA B (Ucr/Sue/Pol/Alb) Â· UEFA C (Tur/Rum/Esl/Kos) Â· UEFA D (Din/Mac/CZE/Irl) Â· Intercont.1 (Jam/NCal/RDC) Â· Intercont.2 (Bol/Sur/Irak)
+            ⚠️ <strong style={{color:"#c9a84c"}}>6 plazas por repechaje (marzo 2026):</strong> UEFA A (Ita/NIrl/Gal/Bos) · UEFA B (Ucr/Sue/Pol/Alb) · UEFA C (Tur/Rum/Esl/Kos) · UEFA D (Din/Mac/CZE/Irl) · Intercont.1 (Jam/NCal/RDC) · Intercont.2 (Bol/Sur/Irak)
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
             {Object.keys(GROUPS).map(g=>(
@@ -680,9 +680,9 @@ function FixtureView({ matches }) {
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 // ADMIN PANEL
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 function AdminPanel({ matches, setMatches, participants, setParticipants, adminUnlocked, setAdminUnlocked }) {
   const [adminPin, setAdminPin] = useState("");
   const [authed, setAuthed] = useState(false);
@@ -695,7 +695,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
   const ADMIN = "2026";
 
   const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#c9a84c"};
-  const phaseLabels = {round32:"Octavos de Final",quarters:"Cuartos de Final",semis:"Semifinales",third:"Tercer Lugar",final:"ðŸ† Gran Final"};
+  const phaseLabels = {round32:"Octavos de Final",quarters:"Cuartos de Final",semis:"Semifinales",third:"Tercer Lugar",final:"🏆 Gran Final"};
   const groupMatches = matches.filter(m=>m.phase==="groups");
   const elimMatches = matches.filter(m=>m.phase!=="groups");
   const phases = [...new Set(elimMatches.map(m=>m.phase))];
@@ -727,7 +727,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
   }
 
   function removeParticipant(id) {
-    if (!window.confirm("Â¿Eliminar este participante?")) return;
+    if (!window.confirm("¿Eliminar este participante?")) return;
     const updated = participants.filter(p=>p.id!==id);
     setParticipants(updated);
     saveData("participants", updated);
@@ -750,12 +750,12 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
     <div className="fade-in">
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
         <div style={{display:"flex",gap:8}}>
-          {[["results","âš½ Resultados"],["teams","ðŸ”§ Equipos Elim."],["locks","ðŸ”’ Bloqueos"],["users","ðŸ‘¥ Participantes"]].map(([t,l])=>(
+          {[["results","⚽ Resultados"],["teams","🔧 Equipos Elim."],["locks","🔒 Bloqueos"],["users","👥 Participantes"]].map(([t,l])=>(
             <button key={t} className="nav-btn" style={S.navBtn(activeTab===t)} onClick={()=>setActiveTab(t)}>{l}</button>
           ))}
         </div>
         <button className="btn-hover" style={{...S.btn(saved?"#27ae60":"#c9a84c"),transition:"all .3s"}} onClick={handleSave}>
-          {saved ? "âœ… Guardado!" : "ðŸ’¾ Guardar Resultados"}
+          {saved ? "✅ Guardado!" : "💾 Guardar Resultados"}
         </button>
       </div>
 
@@ -764,7 +764,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
           <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
             {["groups","elim"].map(ph=>(
               <button key={ph} className="nav-btn" style={S.navBtn(activePhase===ph)} onClick={()=>setActivePhase(ph)}>
-                {ph==="groups"?"âš½ Grupos":"ðŸ† Eliminatorias"}
+                {ph==="groups"?"⚽ Grupos":"🏆 Eliminatorias"}
               </button>
             ))}
           </div>
@@ -786,16 +786,16 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                 <div key={m.id} style={{...S.matchRow,gridTemplateColumns:"auto 1fr auto auto auto 1fr auto",gap:8,marginBottom:6}}>
                   <span style={{color:"#4a5a7e",fontSize:"0.75rem",minWidth:40}}>{m.date}</span>
                   <div style={{textAlign:"right",fontWeight:600,fontSize:"0.88rem"}}>{m.home}</div>
-                  <input type="number" min="0" max="99" placeholder="â€“" style={S.scoreInput}
+                  <input type="number" min="0" max="99" placeholder="–" style={S.scoreInput}
                     value={m.realHome ?? ""}
                     onChange={e=>setResult(m.id,"home",e.target.value)} />
                   <span style={{color:"#4a5a7e",fontWeight:700,fontSize:"0.7rem"}}>VS</span>
-                  <input type="number" min="0" max="99" placeholder="â€“" style={S.scoreInput}
+                  <input type="number" min="0" max="99" placeholder="–" style={S.scoreInput}
                     value={m.realAway ?? ""}
                     onChange={e=>setResult(m.id,"away",e.target.value)} />
                   <div style={{fontWeight:600,fontSize:"0.88rem"}}>{m.away}</div>
                   <span style={{fontSize:"0.8rem",color:m.realHome!==null?"#27ae60":"#4a5a7e"}}>
-                    {m.realHome!==null?"âœ…":"â³"}
+                    {m.realHome!==null?"✅":"⏳"}
                   </span>
                 </div>
               ))}
@@ -811,14 +811,14 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                     <div key={m.id} style={{...S.matchRow,gridTemplateColumns:"auto 1fr auto auto auto 1fr auto",gap:8,marginBottom:6}}>
                       <span style={{color:"#4a5a7e",fontSize:"0.75rem",minWidth:40}}>{m.date}</span>
                       <div style={{textAlign:"right",fontWeight:600,fontSize:"0.88rem",color:"#8899bb"}}>{m.home}</div>
-                      <input type="number" min="0" max="99" placeholder="â€“" style={S.scoreInput}
+                      <input type="number" min="0" max="99" placeholder="–" style={S.scoreInput}
                         value={m.realHome??""} onChange={e=>setResult(m.id,"home",e.target.value)} />
                       <span style={{color:"#4a5a7e",fontWeight:700,fontSize:"0.7rem"}}>VS</span>
-                      <input type="number" min="0" max="99" placeholder="â€“" style={S.scoreInput}
+                      <input type="number" min="0" max="99" placeholder="–" style={S.scoreInput}
                         value={m.realAway??""} onChange={e=>setResult(m.id,"away",e.target.value)} />
                       <div style={{fontWeight:600,fontSize:"0.88rem",color:"#8899bb"}}>{m.away}</div>
                       <span style={{fontSize:"0.8rem",color:m.realHome!==null?"#27ae60":"#4a5a7e"}}>
-                        {m.realHome!==null?"âœ…":"â³"}
+                        {m.realHome!==null?"✅":"⏳"}
                       </span>
                     </div>
                   ))}
@@ -852,7 +852,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
             </div>
           ))}
           <div style={{marginTop:16}}>
-            <button className="btn-hover" style={S.btn()} onClick={handleSave}>ðŸ’¾ Guardar Equipos</button>
+            <button className="btn-hover" style={S.btn()} onClick={handleSave}>💾 Guardar Equipos</button>
           </div>
         </div>
       )}
@@ -861,17 +861,17 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
         <div>
           <div style={{...S.card, background:"#0d1520", border:"1px solid #c9a84c44", marginBottom:16}}>
             <p style={{color:"#8899bb",lineHeight:1.7, margin:0}}>
-              AquÃ­ puedes <strong style={{color:"#c9a84c"}}>desbloquear manualmente</strong> una fase si un participante cometiÃ³ un error legÃ­timo antes del cierre.<br/>
-              Los bloqueos se activan automÃ¡ticamente segÃºn las fechas configuradas.
+              Aquí puedes <strong style={{color:"#c9a84c"}}>desbloquear manualmente</strong> una fase si un participante cometió un error legítimo antes del cierre.<br/>
+              Los bloqueos se activan automáticamente según las fechas configuradas.
             </p>
           </div>
           {[
-            {phase:"groups",  label:"âš½ Fase de Grupos",   lockDate:"10 Jun 2026", color:"#1F618D"},
-            {phase:"round32", label:"ðŸ† Octavos de Final", lockDate:"1 Jul 2026",  color:"#c0392b"},
-            {phase:"quarters",label:"ðŸ† Cuartos de Final", lockDate:"3 Jul 2026",  color:"#8e44ad"},
-            {phase:"semis",   label:"ðŸ† Semifinales",      lockDate:"14 Jul 2026", color:"#e67e22"},
-            {phase:"third",   label:"ðŸ† Tercer Lugar",     lockDate:"17 Jul 2026", color:"#2980b9"},
-            {phase:"final",   label:"ðŸ† Gran Final",       lockDate:"18 Jul 2026", color:"#c9a84c"},
+            {phase:"groups",  label:"⚽ Fase de Grupos",   lockDate:"10 Jun 2026", color:"#1F618D"},
+            {phase:"round32", label:"🏆 Octavos de Final", lockDate:"1 Jul 2026",  color:"#c0392b"},
+            {phase:"quarters",label:"🏆 Cuartos de Final", lockDate:"3 Jul 2026",  color:"#8e44ad"},
+            {phase:"semis",   label:"🏆 Semifinales",      lockDate:"14 Jul 2026", color:"#e67e22"},
+            {phase:"third",   label:"🏆 Tercer Lugar",     lockDate:"17 Jul 2026", color:"#2980b9"},
+            {phase:"final",   label:"🏆 Gran Final",       lockDate:"18 Jul 2026", color:"#c9a84c"},
           ].map(({phase, label, lockDate, color}) => {
             const autoLocked = isPhaseLocked(phase, {});
             const manuallyUnlocked = !!adminUnlocked[phase];
@@ -885,10 +885,10 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                 <div>
                   <div style={{fontWeight:700, fontSize:"1rem", color:"#e8eaf0"}}>{label}</div>
                   <div style={{fontSize:"0.78rem", color:"#4a5a7e", marginTop:3}}>
-                    Se bloquea automÃ¡ticamente: <strong style={{color:"#8899bb"}}>{lockDate}</strong>
+                    Se bloquea automáticamente: <strong style={{color:"#8899bb"}}>{lockDate}</strong>
                   </div>
                   <div style={{fontSize:"0.82rem", marginTop:4, color: currentlyLocked?"#e74c3c":"#2ecc71"}}>
-                    {currentlyLocked ? "ðŸ”’ Bloqueado" : autoLocked ? "ðŸ”“ Desbloqueado manualmente por admin" : "ðŸ”“ Abierto (fecha no alcanzada)"}
+                    {currentlyLocked ? "🔒 Bloqueado" : autoLocked ? "🔓 Desbloqueado manualmente por admin" : "🔓 Abierto (fecha no alcanzada)"}
                   </div>
                 </div>
                 {autoLocked && (
@@ -898,7 +898,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                       fontSize:"0.8rem", padding:"7px 14px", whiteSpace:"nowrap"
                     }}
                     onClick={()=>toggleUnlock(phase)}>
-                    {manuallyUnlocked ? "ðŸ”’ Volver a Bloquear" : "ðŸ”“ Desbloquear"}
+                    {manuallyUnlocked ? "🔒 Volver a Bloquear" : "🔓 Desbloquear"}
                   </button>
                 )}
               </div>
@@ -910,9 +910,9 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
       {activeTab==="users" && (
         <div>
           <div style={{...S.sectionTitle,marginBottom:12}}>
-            ðŸ‘¥ {participants.length} Participantes
+            👥 {participants.length} Participantes
           </div>
-          {participants.length===0 && <div style={{color:"#4a5a7e",padding:20}}>Sin participantes aÃºn</div>}
+          {participants.length===0 && <div style={{color:"#4a5a7e",padding:20}}>Sin participantes aún</div>}
           {[...participants].sort((a,b)=>{
             const pa=calcParticipantPoints(a.predictions,matches);
             const pb=calcParticipantPoints(b.predictions,matches);
@@ -926,7 +926,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                   <span style={{color:"#4a5a7e",fontWeight:700,minWidth:28}}>#{i+1}</span>
                   <div>
                     <div style={{fontWeight:700}}>{p.name}</div>
-                    <div style={{fontSize:"0.75rem",color:"#4a5a7e"}}>{predCount} pronÃ³sticos Â· registrado {new Date(p.createdAt).toLocaleDateString()}</div>
+                    <div style={{fontSize:"0.75rem",color:"#4a5a7e"}}>{predCount} pronósticos · registrado {new Date(p.createdAt).toLocaleDateString()}</div>
                   </div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -936,7 +936,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                   </div>
                   <button onClick={()=>removeParticipant(p.id)}
                     style={{background:"transparent",border:"1px solid #c0392b44",color:"#c0392b",borderRadius:6,padding:"4px 10px",cursor:"pointer",fontSize:"0.8rem"}}>
-                    âœ•
+                    ✕
                   </button>
                 </div>
               </div>
@@ -948,9 +948,9 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const [view, setView] = useState("leaderboard");
   const [matches, setMatches] = useState(INITIAL_MATCHES);
@@ -971,10 +971,10 @@ export default function App() {
   }, []);
 
   const tabs = [
-    { id:"leaderboard", label:"ðŸ“Š ClasificaciÃ³n" },
-    { id:"form", label:"âš½ Mis PronÃ³sticos" },
-    { id:"fixture", label:"ðŸ“… Fixture" },
-    { id:"admin", label:"âš™ï¸ Admin" },
+    { id:"leaderboard", label:"📊 Clasificación" },
+    { id:"form", label:"⚽ Mis Pronósticos" },
+    { id:"fixture", label:"📅 Fixture" },
+    { id:"admin", label:"⚙️ Admin" },
   ];
 
   const totalMatches = matches.filter(m=>m.realHome!==null).length;
@@ -984,7 +984,7 @@ export default function App() {
     <div style={{...S.app,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <FontLink />
       <div style={{textAlign:"center"}}>
-        <div style={{fontSize:"3rem",marginBottom:12}} className="pulse">âš½</div>
+        <div style={{fontSize:"3rem",marginBottom:12}} className="pulse">⚽</div>
         <div style={{color:"#c9a84c",fontSize:"1.1rem",letterSpacing:3}}>CARGANDO...</div>
       </div>
     </div>
@@ -996,11 +996,11 @@ export default function App() {
       <header style={S.header}>
         <div style={S.headerInner}>
           <div style={S.logo}>
-            <span style={{fontSize:"1.8rem"}}>âš½</span>
+            <span style={{fontSize:"1.8rem"}}>⚽</span>
             <div>
               <div>Mundial 2026</div>
               <div style={{fontSize:"0.65rem",letterSpacing:4,color:"#8899bb",fontWeight:400}}>
-                USA Â· CANADA Â· MEXICO
+                USA · CANADA · MEXICO
               </div>
             </div>
           </div>
@@ -1013,7 +1013,7 @@ export default function App() {
           </nav>
         </div>
         <div style={{background:"#0a0e1a",borderTop:"1px solid #1e2d4a",padding:"5px 20px",textAlign:"center",fontSize:"0.75rem",color:"#4a5a7e",letterSpacing:1}}>
-          ðŸŸ {participants.length} PARTICIPANTES &nbsp;Â·&nbsp; âš½ {totalMatches}/{totalPossible} PARTIDOS COMPLETADOS &nbsp;Â·&nbsp; 11 JUN â€“ 19 JUL 2026
+          🏟 {participants.length} PARTICIPANTES &nbsp;·&nbsp; ⚽ {totalMatches}/{totalPossible} PARTIDOS COMPLETADOS &nbsp;·&nbsp; 11 JUN – 19 JUL 2026
         </div>
       </header>
 
