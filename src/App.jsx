@@ -372,7 +372,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     return { locked: true, msg: "ðŸ”’ Bloqueado â€” ya no se pueden editar estos pronÃ³sticos" };
   }
 
-
+  function handleLogin() {
     setError("");
     if (!name.trim()) { setError("Ingresa tu nombre"); return; }
     if (!pin.trim() || pin.length < 4) { setError("PIN debe tener al menos 4 dÃ­gitos"); return; }
