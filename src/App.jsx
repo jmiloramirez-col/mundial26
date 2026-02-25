@@ -362,17 +362,13 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   async function handleSave() {
     setSaving(true);
     try {
-      console.log("Intentando guardar...");
       const updatedUser = {...currentUser, predictions:preds};
       const newParticipants = [...participants.filter(p=>p.id!==currentUser.id), updatedUser];
-      console.log("Datos a guardar:", newParticipants);
       await setDoc(PARTICIPANTS_DOC, {list: newParticipants});
-      console.log("Guardado exitoso!");
       setParticipants(newParticipants);
       setStep("done");
     } catch(e) {
-      console.log("ERROR:", e.message);
-      alert("Error: " + e.message);
+      alert("Error al guardar: "+e.message);
     } finally {
       setSaving(false);
     }
