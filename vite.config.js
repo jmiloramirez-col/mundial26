@@ -3,23 +3,15 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-    },
-  },
-  build: {
-    charset: 'utf8',
-  },
 })
 ```
 
-Guarda con **Ctrl+S** y luego en la terminal:
+Guarda con **Ctrl+S** y luego en la terminal escribe los 3 comandos **uno por uno**:
 ```
 git add .
 ```
 ```
-git commit -m "fix utf8 vercel"
+git commit -m "fix vite config"
 ```
 ```
 git push
