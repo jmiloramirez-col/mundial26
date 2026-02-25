@@ -16,6 +16,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+// ESTA LÍNEA ES VITAL:
+const DATA_DOC = doc(db, "tournament", "globalData");
 
 import { useState, useEffect, useCallback } from "react";
 
