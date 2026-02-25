@@ -1,3 +1,21 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDL2FV0gfT5b58f5mXmAPJMqSbwKde0IV0",
+  authDomain: "mundial2026-2026.firebaseapp.com",
+  projectId: "mundial2026-2026",
+  storageBucket: "mundial2026-2026.firebasestorage.app",
+  messagingSenderId: "76029862427",
+  appId: "1:76029862427:web:23f21566a32e1c40610ebe"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
 import { useState, useEffect, useCallback } from "react";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
