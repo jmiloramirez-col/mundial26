@@ -18,6 +18,17 @@ const app = initializeApp(firebaseConfig);
 
 import { useState, useEffect, useCallback } from "react";
 
+// Dentro de tu componente principal App:
+useEffect(() => {
+  async function init() {
+    const data = await loadDataFromFirebase();
+    if (data) {
+      setParticipants(data.participants || []);
+      setMatches(data.matches || INITIAL_MATCHES);
+    }
+  }
+  init();
+}, []);
 // ─── DATA ────────────────────────────────────────────────────────────────────
 // Grupos oficiales — Sorteo realizado el 5 de diciembre de 2025, Kennedy Center, Washington D.C.
 // 6 plazas pendientes de repechaje (marzo 2026): UEFA A, UEFA B, UEFA C, UEFA D, Intercontinental 1, Intercontinental 2
