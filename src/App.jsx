@@ -143,13 +143,35 @@ function calcParticipantPoints(predictions, matches) {
 }
 
 // ─── STORAGE HELPERS ─────────────────────────────────────────────────────────
-async function loadData(key) {
-  try { const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; }
-  catch { return null; }
+import { doc, setDoc, getDoc } from "firebase/firestore";
+
+// Reemplaza tus funciones antiguas por estas:
+async function loadDataFromFirebase() {
+  try {
+    const docRef = doc(db, "mundial", "predicciones");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data(); // Esto traerá { participants: [...], matches: [...] }
+    }
+    return null;
+  } catch (error) {
+    console.error("Error cargando datos:", error);
+    return null;
+  }
 }
-async function saveData(key, val) {
-  try { await window.storage.set(key, JSON.stringify(val), true); return true; }
-  catch { return false; }
+
+async function saveDataToFirebase(participants, matches) {
+  try {
+    await setDoc(doc(db, "mundial", "predicciones"), {
+      participants,
+      matches,
+      lastUpdate: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error("Error guardando datos:", error);
+    return false;
+  }
 }
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
