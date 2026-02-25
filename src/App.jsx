@@ -396,108 +396,80 @@ function Leaderboard({ participants, matches }) {
 // ══════════════════════════════════════════════════════════════════════════════
 // PARTICIPANT FORM
 // ══════════════════════════════════════════════════════════════════════════════
-function ParticipantForm({ participants, setParticipants, matches, adminUnlocked }) {
-  const [step, setStep] = useState("login"); // login | form | done
+function ParticipantForm({ participants, setParticipants, matches }) {
+  const [step, setStep] = useState("login");
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [preds, setPreds] = useState({});
-  const [activeGroup, setActiveGroup] = useState("A");
-  const [activePhase, setActivePhase] = useState("groups");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-
-  const groupMatches = matches.filter(m => m.phase === "groups");
-  const elimMatches = matches.filter(m => m.phase !== "groups");
-  const phases = [...new Set(elimMatches.map(m=>m.phase))];
-  const phaseLabels = {round32:"Octavos de Final",quarters:"Cuartos de Final",semis:"Semifinales",third:"Tercer Lugar",final:"🏆 Gran Final"};
-  const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#c9a84c"};
-
-  const groupsLocked = isPhaseLocked("groups", adminUnlocked);
-  const elimPhaseLocked = (ph) => isPhaseLocked(ph, adminUnlocked);
-
-  function getLockMessage(phase) {
-    const locked = phase === "groups" ? groupsLocked : elimPhaseLocked(phase);
-    if (!locked) {
-      const d = LOCK_DATES[phase];
-      if (d) {
-        const diff = Math.ceil((d - new Date()) / (1000*60*60*24));
-        if (diff > 0) return { locked: false, msg: `🔓 Abierto — se bloquea en ${diff} día${diff!==1?"s":""}` };
-      }
-      return { locked: false, msg: "🔓 Abierto" };
-    }
-    return { locked: true, msg: "🔒 Bloqueado — ya no se pueden editar estos pronósticos" };
-  }
-
-  function handleLogin() {
-    setError("");
-    if (!name.trim()) { setError("Ingresa tu nombre"); return; }
-    if (!pin.trim() || pin.length < 4) { setError("PIN debe tener al menos 4 dígitos"); return; }
-    const existing = participants.find(p => p.name.toLowerCase() === name.trim().toLowerCase());
-    if (existing) {
-      if (existing.pin !== pin) { setError("PIN incorrecto"); return; }
-      setCurrentUser(existing);
-      setPreds(existing.predictions || {});
-      setStep("form");
-    } else {
-      const newUser = { id: Date.now(), name: name.trim(), pin, predictions:{}, createdAt: new Date().toISOString() };
-      const updated = [...participants, newUser];
-      setParticipants(updated);
-      saveData("participants", updated);
-      setCurrentUser(newUser);
-      setPreds({});
-      setStep("form");
-    }
-  }
-
-  function setPred(matchId, side, val) {
-    const v = val === "" ? "" : Math.max(0, parseInt(val) || 0);
-    setPreds(prev => ({
-      ...prev,
-      [matchId]: { ...(prev[matchId]||{}), [side]: v === "" ? null : v }
-    }));
-  }
-
-  // 1. Asegúrate de que esta variable esté definida al inicio de ParticipantForm
   const [saving, setSaving] = useState(false);
 
-  // 2. Reemplaza la función completa
-  async function handleSave() {
-    alert("¡Botón presionado!"); // Esto DEBE aparecer sí o sí
-    console.log("Iniciando proceso...");
-    
+  // FUNCIÓN DE GUARDADO DEFINITIVA
+  const ejecutarGuardado = async () => {
+    console.log("Intentando guardar...");
     setSaving(true);
     try {
-      // Forzamos la creación del objeto para asegurarnos de que no esté vacío
-      const dataParaGuardar = {
-        participants: participants,
-        matches: matches,
-        lastUpdate: new Date().toISOString()
-      };
+      // 1. Preparamos los datos
+      const listaActualizada = participants.map(p => 
+        p.id === currentUser.id ? { ...p, predictions: preds } : p
+      );
 
-      console.log("Enviando a Firebase...", dataParaGuardar);
-      
-      await setDoc(DATA_DOC, dataParaGuardar);
-      
-      alert("✅ ¡Guardado en Firebase con éxito!");
+      // 2. Enviamos a Firebase (DATA_DOC debe estar definido arriba)
+      await setDoc(DATA_DOC, {
+        participants: listaActualizada,
+        matches: matches,
+        ultimaActualizacion: new Date().toISOString()
+      });
+
+      // 3. Actualizamos la pantalla
+      setParticipants(listaActualizada);
+      alert("¡ÉXITO! Datos guardados en la nube.");
       setStep("done");
     } catch (error) {
-      console.error("Error crítico:", error);
-      alert("❌ Error de conexión: " + error.message);
+      console.error("ERROR:", error);
+      alert("Error de conexión: " + error.message);
     } finally {
       setSaving(false);
     }
+  };
+
+  if (step === "login") {
+    return (
+      <div style={S.card}>
+        <h3>Identifícate</h3>
+        <input style={S.input} placeholder="Tu nombre" onChange={e => setName(e.target.value)} />
+        <input style={S.input} type="password" placeholder="PIN" onChange={e => setPin(e.target.value)} />
+        <button style={S.btn()} onClick={() => {
+           const encontrado = participants.find(p => p.name.toLowerCase() === name.toLowerCase());
+           if(encontrado) {
+             if(encontrado.pin === pin) { setCurrentUser(encontrado); setPreds(encontrado.predictions || {}); setStep("form"); }
+             else { alert("PIN incorrecto"); }
+           } else {
+             const nuevo = { id: Date.now(), name, pin, predictions: {} };
+             setCurrentUser(nuevo); setPreds({}); setStep("form");
+           }
+        }}>Entrar</button>
+      </div>
+    );
   }
 
-    console.log("3. ¡Firebase respondió con éxito!");
-    setParticipants(updatedParticipants);
-    setStep("done");
-  } catch (error) {
-    console.log("ERROR DETECTADO:", error.code, error.message);
-    alert("Error: " + error.message);
-  } finally {
-    setSaving(false);
-  }
+  return (
+    <div style={S.card}>
+      <h3>Hola, {currentUser?.name}</h3>
+      <p>Completa tus resultados y presiona el botón verde.</p>
+      
+      {/* ... aquí iría tu lista de partidos ... */}
+
+      <button 
+        type="button"
+        disabled={saving}
+        style={{...S.btn("#27ae60"), width: "100%", marginTop: "20px"}} 
+        onClick={ejecutarGuardado}
+      >
+        {saving ? "ENVIANDO A GOOGLE..." : "💾 GUARDAR TODO"}
+      </button>
+    </div>
+  );
 }
 
   function renderMatchRow(m, showResult=false, locked=false) {
