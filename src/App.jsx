@@ -459,27 +459,32 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   }
 
   async function handleSave() {
-  if (!currentUser) return;
+  console.log("1. Click detectado"); // Verifica si el botón responde
+  if (!currentUser) {
+    console.log("Error: No hay usuario logueado");
+    return;
+  }
+  
   setSaving(true);
   try {
     const updatedParticipants = participants.map(p =>
       p.id === currentUser.id ? { ...p, predictions: preds } : p
     );
 
-    // Intento de guardado
+    console.log("2. Intentando enviar a Firebase...", DATA_DOC.path);
+
     await setDoc(DATA_DOC, {
       participants: updatedParticipants,
       matches: matches,
       lastUpdate: new Date().toISOString()
     });
 
+    console.log("3. ¡Firebase respondió con éxito!");
     setParticipants(updatedParticipants);
     setStep("done");
-    alert("¡Guardado exitoso!"); 
   } catch (error) {
-    // ESTO TE DIRÁ EL ERROR REAL (Ej: "Missing or insufficient permissions")
-    console.error("Error al guardar:", error);
-    alert("Error de Firebase: " + error.message);
+    console.log("ERROR DETECTADO:", error.code, error.message);
+    alert("Error: " + error.message);
   } finally {
     setSaving(false);
   }
