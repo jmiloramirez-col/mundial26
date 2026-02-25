@@ -1028,15 +1028,15 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      const [savedMatches, savedParticipants, savedUnlocked] = await Promise.all([
-        loadData("matches"), loadData("participants"), loadData("adminUnlocked")
-      ]);
-      if (savedMatches) setMatches(savedMatches);
-      if (savedParticipants) setParticipants(savedParticipants);
-      if (savedUnlocked) setAdminUnlocked(savedUnlocked);
-      setLoading(false);
-    })();
+    // Escucha cambios en tiempo real desde Firebase
+    const unsub = onSnapshot(DATA_DOC, (docSnap) => {
+      if (docSnap.exists()) {
+        const d = docSnap.data();
+        if (d.participants) setParticipants(d.participants);
+        if (d.matches) setMatches(d.matches);
+      }
+    });
+    return () => unsub();
   }, []);
 
   const tabs = [
