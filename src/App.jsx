@@ -458,26 +458,36 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     }));
   }
 
+  // 1. Asegúrate de que esta variable esté definida al inicio de ParticipantForm
+  const [saving, setSaving] = useState(false);
+
+  // 2. Reemplaza la función completa
   async function handleSave() {
-  console.log("1. Click detectado"); // Verifica si el botón responde
-  if (!currentUser) {
-    console.log("Error: No hay usuario logueado");
-    return;
+    alert("¡Botón presionado!"); // Esto DEBE aparecer sí o sí
+    console.log("Iniciando proceso...");
+    
+    setSaving(true);
+    try {
+      // Forzamos la creación del objeto para asegurarnos de que no esté vacío
+      const dataParaGuardar = {
+        participants: participants,
+        matches: matches,
+        lastUpdate: new Date().toISOString()
+      };
+
+      console.log("Enviando a Firebase...", dataParaGuardar);
+      
+      await setDoc(DATA_DOC, dataParaGuardar);
+      
+      alert("✅ ¡Guardado en Firebase con éxito!");
+      setStep("done");
+    } catch (error) {
+      console.error("Error crítico:", error);
+      alert("❌ Error de conexión: " + error.message);
+    } finally {
+      setSaving(false);
+    }
   }
-  
-  setSaving(true);
-  try {
-    const updatedParticipants = participants.map(p =>
-      p.id === currentUser.id ? { ...p, predictions: preds } : p
-    );
-
-    console.log("2. Intentando enviar a Firebase...", DATA_DOC.path);
-
-    await setDoc(DATA_DOC, {
-      participants: updatedParticipants,
-      matches: matches,
-      lastUpdate: new Date().toISOString()
-    });
 
     console.log("3. ¡Firebase respondió con éxito!");
     setParticipants(updatedParticipants);
