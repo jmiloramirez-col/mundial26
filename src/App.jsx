@@ -880,8 +880,7 @@ export default function App() {
     <div style={S.app}>
       <FontStyle />
       <header style={S.header}>
-        <div style={S.headerInner}>
-          <div style={S.logo}>Mundial 2026</div>
+        <div style={S.headerInner}>        <div style={S.logo}>Mundial 2026</div>
           <nav style={S.nav}>
             {tabs.map(t=>(
               <button key={t.id} style={S.navBtn(view===t.id)} onClick={()=>setView(t.id)}>
