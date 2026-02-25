@@ -459,29 +459,31 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   }
 
   async function handleSave() {
-    if (!currentUser) return;
-    setSaving(true);
-    try {
-      const updatedParticipants = participants.map(p =>
-        p.id === currentUser.id ? { ...p, predictions: preds } : p
-      );
+  if (!currentUser) return;
+  setSaving(true);
+  try {
+    const updatedParticipants = participants.map(p =>
+      p.id === currentUser.id ? { ...p, predictions: preds } : p
+    );
 
-      // Guardamos en el documento de Firebase
-      await setDoc(DATA_DOC, {
-        participants: updatedParticipants,
-        matches: matches,
-        lastUpdate: new Date().toISOString()
-      });
+    // Intento de guardado
+    await setDoc(DATA_DOC, {
+      participants: updatedParticipants,
+      matches: matches,
+      lastUpdate: new Date().toISOString()
+    });
 
-      setParticipants(updatedParticipants);
-      setStep("done");
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      alert("No se pudo guardar: " + error.message);
-    } finally {
-      setSaving(false);
-    }
+    setParticipants(updatedParticipants);
+    setStep("done");
+    alert("¡Guardado exitoso!"); 
+  } catch (error) {
+    // ESTO TE DIRÁ EL ERROR REAL (Ej: "Missing or insufficient permissions")
+    console.error("Error al guardar:", error);
+    alert("Error de Firebase: " + error.message);
+  } finally {
+    setSaving(false);
   }
+}
 
   function renderMatchRow(m, showResult=false, locked=false) {
     const pred = preds[m.id] || {};
