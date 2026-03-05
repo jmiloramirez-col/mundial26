@@ -34,6 +34,12 @@ const GROUPS = {
   L: ["Inglaterra","Croacia","Ghana","Panamá"],
 }
 
+const GROUP_COLORS = {
+  A:"#e63946", B:"#2a9d8f", C:"#e76f51", D:"#457b9d",
+  E:"#6a4c93", F:"#f4a261", G:"#2d6a4f", H:"#e9c46a",
+  I:"#1d3557", J:"#c77dff", K:"#06d6a0", L:"#ef476f",
+};
+
 const LOCK_DATES = {
   groups:  new Date("2026-06-11T00:00:00"),
   round32: new Date("2026-06-28T00:00:00"),
@@ -877,7 +883,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     const pred = preds[m.id]||{};
     const pts = calcPoints(pred.home, pred.away, m.realHome, m.realAway);
     return (
-      <div key={m.id} style={{...S.matchRow, opacity:m.home==="Por definir"?.55:1}}>
+      <div key={m.id} style={{...S.matchRow, opacity:(m.home==="Por definir"||m.home?.startsWith("Gan.")||m.home?.startsWith("Per."))?.55:1}}>
         <div style={{textAlign:"right",fontSize:"0.85rem",fontWeight:600}}>{m.home}</div>
         <input type="number" min="0" max="99" placeholder="-"
           style={{...S.scoreInput, background:locked?"#f9fafb":"#f3f4f6", cursor:locked?"not-allowed":"text"}}
@@ -1157,7 +1163,7 @@ function FixtureView({ matches }) {
   function renderMatch(m) {
     const hasResult = m.realHome!==null&&m.realAway!==null;
     return (
-      <div key={m.id} style={{...S.matchRow,gridTemplateColumns:"1fr auto auto auto 1fr",opacity:m.home==="Por definir"?.5:1}}>
+      <div key={m.id} style={{...S.matchRow,gridTemplateColumns:"1fr auto auto auto 1fr",opacity:(m.home==="Por definir"||m.home?.startsWith("Gan.")||m.home?.startsWith("Per."))?.5:1}}>
         <div style={{textAlign:"right",fontWeight:600,fontSize:"0.85rem"}}>{m.home}</div>
         <div style={{background:hasResult?"#f0fdf4":"#f3f4f6",border:"1px solid "+(hasResult?"#16a34a66":"#d1d5db"),borderRadius:6,padding:"3px 8px",fontSize:"1rem",fontWeight:800,color:hasResult?"#27ae60":"#9ca3af",minWidth:32,textAlign:"center"}}>
           {hasResult?m.realHome:"-"}
