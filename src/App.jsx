@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 
-// ??? FIREBASE ????????????????????????????????????????????????????????????????
+// FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDL2FV0gfT5b58f5mXmAPJMqSbwKde0IV0",
   authDomain: "mundial2026-2026.firebaseapp.com",
@@ -16,8 +16,9 @@ const db = getFirestore(app);
 const PARTICIPANTS_DOC = doc(db, "tournament", "participants");
 const MATCHES_DOC = doc(db, "tournament", "matches");
 const SETTINGS_DOC = doc(db, "tournament", "settings");
+const INVOICES_DOC = doc(db, "tournament", "invoices");
 
-// ??? DATA ????????????????????????????????????????????????????????????????????
+// GROUPS
 const GROUPS = {
   A: ["Mexico", "Sudafrica", "Corea del Sur", "Rep. UEFA D*"],
   B: ["Canada", "Suiza", "Qatar", "Rep. UEFA A*"],
@@ -48,6 +49,16 @@ const LOCK_DATES = {
   final:   new Date("2026-07-18T00:00:00"),
 };
 
+// INVOICE POINTS SCALE (CAD)
+function calcInvoicePoints(amount) {
+  const a = parseFloat(amount);
+  if (isNaN(a) || a < 10) return 0;
+  if (a <= 50)  return 5;
+  if (a <= 100) return 10;
+  if (a <= 200) return 20;
+  return 30;
+}
+
 function isPhaseLocked(phase, adminUnlocked = {}) {
   if (adminUnlocked[phase]) return false;
   const lockDate = LOCK_DATES[phase];
@@ -74,8 +85,8 @@ function generateGroupMatches() {
   };
   Object.entries(GROUPS).forEach(([grp, teams]) => {
     [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]].forEach(([i,j], idx) => {
-      matches.push({ id: id++, phase:"groups", group:grp,
-        date: dates[grp]?.[idx]||"TBD",
+      matches.push({ id:id++, phase:"groups", group:grp,
+        date:dates[grp]?.[idx]||"TBD",
         home:teams[i], away:teams[j],
         realHome:null, realAway:null });
     });
@@ -106,7 +117,7 @@ function generateElimMatches() {
 
 const INITIAL_MATCHES = [...generateGroupMatches(), ...generateElimMatches()];
 
-// ??? SCORING ?????????????????????????????????????????????????????????????????
+// SCORING
 function calcPoints(predH, predA, realH, realA) {
   if (realH===null||realA===null||predH===null||predA===null) return null;
   const ph=Number(predH),pa=Number(predA),rh=Number(realH),ra=Number(realA);
@@ -118,7 +129,7 @@ function calcPoints(predH, predA, realH, realA) {
   return 0;
 }
 
-function calcParticipantPoints(predictions, matches) {
+function calcParticipantPoints(predictions, matches, invoices) {
   let total=0, exact=0, correct=0;
   matches.forEach(m => {
     const pred=predictions?.[m.id];
@@ -129,10 +140,15 @@ function calcParticipantPoints(predictions, matches) {
     if (pts===5) exact++;
     if (pts>=3) correct++;
   });
-  return {total,exact,correct};
+  // Add invoice bonus points
+  const invPts = (invoices||[])
+    .filter(inv=>inv.status==="approved")
+    .reduce((sum,inv)=>sum+calcInvoicePoints(inv.amount),0);
+  total += invPts;
+  return {total, exact, correct, invPts};
 }
 
-// ??? STYLES ??????????????????????????????????????????????????????????????????
+// STYLES
 const S = {
   app: {
     minHeight:"100vh", background:"#0a0e1a",
@@ -229,9 +245,21 @@ const S = {
     marginBottom:8, marginTop:16,
     color:"#fff",
   }),
+  invoiceCard: (status) => ({
+    background:"#0d1520",
+    border:"1px solid "+(status==="approved"?"#27ae6066":status==="rejected"?"#c0392b66":"#c9a84c66"),
+    borderRadius:8, padding:"12px 14px", marginBottom:8,
+    display:"flex", alignItems:"center", justifyContent:"space-between", gap:10,
+    flexWrap:"wrap",
+  }),
+  statusBadge: (status) => ({
+    display:"inline-block",
+    background:status==="approved"?"#27ae60":status==="rejected"?"#c0392b":"#e67e22",
+    color:"#fff", borderRadius:20,
+    padding:"3px 10px", fontSize:"0.75rem", fontWeight:700,
+  }),
 };
 
-// ??? GOOGLE FONTS ????????????????????????????????????????????????????????????
 const FontStyle = () => (
   <style>{`
     * { box-sizing:border-box; }
@@ -247,14 +275,14 @@ const FontStyle = () => (
   `}</style>
 );
 
-// ??????????????????????????????????????????????????????????????????????????????
 // LEADERBOARD
-// ??????????????????????????????????????????????????????????????????????????????
-function Leaderboard({ participants, matches }) {
+function Leaderboard({ participants, matches, invoices }) {
   const ranked = [...participants]
-    .map(p => ({...p, ...calcParticipantPoints(p.predictions, matches)}))
+    .map(p => {
+      const userInvoices = invoices.filter(inv=>inv.participantId===p.id);
+      return {...p, ...calcParticipantPoints(p.predictions, matches, userInvoices)};
+    })
     .sort((a,b) => b.total-a.total || b.exact-a.exact);
-  const medals = ["1", "2", "3"];
 
   return (
     <div className="fi">
@@ -266,16 +294,16 @@ function Leaderboard({ participants, matches }) {
       )}
       {ranked.map((p,i) => (
         <div key={p.id} style={S.leaderRow(i)}>
-          <div style={{fontSize:"1.4rem",width:28,textAlign:"center"}}>
+          <div style={{fontSize:"1.5rem"}}>
             {i===0?"":i===1?"":i===2?"":
               <span style={{color:"#4a5a7e",fontSize:"0.9rem",fontWeight:700}}>#{i+1}</span>}
-            {i<3 && <span>{["","",""][i]}</span>}
           </div>
-          <div style={{fontSize:"1.5rem"}}>{i===0?"":i===1?"":i===2?"":""}</div>
           <div style={{flex:1}}>
             <div style={{fontWeight:800,fontSize:"1rem"}}>{p.name}</div>
-            <div style={{color:"#4a5a7e",fontSize:"0.75rem",marginTop:2}}>
-              {p.exact} exactos &middot; {p.correct} acertados
+            <div style={{color:"#4a5a7e",fontSize:"0.75rem",marginTop:2,display:"flex",gap:10,flexWrap:"wrap"}}>
+              <span>{p.exact} exactos</span>
+              <span>{p.correct} acertados</span>
+              {p.invPts>0 && <span style={{color:"#c9a84c"}}>+{p.invPts} pts facturas</span>}
             </div>
           </div>
           <div style={{textAlign:"right"}}>
@@ -286,25 +314,137 @@ function Leaderboard({ participants, matches }) {
           </div>
         </div>
       ))}
-      <div style={{...S.card, marginTop:20}}>
+      <div style={{...S.card,marginTop:20}}>
         <div style={S.sectionTitle}>Sistema de Puntos</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10}}>
-          {[["5 pts","Resultado exacto","#27ae60"],["3 pts","Ganador correcto","#2980b9"],["0 pts","Resultado fallado","#c0392b"]].map(([pts,desc,color])=>(
-            <div key={pts} style={{background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"12px",textAlign:"center"}}>
-              <div style={{fontSize:"1.8rem",fontWeight:800,color}}>{pts}</div>
-              <div style={{color:"#8899bb",fontSize:"0.82rem",marginTop:3}}>{desc}</div>
-            </div>
-          ))}
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:"0.8rem",color:"#c9a84c",fontWeight:700,marginBottom:8,letterSpacing:1}}>PRONOSTICOS</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8}}>
+            {[["5 pts","Resultado exacto","#27ae60"],["3 pts","Ganador correcto","#2980b9"],["0 pts","Resultado fallado","#c0392b"]].map(([pts,desc,color])=>(
+              <div key={pts} style={{background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                <div style={{fontSize:"1.6rem",fontWeight:800,color}}>{pts}</div>
+                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div style={{fontSize:"0.8rem",color:"#c9a84c",fontWeight:700,marginBottom:8,letterSpacing:1}}>FACTURAS (CAD)</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8}}>
+            {[["5 pts","$10 - $50","#27ae60"],["10 pts","$51 - $100","#2980b9"],["20 pts","$101 - $200","#8e44ad"],["30 pts","Mas de $200","#c9a84c"]].map(([pts,range,color])=>(
+              <div key={pts} style={{background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                <div style={{fontSize:"1.4rem",fontWeight:800,color}}>{pts}</div>
+                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>{range}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ??????????????????????????????????????????????????????????????????????????????
+// INVOICE FORM
+function InvoiceForm({ currentUser, invoices, setInvoices }) {
+  const [invoiceNum, setInvoiceNum] = useState("");
+  const [amount, setAmount] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const myInvoices = invoices.filter(inv=>inv.participantId===currentUser.id);
+  const approvedPts = myInvoices.filter(inv=>inv.status==="approved")
+    .reduce((sum,inv)=>sum+calcInvoicePoints(inv.amount),0);
+
+  async function handleSubmit() {
+    if (!invoiceNum.trim()) { alert("Ingresa el numero de factura"); return; }
+    if (!amount || parseFloat(amount)<10) { alert("El monto minimo es $10 CAD"); return; }
+    const alreadyExists = invoices.find(inv=>inv.invoiceNum===invoiceNum.trim());
+    if (alreadyExists) { alert("Esta factura ya fue registrada"); return; }
+
+    setSaving(true);
+    try {
+      const newInvoice = {
+        id: Date.now(),
+        participantId: currentUser.id,
+        participantName: currentUser.name,
+        invoiceNum: invoiceNum.trim(),
+        amount: parseFloat(amount),
+        points: calcInvoicePoints(amount),
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+      const updated = [...invoices, newInvoice];
+      await setDoc(INVOICES_DOC, {list: updated});
+      setInvoices(updated);
+      setInvoiceNum("");
+      setAmount("");
+      setSuccess(true);
+      setTimeout(()=>setSuccess(false), 3000);
+    } catch(e) {
+      alert("Error: "+e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={S.card}>
+      <div style={S.sectionTitle}>Registrar Factura</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+        <div>
+          <label style={{fontSize:"0.75rem",color:"#c9a84c",letterSpacing:2,display:"block",marginBottom:5}}>
+            NUMERO DE FACTURA
+          </label>
+          <input style={S.input} placeholder="Ej: FAC-001234"
+            value={invoiceNum} onChange={e=>setInvoiceNum(e.target.value)} />
+        </div>
+        <div>
+          <label style={{fontSize:"0.75rem",color:"#c9a84c",letterSpacing:2,display:"block",marginBottom:5}}>
+            MONTO (CAD $)
+          </label>
+          <input style={S.input} type="number" min="10" placeholder="Ej: 150.00"
+            value={amount} onChange={e=>setAmount(e.target.value)} />
+        </div>
+      </div>
+      {amount && parseFloat(amount)>=10 && (
+        <div style={{background:"#0d2215",border:"1px solid #27ae6044",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:"0.85rem"}}>
+          Esta factura vale <strong style={{color:"#27ae60",fontSize:"1rem"}}>{calcInvoicePoints(amount)} puntos</strong> si es aprobada
+        </div>
+      )}
+      {success && (
+        <div style={{background:"#0d2215",border:"1px solid #27ae60",borderRadius:8,padding:"10px 14px",marginBottom:12,color:"#27ae60",fontSize:"0.85rem",fontWeight:700}}>
+          Factura enviada! Pendiente de aprobacion por el administrador.
+        </div>
+      )}
+      <button style={S.btn()} onClick={handleSubmit} disabled={saving}>
+        {saving?"Enviando...":"Enviar Factura"}
+      </button>
+
+      {myInvoices.length>0 && (
+        <div style={{marginTop:20}}>
+          <div style={{fontSize:"0.8rem",color:"#c9a84c",fontWeight:700,letterSpacing:1,marginBottom:10}}>
+            MIS FACTURAS ({myInvoices.length}) — {approvedPts} puntos acumulados
+          </div>
+          {myInvoices.map(inv=>(
+            <div key={inv.id} style={S.invoiceCard(inv.status)}>
+              <div>
+                <div style={{fontWeight:700,fontSize:"0.9rem"}}>{inv.invoiceNum}</div>
+                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>
+                  ${inv.amount} CAD &nbsp;|&nbsp; {inv.points} pts potenciales
+                </div>
+              </div>
+              <div style={S.statusBadge(inv.status)}>
+                {inv.status==="approved"?"Aprobada":inv.status==="rejected"?"Rechazada":"Pendiente"}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // PARTICIPANT FORM
-// ??????????????????????????????????????????????????????????????????????????????
-function ParticipantForm({ participants, setParticipants, matches, adminUnlocked }) {
+function ParticipantForm({ participants, setParticipants, matches, adminUnlocked, invoices, setInvoices }) {
   const [step, setStep] = useState("login");
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
@@ -313,6 +453,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   const [activeGroup, setActiveGroup] = useState("A");
   const [activePhase, setActivePhase] = useState("groups");
   const [activePh, setActivePh] = useState("round32");
+  const [activeTab, setActiveTab] = useState("pronosticos");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -329,18 +470,18 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     if (!locked) {
       const d = LOCK_DATES[phase];
       if (d) {
-        const diff = Math.ceil((d - new Date())/(1000*60*60*24));
+        const diff = Math.ceil((d-new Date())/(1000*60*60*24));
         if (diff>0) return {locked:false, msg:"Abierto - se bloquea en "+diff+" dia"+(diff!==1?"s":"")};
       }
       return {locked:false, msg:"Abierto"};
     }
-    return {locked:true, msg:"Bloqueado - ya no se pueden modificar"};
+    return {locked:true, msg:"Bloqueado"};
   }
 
   function handleLogin() {
     setError("");
     if (!name.trim()) { setError("Ingresa tu nombre"); return; }
-    if (!pin.trim()||pin.length<4) { setError("PIN debe tener al menos 4 digitos"); return; }
+    if (!pin.trim()||pin.length<4) { setError("PIN minimo 4 digitos"); return; }
     const existing = participants.find(p=>p.name.toLowerCase()===name.trim().toLowerCase());
     if (existing) {
       if (existing.pin!==pin) { setError("PIN incorrecto"); return; }
@@ -399,7 +540,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     <div className="fi" style={{maxWidth:400,margin:"0 auto"}}>
       <div style={S.card}>
         <div style={S.sectionTitle}>Acceso al Concurso</div>
-        <p style={{color:"#8899bb",marginBottom:16,fontSize:"0.88rem",lineHeight:1.6}}>
+        <p style={{color:"#8899bb",marginBottom:16,fontSize:"0.85rem",lineHeight:1.6}}>
           Nuevo: escribe tu nombre y crea un PIN de 4+ digitos.<br/>
           Ya participas: usa el mismo nombre y PIN.
         </p>
@@ -425,9 +566,9 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   if (step==="done") return (
     <div className="fi" style={{maxWidth:440,margin:"0 auto",textAlign:"center"}}>
       <div style={S.card}>
-        <div style={{fontSize:"3rem",marginBottom:12}}>OK</div>
-        <div style={{fontSize:"1.3rem",fontWeight:800,color:"#c9a84c",marginBottom:8}}>Pronosticos guardados!</div>
-        <div style={{color:"#8899bb",marginBottom:18}}>Hola <strong style={{color:"#e8eaf0"}}>{currentUser?.name}</strong>, tus predicciones quedaron guardadas.</div>
+        <div style={{fontSize:"3rem",marginBottom:10}}>OK</div>
+        <div style={{fontSize:"1.2rem",fontWeight:800,color:"#c9a84c",marginBottom:8}}>Guardado!</div>
+        <div style={{color:"#8899bb",marginBottom:16}}>Hola <strong style={{color:"#e8eaf0"}}>{currentUser?.name}</strong></div>
         <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
           <button style={S.btn()} onClick={()=>setStep("form")}>Editar Pronosticos</button>
           <button style={S.btn("#8899bb",true)} onClick={()=>{setStep("login");setName("");setPin("");}}>Cambiar Usuario</button>
@@ -449,63 +590,45 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       </div>
 
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-        {["groups","elim"].map(ph=>(
-          <button key={ph} style={S.navBtn(activePhase===ph)} onClick={()=>setActivePhase(ph)}>
-            {ph==="groups"?"Fase de Grupos":"Eliminatorias"}
-          </button>
+        {[["pronosticos","Mis Pronosticos"],["facturas","Mis Facturas"]].map(([t,l])=>(
+          <button key={t} style={S.navBtn(activeTab===t)} onClick={()=>setActiveTab(t)}>{l}</button>
         ))}
       </div>
 
-      {activePhase==="groups" && (
-        <>
-          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
-            {Object.keys(GROUPS).map(g=>(
-              <button key={g} style={{
-                ...S.navBtn(activeGroup===g),
-                background:activeGroup===g?GROUP_COLORS[g]:"transparent",
-                borderColor:GROUP_COLORS[g], color:activeGroup===g?"#fff":GROUP_COLORS[g],
-                padding:"4px 10px",fontSize:"0.75rem",
-              }} onClick={()=>setActiveGroup(g)}>Grp {g}</button>
-            ))}
-          </div>
-          {(()=>{const lk=getLockMsg("groups"); return(
-            <div style={{background:lk.locked?"#2a0a0a":"#0a2215",border:"1px solid "+(lk.locked?"#c0392b88":"#27ae6066"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
-              {lk.locked?"Pronosticos de grupos cerrados":lk.msg}
-            </div>
-          );})()}
-          <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>GRUPO {activeGroup}</div>
-          {groupMatches.filter(m=>m.group===activeGroup).map(m=>renderMatchRow(m, groupsLocked))}
-          {!groupsLocked && (
-            <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
-              <button style={{...S.btn("#27ae60"),fontSize:"0.8rem"}} onClick={handleSave} disabled={saving}>
-                {saving?"Guardando...":"Guardar"}
-              </button>
-            </div>
-          )}
-        </>
+      {activeTab==="facturas" && (
+        <InvoiceForm currentUser={currentUser} invoices={invoices} setInvoices={setInvoices} />
       )}
 
-      {activePhase==="elim" && (
+      {activeTab==="pronosticos" && (
         <>
-          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
-            {phases.map(ph=>(
-              <button key={ph} style={{
-                ...S.navBtn(activePh===ph),
-                background:activePh===ph?phaseColors[ph]:"transparent",
-                borderColor:phaseColors[ph]+"88", color:activePh===ph?"#fff":phaseColors[ph],
-                fontSize:"0.75rem",padding:"4px 10px",
-              }} onClick={()=>setActivePh(ph)}>{phaseLabels[ph]}</button>
+          <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
+            {["groups","elim"].map(ph=>(
+              <button key={ph} style={S.navBtn(activePhase===ph)} onClick={()=>setActivePhase(ph)}>
+                {ph==="groups"?"Fase de Grupos":"Eliminatorias"}
+              </button>
             ))}
           </div>
-          {(()=>{const lk=getLockMsg(activePh); return(
-            <div style={{background:lk.locked?"#2a0a0a":"#0a2215",border:"1px solid "+(lk.locked?"#c0392b88":"#27ae6066"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
-              {lk.locked?"Cerrado - ya no se pueden modificar":lk.msg}
-            </div>
-          );})()}
-          {(()=>{const phaseLocked=isPhaseLocked(activePh,adminUnlocked); return(
+
+          {activePhase==="groups" && (
             <>
-              {elimMatches.filter(m=>m.phase===activePh).map(m=>renderMatchRow(m,phaseLocked))}
-              {!phaseLocked && (
+              <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
+                {Object.keys(GROUPS).map(g=>(
+                  <button key={g} style={{
+                    ...S.navBtn(activeGroup===g),
+                    background:activeGroup===g?GROUP_COLORS[g]:"transparent",
+                    borderColor:GROUP_COLORS[g], color:activeGroup===g?"#fff":GROUP_COLORS[g],
+                    padding:"4px 10px",fontSize:"0.75rem",
+                  }} onClick={()=>setActiveGroup(g)}>Grp {g}</button>
+                ))}
+              </div>
+              {(()=>{const lk=getLockMsg("groups"); return(
+                <div style={{background:lk.locked?"#2a0a0a":"#0a2215",border:"1px solid "+(lk.locked?"#c0392b88":"#27ae6066"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
+                  {lk.locked?"Pronosticos de grupos cerrados":lk.msg}
+                </div>
+              );})()}
+              <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>GRUPO {activeGroup}</div>
+              {groupMatches.filter(m=>m.group===activeGroup).map(m=>renderMatchRow(m,groupsLocked))}
+              {!groupsLocked && (
                 <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
                   <button style={{...S.btn("#27ae60"),fontSize:"0.8rem"}} onClick={handleSave} disabled={saving}>
                     {saving?"Guardando...":"Guardar"}
@@ -513,16 +636,46 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
                 </div>
               )}
             </>
-          );})()}
+          )}
+
+          {activePhase==="elim" && (
+            <>
+              <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
+                {phases.map(ph=>(
+                  <button key={ph} style={{
+                    ...S.navBtn(activePh===ph),
+                    background:activePh===ph?phaseColors[ph]:"transparent",
+                    borderColor:phaseColors[ph]+"88", color:activePh===ph?"#fff":phaseColors[ph],
+                    fontSize:"0.75rem",padding:"4px 10px",
+                  }} onClick={()=>setActivePh(ph)}>{phaseLabels[ph]}</button>
+                ))}
+              </div>
+              {(()=>{const lk=getLockMsg(activePh); return(
+                <div style={{background:lk.locked?"#2a0a0a":"#0a2215",border:"1px solid "+(lk.locked?"#c0392b88":"#27ae6066"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
+                  {lk.locked?"Cerrado":lk.msg}
+                </div>
+              );})()}
+              {(()=>{const phaseLocked=isPhaseLocked(activePh,adminUnlocked); return(
+                <>
+                  {elimMatches.filter(m=>m.phase===activePh).map(m=>renderMatchRow(m,phaseLocked))}
+                  {!phaseLocked && (
+                    <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
+                      <button style={{...S.btn("#27ae60"),fontSize:"0.8rem"}} onClick={handleSave} disabled={saving}>
+                        {saving?"Guardando...":"Guardar"}
+                      </button>
+                    </div>
+                  )}
+                </>
+              );})()}
+            </>
+          )}
         </>
       )}
     </div>
   );
 }
 
-// ??????????????????????????????????????????????????????????????????????????????
 // FIXTURE VIEW
-// ??????????????????????????????????????????????????????????????????????????????
 function FixtureView({ matches }) {
   const [activeGroup, setActiveGroup] = useState("A");
   const [activePhase, setActivePhase] = useState("groups");
@@ -560,9 +713,6 @@ function FixtureView({ matches }) {
       </div>
       {activePhase==="groups" && (
         <>
-          <div style={{background:"#0d1520",border:"1px solid #c9a84c44",borderRadius:7,padding:"8px 12px",marginBottom:12,fontSize:"0.78rem",color:"#8899bb",lineHeight:1.7}}>
-            6 plazas por repechaje (marzo 2026): UEFA A/B/C/D e Intercont. 1 y 2
-          </div>
           <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
             {Object.keys(GROUPS).map(g=>(
               <button key={g} style={{...S.navBtn(activeGroup===g),background:activeGroup===g?GROUP_COLORS[g]:"transparent",borderColor:GROUP_COLORS[g],color:activeGroup===g?"#fff":GROUP_COLORS[g],padding:"4px 10px",fontSize:"0.75rem"}} onClick={()=>setActiveGroup(g)}>Grp {g}</button>
@@ -596,10 +746,8 @@ function FixtureView({ matches }) {
   );
 }
 
-// ??????????????????????????????????????????????????????????????????????????????
 // ADMIN PANEL
-// ??????????????????????????????????????????????????????????????????????????????
-function AdminPanel({ matches, setMatches, participants, setParticipants, adminUnlocked, setAdminUnlocked }) {
+function AdminPanel({ matches, setMatches, participants, setParticipants, adminUnlocked, setAdminUnlocked, invoices, setInvoices }) {
   const [authed, setAuthed] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [activeGroup, setActiveGroup] = useState("A");
@@ -614,6 +762,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
   const groupMatches = matches.filter(m=>m.phase==="groups");
   const elimMatches = matches.filter(m=>m.phase!=="groups");
   const phases = [...new Set(elimMatches.map(m=>m.phase))];
+  const pendingInvoices = invoices.filter(inv=>inv.status==="pending");
 
   function setResult(matchId, side, val) {
     const v = val===""?null:Math.max(0,parseInt(val)||0);
@@ -629,15 +778,21 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
       await setDoc(MATCHES_DOC, {list: matches});
       setSaved(true);
       setTimeout(()=>setSaved(false),2000);
-    } catch(e) {
-      alert("Error: "+e.message);
-    }
+    } catch(e) { alert("Error: "+e.message); }
   }
 
   async function toggleUnlock(phase) {
     const updated = {...adminUnlocked, [phase]:!adminUnlocked[phase]};
     setAdminUnlocked(updated);
     await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
+  }
+
+  async function handleInvoice(invoiceId, action) {
+    const updated = invoices.map(inv=>
+      inv.id===invoiceId ? {...inv, status:action, reviewedAt:new Date().toISOString()} : inv
+    );
+    await setDoc(INVOICES_DOC, {list: updated});
+    setInvoices(updated);
   }
 
   function removeParticipant(id) {
@@ -651,7 +806,6 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
     <div style={{maxWidth:360,margin:"0 auto"}}>
       <div style={S.card}>
         <div style={S.sectionTitle}>Panel de Administrador</div>
-        <p style={{color:"#8899bb",marginBottom:14,fontSize:"0.85rem"}}>PIN de admin (defecto: 2026)</p>
         <input style={{...S.input,marginBottom:14}} type="password" placeholder="PIN administrador"
           value={pinInput} onChange={e=>setPinInput(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&(pinInput===ADMIN?setAuthed(true):alert("PIN incorrecto"))} />
@@ -666,14 +820,51 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
     <div className="fi">
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
         <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-          {[["results","Resultados"],["teams","Equipos"],["locks","Bloqueos"],["users","Participantes"]].map(([t,l])=>(
-            <button key={t} style={S.navBtn(activeTab===t)} onClick={()=>setActiveTab(t)}>{l}</button>
+          {[["results","Resultados"],["invoices","Facturas"+(pendingInvoices.length>0?" ("+pendingInvoices.length+")":"")],["teams","Equipos"],["locks","Bloqueos"],["users","Participantes"]].map(([t,l])=>(
+            <button key={t} style={{...S.navBtn(activeTab===t),background:t==="invoices"&&pendingInvoices.length>0&&activeTab!==t?"#e67e2222":undefined}} onClick={()=>setActiveTab(t)}>{l}</button>
           ))}
         </div>
         <button style={{...S.btn(saved?"#27ae60":"#c9a84c"),fontSize:"0.8rem"}} onClick={handleSave}>
           {saved?"Guardado!":"Guardar Resultados"}
         </button>
       </div>
+
+      {activeTab==="invoices" && (
+        <div>
+          <div style={S.sectionTitle}>Facturas Pendientes de Aprobacion</div>
+          {pendingInvoices.length===0 && (
+            <div style={{color:"#4a5a7e",padding:20,textAlign:"center"}}>No hay facturas pendientes</div>
+          )}
+          {invoices.map(inv=>(
+            <div key={inv.id} style={S.invoiceCard(inv.status)}>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:"0.9rem"}}>{inv.participantName}</div>
+                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>
+                  Factura: <strong style={{color:"#e8eaf0"}}>{inv.invoiceNum}</strong>
+                  &nbsp;|&nbsp; Monto: <strong style={{color:"#c9a84c"}}>${inv.amount} CAD</strong>
+                  &nbsp;|&nbsp; Pts: <strong style={{color:"#27ae60"}}>{inv.points}</strong>
+                </div>
+                <div style={{fontSize:"0.72rem",color:"#4a5a7e",marginTop:2}}>
+                  {new Date(inv.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                <div style={S.statusBadge(inv.status)}>
+                  {inv.status==="approved"?"Aprobada":inv.status==="rejected"?"Rechazada":"Pendiente"}
+                </div>
+                {inv.status==="pending" && (
+                  <>
+                    <button style={{...S.btn("#27ae60"),fontSize:"0.78rem",padding:"5px 12px"}}
+                      onClick={()=>handleInvoice(inv.id,"approved")}>Aprobar</button>
+                    <button style={{...S.btn("#c0392b",true),fontSize:"0.78rem",padding:"5px 12px"}}
+                      onClick={()=>handleInvoice(inv.id,"rejected")}>Rechazar</button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {activeTab==="results" && (
         <>
@@ -693,7 +884,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
               </div>
               <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>GRUPO {activeGroup}</div>
               {groupMatches.filter(m=>m.group===activeGroup).map(m=>(
-                <div key={m.id} style={{display:"grid",gridTemplateColumns:"40px 1fr 46px 12px 46px 1fr 24px",gap:6,alignItems:"center",background:"#0d1520",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
+                <div key={m.id} style={{display:"grid",gridTemplateColumns:"38px 1fr 46px 12px 46px 1fr 24px",gap:5,alignItems:"center",background:"#0d1520",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
                   <span style={{color:"#4a5a7e",fontSize:"0.7rem"}}>{m.date}</span>
                   <div style={{textAlign:"right",fontWeight:600,fontSize:"0.82rem"}}>{m.home}</div>
                   <input type="number" min="0" max="99" placeholder="-" style={S.scoreInput}
@@ -718,7 +909,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
               </div>
               <div style={S.phaseHeader(phaseColors[activePh])}>{phaseLabels[activePh]}</div>
               {elimMatches.filter(m=>m.phase===activePh).map(m=>(
-                <div key={m.id} style={{display:"grid",gridTemplateColumns:"40px 1fr 46px 12px 46px 1fr 24px",gap:6,alignItems:"center",background:"#0d1520",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
+                <div key={m.id} style={{display:"grid",gridTemplateColumns:"38px 1fr 46px 12px 46px 1fr 24px",gap:5,alignItems:"center",background:"#0d1520",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
                   <span style={{color:"#4a5a7e",fontSize:"0.7rem"}}>{m.date}</span>
                   <div style={{textAlign:"right",fontWeight:600,fontSize:"0.82rem",color:"#8899bb"}}>{m.home}</div>
                   <input type="number" min="0" max="99" placeholder="-" style={S.scoreInput}
@@ -739,11 +930,11 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
 
       {activeTab==="teams" && (
         <div>
-          <p style={{color:"#8899bb",marginBottom:14,fontSize:"0.85rem"}}>Actualiza los equipos de la fase eliminatoria a medida que avanzan.</p>
+          <p style={{color:"#8899bb",marginBottom:14,fontSize:"0.85rem"}}>Actualiza los equipos eliminatorias.</p>
           {phases.map(ph=>(
             <div key={ph}>
               <div style={S.phaseHeader(phaseColors[ph])}>{phaseLabels[ph]}</div>
-              {elimMatches.filter(m=>m.phase===ph).map((m,i)=>(
+              {elimMatches.filter(m=>m.phase===ph).map((m)=>(
                 <div key={m.id} style={{display:"grid",gridTemplateColumns:"1fr 30px 1fr",gap:6,alignItems:"center",marginBottom:7}}>
                   <input style={{...S.input,textAlign:"right",marginBottom:0}} value={m.home}
                     onChange={e=>setTeamName(m.id,"home",e.target.value)} />
@@ -760,7 +951,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
 
       {activeTab==="locks" && (
         <div>
-          <p style={{color:"#8899bb",marginBottom:14,fontSize:"0.85rem"}}>Desbloquea una fase si un participante cometio un error legitimo.</p>
+          <p style={{color:"#8899bb",marginBottom:14,fontSize:"0.85rem"}}>Desbloquea una fase si hubo un error legitimo.</p>
           {[
             {phase:"groups",label:"Fase de Grupos",lockDate:"10 Jun 2026",color:"#1F618D"},
             {phase:"round32",label:"Octavos de Final",lockDate:"1 Jul 2026",color:"#c0392b"},
@@ -773,7 +964,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
             const manUnlocked=!!adminUnlocked[phase];
             const currentlyLocked=autoLocked&&!manUnlocked;
             return (
-              <div key={phase} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"12px 16px",marginBottom:8}}>
+              <div key={phase} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"12px 16px",marginBottom:8,flexWrap:"wrap",gap:8}}>
                 <div>
                   <div style={{fontWeight:700,fontSize:"0.95rem"}}>{label}</div>
                   <div style={{fontSize:"0.75rem",color:"#4a5a7e",marginTop:2}}>Bloqueo: {lockDate}</div>
@@ -798,19 +989,25 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
           <div style={{...S.sectionTitle,marginBottom:12}}>{participants.length} Participantes</div>
           {participants.length===0 && <div style={{color:"#4a5a7e",padding:16}}>Sin participantes</div>}
           {[...participants].sort((a,b)=>{
-            const pa=calcParticipantPoints(a.predictions,matches);
-            const pb=calcParticipantPoints(b.predictions,matches);
+            const ai=invoices.filter(inv=>inv.participantId===a.id);
+            const bi=invoices.filter(inv=>inv.participantId===b.id);
+            const pa=calcParticipantPoints(a.predictions,matches,ai);
+            const pb=calcParticipantPoints(b.predictions,matches,bi);
             return pb.total-pa.total;
           }).map((p,i)=>{
-            const pts=calcParticipantPoints(p.predictions,matches);
-            const predCount=Object.keys(p.predictions||{}).length;
+            const userInv=invoices.filter(inv=>inv.participantId===p.id);
+            const pts=calcParticipantPoints(p.predictions,matches,userInv);
             return (
               <div key={p.id} style={{...S.leaderRow(i),justifyContent:"space-between"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{color:"#4a5a7e",fontWeight:700,minWidth:24}}>#{i+1}</span>
                   <div>
                     <div style={{fontWeight:700}}>{p.name}</div>
-                    <div style={{fontSize:"0.72rem",color:"#4a5a7e"}}>{predCount} pronosticos</div>
+                    <div style={{fontSize:"0.72rem",color:"#4a5a7e"}}>
+                      {Object.keys(p.predictions||{}).length} pronosticos
+                      &nbsp;|&nbsp; {userInv.length} facturas
+                      {pts.invPts>0 && <span style={{color:"#c9a84c"}}> | +{pts.invPts}pts facturas</span>}
+                    </div>
                   </div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -832,14 +1029,13 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
   );
 }
 
-// ??????????????????????????????????????????????????????????????????????????????
 // MAIN APP
-// ??????????????????????????????????????????????????????????????????????????????
 export default function App() {
   const [view, setView] = useState("leaderboard");
   const [matches, setMatches] = useState(INITIAL_MATCHES);
   const [participants, setParticipants] = useState([]);
   const [adminUnlocked, setAdminUnlocked] = useState({});
+  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -851,10 +1047,13 @@ export default function App() {
     });
     const unsubS = onSnapshot(SETTINGS_DOC, snap => {
       if (snap.exists()) setAdminUnlocked(snap.data().adminUnlocked || {});
+    });
+    const unsubI = onSnapshot(INVOICES_DOC, snap => {
+      if (snap.exists()) setInvoices(snap.data().list || []);
       setLoading(false);
     });
     setTimeout(() => setLoading(false), 3000);
-    return () => { unsubP(); unsubM(); unsubS(); };
+    return () => { unsubP(); unsubM(); unsubS(); unsubI(); };
   }, []);
 
   const tabs = [
@@ -865,9 +1064,10 @@ export default function App() {
   ];
 
   const totalMatches = matches.filter(m=>m.realHome!==null).length;
+  const pendingInv = invoices.filter(i=>i.status==="pending").length;
 
   if (loading) return (
-    <div style={{...S.app,display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{...S.app,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <FontStyle />
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:"2.5rem",marginBottom:10}} className="pulse">...</div>
@@ -886,20 +1086,23 @@ export default function App() {
             {tabs.map(t=>(
               <button key={t.id} style={S.navBtn(view===t.id)} onClick={()=>setView(t.id)}>
                 {t.label}
+                {t.id==="admin"&&pendingInv>0 && (
+                  <span style={{background:"#e67e22",color:"#fff",borderRadius:"50%",padding:"1px 6px",fontSize:"0.7rem",marginLeft:5}}>{pendingInv}</span>
+                )}
               </button>
             ))}
           </nav>
         </div>
         <div style={{background:"#0a0e1a",borderTop:"1px solid #1e2d4a",padding:"4px 16px",textAlign:"center",fontSize:"0.7rem",color:"#4a5a7e"}}>
-          {participants.length} PARTICIPANTES &nbsp;|&nbsp; {totalMatches} PARTIDOS COMPLETADOS &nbsp;|&nbsp; 11 JUN - 19 JUL 2026
+          {participants.length} PARTICIPANTES | {totalMatches} PARTIDOS | 11 JUN - 19 JUL 2026
         </div>
       </header>
 
       <main style={S.main}>
-        {view==="leaderboard" && <Leaderboard participants={participants} matches={matches} />}
-        {view==="form" && <ParticipantForm participants={participants} setParticipants={setParticipants} matches={matches} adminUnlocked={adminUnlocked} />}
+        {view==="leaderboard" && <Leaderboard participants={participants} matches={matches} invoices={invoices} />}
+        {view==="form" && <ParticipantForm participants={participants} setParticipants={setParticipants} matches={matches} adminUnlocked={adminUnlocked} invoices={invoices} setInvoices={setInvoices} />}
         {view==="fixture" && <FixtureView matches={matches} />}
-        {view==="admin" && <AdminPanel matches={matches} setMatches={setMatches} participants={participants} setParticipants={setParticipants} adminUnlocked={adminUnlocked} setAdminUnlocked={setAdminUnlocked} />}
+        {view==="admin" && <AdminPanel matches={matches} setMatches={setMatches} participants={participants} setParticipants={setParticipants} adminUnlocked={adminUnlocked} setAdminUnlocked={setAdminUnlocked} invoices={invoices} setInvoices={setInvoices} />}
       </main>
     </div>
   );
