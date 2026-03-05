@@ -1078,37 +1078,35 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
           {[...participants].map(p=>{
             const userInv=(invoices||[]).filter(inv=>inv.participantId===p.id&&inv.status==="approved");
             const invPts=userInv.reduce((sum,inv)=>sum+calcInvoicePoints(inv.amount),0);
+            const totalInv=(invoices||[]).filter(inv=>inv.participantId===p.id).length;
             let gamePts=0,exact=0,correct=0;
             matches.forEach(m=>{const pred=p.predictions?.[m.id];if(!pred)return;const pts=calcPoints(pred.home,pred.away,m.realHome,m.realAway);if(pts===null)return;gamePts+=pts;if(pts===5)exact++;if(pts>=3)correct++;});
-            return {...p,_total:gamePts+invPts,_invPts:invPts,_exact:exact,_correct:correct};
-          }).sort((a,b)=>b._total-a._total).map((p,i)=>{
-            const pts={total:p._total,invPts:p._invPts,exact:p._exact,correct:p._correct};
-            return (
+            return {...p,_total:gamePts+invPts,_invPts:invPts,_exact:exact,_correct:correct,_totalInv:totalInv};
+          }).sort((a,b)=>b._total-a._total).map((p,i)=>(
               <div key={p.id} style={{...S.leaderRow(i),justifyContent:"space-between"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <span style={{color:"#9ca3af",fontWeight:700,minWidth:24}}>#{i+1}</span>
                   <div>
-                    <div style={{fontWeight:700}}>{p.name}</div>
+                    <div style={{fontWeight:700,color:BRAND.gray900}}>{p.name}</div>
                     <div style={{fontSize:"0.72rem",color:"#9ca3af"}}>
                       {Object.keys(p.predictions||{}).length} pronosticos
-                      &nbsp;|&nbsp; {userInv.length} facturas
-                      {pts.invPts>0 && <span style={{color:"#d3172e"}}> | +{pts.invPts}pts facturas</span>}
+                      &nbsp;|&nbsp; {p._totalInv} facturas
+                      {p._invPts>0 && <span style={{color:BRAND.red}}> | +{p._invPts}pts facturas</span>}
                     </div>
                   </div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:"1.3rem",fontWeight:800,color:"#d3172e"}}>{pts.total}</div>
+                    <div style={{fontSize:"1.3rem",fontWeight:800,color:BRAND.red}}>{p._total}</div>
                     <div style={{fontSize:"0.68rem",color:"#9ca3af"}}>pts</div>
                   </div>
                   <button onClick={()=>removeParticipant(p.id)}
-                    style={{background:"transparent",border:"1px solid #c0392b44",color:"#c0392b",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:"0.78rem"}}>
+                    style={{background:"transparent",border:"1px solid #dc262644",color:"#dc2626",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:"0.78rem"}}>
                     X
                   </button>
                 </div>
               </div>
-            );
-          })}
+          ))}
         </div>
       )}
     </div>
