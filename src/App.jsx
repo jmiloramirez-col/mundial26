@@ -53,10 +53,11 @@ const LOCK_DATES = {
 function calcInvoicePoints(amount) {
   const a = parseFloat(amount);
   if (isNaN(a) || a < 10) return 0;
-  if (a <= 50)  return 5;
-  if (a <= 100) return 10;
-  if (a <= 200) return 20;
-  return 30;
+  if (a <= 50)  return 1;
+  if (a <= 100) return 3;
+  if (a <= 150) return 6;
+  if (a <= 200) return 9;
+  return 12;
 }
 
 function isPhaseLocked(phase, adminUnlocked = {}) {
@@ -505,7 +506,7 @@ function Leaderboard({ participants, matches, invoices }) {
             <div>
               <div style={{fontSize:"0.75rem",color:BRAND.red,fontWeight:700,marginBottom:8,letterSpacing:1}}>FACTURAS (CAD)</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:8}}>
-                {[["5 pts","$10-$50","#16a34a"],["10 pts","$51-$100","#2563eb"],["20 pts","$101-$200","#7c3aed"],["30 pts","+$200",BRAND.red]].map(([pts,range,color])=>(
+                {[["1 pt","$10-$50","#16a34a"],["3 pts","$51-$100","#2563eb"],["6 pts","$101-$150","#7c3aed"],["9 pts","$151-$200",BRAND.red],["12 pts","+$201",BRAND.redDark]].map(([pts,range,color])=>(
                   <div key={pts} style={{background:BRAND.gray50,border:"1px solid "+color+"33",borderRadius:10,padding:"10px",textAlign:"center"}}>
                     <div style={{fontSize:"1.3rem",fontWeight:800,color}}>{pts}</div>
                     <div style={{color:"#6b7280",fontSize:"0.75rem",marginTop:2}}>{range}</div>
