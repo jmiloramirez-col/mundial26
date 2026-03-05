@@ -1032,10 +1032,13 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
             <div style={{fontSize:"0.8rem",color:"#1d4ed8",fontWeight:600}}>Tablas de posiciones con resultados reales</div>
           </div>
           {Object.keys(GROUPS).map(grp => {
-            const teams=GROUPS[grp];
+            const grpMatches = matches.filter(m=>m.phase==="groups"&&m.group===grp);
+            // Build team list from actual match data
+            const teamSet = new Set();
+            grpMatches.forEach(m=>{if(m.home)teamSet.add(m.home);if(m.away)teamSet.add(m.away);});
             const stats={};
-            teams.forEach(t=>{stats[t]={team:t,pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0};});
-            matches.filter(m=>m.phase==="groups"&&m.group===grp).forEach(m=>{
+            teamSet.forEach(t=>{stats[t]={team:t,pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0};});
+            grpMatches.forEach(m=>{
               if(m.realHome===null||m.realAway===null) return;
               const h=Number(m.realHome),a=Number(m.realAway);
               if(!stats[m.home]||!stats[m.away]) return;
@@ -1090,10 +1093,12 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
                 </div>
               )}
               {(()=>{
-                const teams=GROUPS[activeGroup];
+                const curMatches=groupMatches.filter(m=>m.group===activeGroup);
+                const teamSet=new Set();
+                curMatches.forEach(m=>{if(m.home)teamSet.add(m.home);if(m.away)teamSet.add(m.away);});
                 const stats={};
-                teams.forEach(t=>{stats[t]={team:t,pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0};});
-                groupMatches.filter(m=>m.group===activeGroup).forEach(m=>{
+                teamSet.forEach(t=>{stats[t]={team:t,pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0};});
+                curMatches.forEach(m=>{
                   const pred=preds[m.id];
                   if(!pred||pred.home===null||pred.away===null) return;
                   const h=Number(pred.home),a=Number(pred.away);
@@ -1555,7 +1560,24 @@ export default function App() {
       if (snap.exists()) setParticipants(snap.data().list || []);
     });
     const unsubM = onSnapshot(MATCHES_DOC, snap => {
-      if (snap.exists()) setMatches(snap.data().list || INITIAL_MATCHES);
+      if (snap.exists()) {
+        const saved = snap.data().list || [];
+        // Merge: keep new match structure but restore saved results & team names for elim
+        const merged = INITIAL_MATCHES.map(m => {
+          const old = saved.find(s => s.id === m.id);
+          if (!old) return m;
+          if (m.phase === "groups") {
+            // Groups: keep new team names, only restore real results
+            return {...m, realHome: old.realHome, realAway: old.realAway};
+          } else {
+            // Playoffs: restore team names + results (admin edits them)
+            return {...m, home: old.home||m.home, away: old.away||m.away, realHome: old.realHome, realAway: old.realAway};
+          }
+        });
+        setMatches(merged);
+      } else {
+        setMatches(INITIAL_MATCHES);
+      }
     });
     const unsubS = onSnapshot(SETTINGS_DOC, snap => {
       if (snap.exists()) setAdminUnlocked(snap.data().adminUnlocked || {});
