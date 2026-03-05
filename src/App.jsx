@@ -188,7 +188,7 @@ const S = {
   nav: {display:"flex", gap:4, flexWrap:"wrap"},
   navBtn: (active) => ({
     background: active?BRAND.red:"transparent",
-    color: active?BRAND.white:BRAND.gray600,
+    color: active?"#ffffff":"#111827",
     border:"1.5px solid "+(active?BRAND.red:BRAND.gray200),
     borderRadius:6, padding:"6px 14px",
     cursor:"pointer", fontSize:"0.78rem",
@@ -297,6 +297,7 @@ const FontStyle = () => (
     .pulse { animation:pulse 2s infinite; }
     button:hover { opacity:.82; }
     input:focus { border-color:#d3172e !important; box-shadow:0 0 0 3px #d3172e18; }
+    button { color:inherit; }
   `}</style>
 );
 
