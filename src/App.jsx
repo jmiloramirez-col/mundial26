@@ -20,25 +20,19 @@ const INVOICES_DOC = doc(db, "tournament", "invoices");
 
 // GROUPS
 const GROUPS = {
-  A: ["Mexico", "Sudafrica", "Corea del Sur", "Rep. UEFA D*"],
-  B: ["Canada", "Suiza", "Qatar", "Rep. UEFA A*"],
-  C: ["Brasil", "Marruecos", "Escocia", "Haiti"],
-  D: ["Estados Unidos", "Paraguay", "Australia", "Rep. UEFA C*"],
-  E: ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
-  F: ["Paises Bajos", "Japon", "Tunez", "Rep. UEFA B*"],
-  G: ["Belgica", "Egipto", "Nueva Zelanda", "Rep. Intercont. 2*"],
-  H: ["Espana", "Uruguay", "Arabia Saudita", "Cabo Verde"],
-  I: ["Francia", "Senegal", "Noruega", "Rep. Intercont. 2*"],
-  J: ["Argentina", "Austria", "Argelia", "Jordania"],
-  K: ["Portugal", "Colombia", "Uzbekistan", "Rep. Intercont. 1*"],
-  L: ["Inglaterra", "Croacia", "Panama", "Ghana"],
-};
-
-const GROUP_COLORS = {
-  A:"#1A5276",B:"#1F618D",C:"#117A65",D:"#1E8449",
-  E:"#7D6608",F:"#784212",G:"#6E2FD6",H:"#943126",
-  I:"#7B241C",J:"#4A235A",K:"#1B2631",L:"#0B6E4F",
-};
+  A: ["México","Corea del Sur","Sudáfrica","Dinamarca*"],
+  B: ["Canadá","Suiza","Catar","Italia*"],
+  C: ["Brasil","Haití","Marruecos","Escocia"],
+  D: ["Estados Unidos","Australia","Paraguay","Turquía*"],
+  E: ["Alemania","Costa de Marfil","Ecuador","Curazao"],
+  F: ["Países Bajos","Japón","Túnez","Ucrania*"],
+  G: ["Bélgica","Irán","Egipto","Nueva Zelanda"],
+  H: ["España","Arabia Saudí","Uruguay","Cabo Verde"],
+  I: ["Francia","Noruega","Senegal","Irak*"],
+  J: ["Argentina","Austria","Argelia","Jordania"],
+  K: ["Portugal","Uzbekistán","Colombia","Jamaica*"],
+  L: ["Inglaterra","Croacia","Ghana","Panamá"],
+}
 
 const LOCK_DATES = {
   groups:  new Date("2026-06-11T00:00:00"),
@@ -69,85 +63,139 @@ function isPhaseLocked(phase, adminUnlocked = {}) {
 }
 
 function generateGroupMatches() {
-  const matches = [];
-  let id = 1;
-  // Official FIFA 2026 dates per match pair [home_i, away_j]
-  // Order: [0v1, 0v2, 0v3, 1v2, 1v3, 2v3]
-  const dates = {
-    A:["11 Jun","11 Jun","18 Jun","24 Jun","18 Jun","24 Jun"],
-    B:["12 Jun","18 Jun","12 Jun","13 Jun","24 Jun","24 Jun"],
-    C:["13 Jun","19 Jun","13 Jun","19 Jun","27 Jun","27 Jun"],
-    D:["12 Jun","13 Jun","19 Jun","19 Jun","25 Jun","25 Jun"],
-    E:["14 Jun","14 Jun","20 Jun","20 Jun","25 Jun","25 Jun"],
-    F:["14 Jun","14 Jun","20 Jun","20 Jun","25 Jun","25 Jun"],
-    G:["15 Jun","15 Jun","21 Jun","21 Jun","26 Jun","26 Jun"],
-    H:["15 Jun","15 Jun","21 Jun","21 Jun","26 Jun","26 Jun"],
-    I:["16 Jun","16 Jun","22 Jun","22 Jun","26 Jun","26 Jun"],
-    J:["16 Jun","16 Jun","22 Jun","22 Jun","27 Jun","27 Jun"],
-    K:["17 Jun","17 Jun","23 Jun","23 Jun","27 Jun","27 Jun"],
-    L:["17 Jun","17 Jun","23 Jun","23 Jun","27 Jun","27 Jun"],
-  };
-  Object.entries(GROUPS).forEach(([grp, teams]) => {
-    [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]].forEach(([i,j], idx) => {
-      matches.push({ id:id++, phase:"groups", group:grp,
-        date:dates[grp]?.[idx]||"TBD",
-        home:teams[i], away:teams[j],
-        realHome:null, realAway:null });
-    });
-  });
+  // Official FIFA 2026 schedule - all 72 group matches
+  const matches = [
+    // GRUPO A
+    {id:1,  phase:"groups",group:"A",date:"11 Jun",home:"México",            away:"Sudáfrica",         realHome:null,realAway:null},
+    {id:2,  phase:"groups",group:"A",date:"11 Jun",home:"Corea del Sur",     away:"Dinamarca*",        realHome:null,realAway:null},
+    {id:3,  phase:"groups",group:"A",date:"18 Jun",home:"Dinamarca*",        away:"Sudáfrica",         realHome:null,realAway:null},
+    {id:4,  phase:"groups",group:"A",date:"18 Jun",home:"México",            away:"Corea del Sur",     realHome:null,realAway:null},
+    {id:5,  phase:"groups",group:"A",date:"24 Jun",home:"Dinamarca*",        away:"México",            realHome:null,realAway:null},
+    {id:6,  phase:"groups",group:"A",date:"24 Jun",home:"Sudáfrica",         away:"Corea del Sur",     realHome:null,realAway:null},
+    // GRUPO B
+    {id:7,  phase:"groups",group:"B",date:"12 Jun",home:"Canadá",            away:"Italia*",           realHome:null,realAway:null},
+    {id:8,  phase:"groups",group:"B",date:"13 Jun",home:"Catar",             away:"Suiza",             realHome:null,realAway:null},
+    {id:9,  phase:"groups",group:"B",date:"18 Jun",home:"Suiza",             away:"Italia*",           realHome:null,realAway:null},
+    {id:10, phase:"groups",group:"B",date:"18 Jun",home:"Canadá",            away:"Catar",             realHome:null,realAway:null},
+    {id:11, phase:"groups",group:"B",date:"24 Jun",home:"Suiza",             away:"Canadá",            realHome:null,realAway:null},
+    {id:12, phase:"groups",group:"B",date:"24 Jun",home:"Italia*",           away:"Catar",             realHome:null,realAway:null},
+    // GRUPO C
+    {id:13, phase:"groups",group:"C",date:"13 Jun",home:"Brasil",            away:"Marruecos",         realHome:null,realAway:null},
+    {id:14, phase:"groups",group:"C",date:"13 Jun",home:"Haití",             away:"Escocia",           realHome:null,realAway:null},
+    {id:15, phase:"groups",group:"C",date:"19 Jun",home:"Escocia",           away:"Marruecos",         realHome:null,realAway:null},
+    {id:16, phase:"groups",group:"C",date:"19 Jun",home:"Brasil",            away:"Haití",             realHome:null,realAway:null},
+    {id:17, phase:"groups",group:"C",date:"24 Jun",home:"Brasil",            away:"Escocia",           realHome:null,realAway:null},
+    {id:18, phase:"groups",group:"C",date:"24 Jun",home:"Marruecos",         away:"Haití",             realHome:null,realAway:null},
+    // GRUPO D
+    {id:19, phase:"groups",group:"D",date:"12 Jun",home:"Estados Unidos",    away:"Paraguay",          realHome:null,realAway:null},
+    {id:20, phase:"groups",group:"D",date:"12 Jun",home:"Australia",         away:"Turquía*",          realHome:null,realAway:null},
+    {id:21, phase:"groups",group:"D",date:"18 Jun",home:"Turquía*",          away:"Paraguay",          realHome:null,realAway:null},
+    {id:22, phase:"groups",group:"D",date:"19 Jun",home:"Estados Unidos",    away:"Australia",         realHome:null,realAway:null},
+    {id:23, phase:"groups",group:"D",date:"25 Jun",home:"Turquía*",          away:"Estados Unidos",    realHome:null,realAway:null},
+    {id:24, phase:"groups",group:"D",date:"25 Jun",home:"Paraguay",          away:"Australia",         realHome:null,realAway:null},
+    // GRUPO E
+    {id:25, phase:"groups",group:"E",date:"14 Jun",home:"Alemania",          away:"Curazao",           realHome:null,realAway:null},
+    {id:26, phase:"groups",group:"E",date:"14 Jun",home:"Costa de Marfil",   away:"Ecuador",           realHome:null,realAway:null},
+    {id:27, phase:"groups",group:"E",date:"20 Jun",home:"Alemania",          away:"Costa de Marfil",   realHome:null,realAway:null},
+    {id:28, phase:"groups",group:"E",date:"20 Jun",home:"Ecuador",           away:"Curazao",           realHome:null,realAway:null},
+    {id:29, phase:"groups",group:"E",date:"25 Jun",home:"Curazao",           away:"Costa de Marfil",   realHome:null,realAway:null},
+    {id:30, phase:"groups",group:"E",date:"25 Jun",home:"Ecuador",           away:"Alemania",          realHome:null,realAway:null},
+    // GRUPO F
+    {id:31, phase:"groups",group:"F",date:"14 Jun",home:"Países Bajos",      away:"Japón",             realHome:null,realAway:null},
+    {id:32, phase:"groups",group:"F",date:"14 Jun",home:"Ucrania*",          away:"Túnez",             realHome:null,realAway:null},
+    {id:33, phase:"groups",group:"F",date:"19 Jun",home:"Túnez",             away:"Japón",             realHome:null,realAway:null},
+    {id:34, phase:"groups",group:"F",date:"20 Jun",home:"Países Bajos",      away:"Ucrania*",          realHome:null,realAway:null},
+    {id:35, phase:"groups",group:"F",date:"25 Jun",home:"Japón",             away:"Ucrania*",          realHome:null,realAway:null},
+    {id:36, phase:"groups",group:"F",date:"25 Jun",home:"Túnez",             away:"Países Bajos",      realHome:null,realAway:null},
+    // GRUPO G
+    {id:37, phase:"groups",group:"G",date:"15 Jun",home:"Bélgica",           away:"Egipto",            realHome:null,realAway:null},
+    {id:38, phase:"groups",group:"G",date:"15 Jun",home:"Irán",              away:"Nueva Zelanda",     realHome:null,realAway:null},
+    {id:39, phase:"groups",group:"G",date:"21 Jun",home:"Bélgica",           away:"Irán",              realHome:null,realAway:null},
+    {id:40, phase:"groups",group:"G",date:"21 Jun",home:"Nueva Zelanda",     away:"Egipto",            realHome:null,realAway:null},
+    {id:41, phase:"groups",group:"G",date:"26 Jun",home:"Egipto",            away:"Irán",              realHome:null,realAway:null},
+    {id:42, phase:"groups",group:"G",date:"26 Jun",home:"Nueva Zelanda",     away:"Bélgica",           realHome:null,realAway:null},
+    // GRUPO H
+    {id:43, phase:"groups",group:"H",date:"15 Jun",home:"España",            away:"Cabo Verde",        realHome:null,realAway:null},
+    {id:44, phase:"groups",group:"H",date:"15 Jun",home:"Arabia Saudí",      away:"Uruguay",           realHome:null,realAway:null},
+    {id:45, phase:"groups",group:"H",date:"21 Jun",home:"España",            away:"Arabia Saudí",      realHome:null,realAway:null},
+    {id:46, phase:"groups",group:"H",date:"21 Jun",home:"Uruguay",           away:"Cabo Verde",        realHome:null,realAway:null},
+    {id:47, phase:"groups",group:"H",date:"26 Jun",home:"Cabo Verde",        away:"Arabia Saudí",      realHome:null,realAway:null},
+    {id:48, phase:"groups",group:"H",date:"26 Jun",home:"Uruguay",           away:"España",            realHome:null,realAway:null},
+    // GRUPO I
+    {id:49, phase:"groups",group:"I",date:"16 Jun",home:"Francia",           away:"Senegal",           realHome:null,realAway:null},
+    {id:50, phase:"groups",group:"I",date:"16 Jun",home:"Irak*",             away:"Noruega",           realHome:null,realAway:null},
+    {id:51, phase:"groups",group:"I",date:"22 Jun",home:"Francia",           away:"Irak*",             realHome:null,realAway:null},
+    {id:52, phase:"groups",group:"I",date:"22 Jun",home:"Noruega",           away:"Senegal",           realHome:null,realAway:null},
+    {id:53, phase:"groups",group:"I",date:"26 Jun",home:"Noruega",           away:"Francia",           realHome:null,realAway:null},
+    {id:54, phase:"groups",group:"I",date:"26 Jun",home:"Senegal",           away:"Irak*",             realHome:null,realAway:null},
+    // GRUPO J
+    {id:55, phase:"groups",group:"J",date:"15 Jun",home:"Austria",           away:"Jordania",          realHome:null,realAway:null},
+    {id:56, phase:"groups",group:"J",date:"16 Jun",home:"Argentina",         away:"Argelia",           realHome:null,realAway:null},
+    {id:57, phase:"groups",group:"J",date:"22 Jun",home:"Argentina",         away:"Austria",           realHome:null,realAway:null},
+    {id:58, phase:"groups",group:"J",date:"22 Jun",home:"Jordania",          away:"Argelia",           realHome:null,realAway:null},
+    {id:59, phase:"groups",group:"J",date:"27 Jun",home:"Argelia",           away:"Austria",           realHome:null,realAway:null},
+    {id:60, phase:"groups",group:"J",date:"27 Jun",home:"Jordania",          away:"Argentina",         realHome:null,realAway:null},
+    // GRUPO K
+    {id:61, phase:"groups",group:"K",date:"17 Jun",home:"Portugal",          away:"Jamaica*",          realHome:null,realAway:null},
+    {id:62, phase:"groups",group:"K",date:"17 Jun",home:"Uzbekistán",        away:"Colombia",          realHome:null,realAway:null},
+    {id:63, phase:"groups",group:"K",date:"23 Jun",home:"Portugal",          away:"Uzbekistán",        realHome:null,realAway:null},
+    {id:64, phase:"groups",group:"K",date:"23 Jun",home:"Colombia",          away:"Jamaica*",          realHome:null,realAway:null},
+    {id:65, phase:"groups",group:"K",date:"27 Jun",home:"Colombia",          away:"Portugal",          realHome:null,realAway:null},
+    {id:66, phase:"groups",group:"K",date:"27 Jun",home:"Jamaica*",          away:"Uzbekistán",        realHome:null,realAway:null},
+    // GRUPO L
+    {id:67, phase:"groups",group:"L",date:"17 Jun",home:"Inglaterra",        away:"Croacia",           realHome:null,realAway:null},
+    {id:68, phase:"groups",group:"L",date:"17 Jun",home:"Ghana",             away:"Panamá",            realHome:null,realAway:null},
+    {id:69, phase:"groups",group:"L",date:"23 Jun",home:"Inglaterra",        away:"Ghana",             realHome:null,realAway:null},
+    {id:70, phase:"groups",group:"L",date:"23 Jun",home:"Panamá",            away:"Croacia",           realHome:null,realAway:null},
+    {id:71, phase:"groups",group:"L",date:"27 Jun",home:"Panamá",            away:"Inglaterra",        realHome:null,realAway:null},
+    {id:72, phase:"groups",group:"L",date:"27 Jun",home:"Croacia",           away:"Ghana",             realHome:null,realAway:null},
+  ];
   return matches;
 }
 
 function generateElimMatches() {
-  // Official FIFA 2026 playoff structure
-  // Round of 32: 16 matches, June 28 - July 3
-  // Round of 16: 8 matches, July 4-7
-  // Quarterfinals: 4 matches, July 9-11
-  // Semifinals: 2 matches, July 14-15
-  // Third Place: 1 match, July 18
-  // Final: 1 match, July 19
-  const round32 = [
-    {id:1001,phase:"round32",label:"Ronda de 32",matchNum:1,desc:"2do Grupo A vs 2do Grupo B",date:"28 Jun",home:"2do Grupo A",away:"2do Grupo B",realHome:null,realAway:null},
-    {id:1002,phase:"round32",label:"Ronda de 32",matchNum:2,desc:"1ro Grupo C vs 2do Grupo F",date:"29 Jun",home:"1ro Grupo C",away:"2do Grupo F",realHome:null,realAway:null},
-    {id:1003,phase:"round32",label:"Ronda de 32",matchNum:3,desc:"1ro Grupo E vs 3ro A/B/C/D/F",date:"29 Jun",home:"1ro Grupo E",away:"3ro Mejor",realHome:null,realAway:null},
-    {id:1004,phase:"round32",label:"Ronda de 32",matchNum:4,desc:"1ro Grupo F vs 2do Grupo C",date:"29 Jun",home:"1ro Grupo F",away:"2do Grupo C",realHome:null,realAway:null},
-    {id:1005,phase:"round32",label:"Ronda de 32",matchNum:5,desc:"2do Grupo E vs 2do Grupo I",date:"30 Jun",home:"2do Grupo E",away:"2do Grupo I",realHome:null,realAway:null},
-    {id:1006,phase:"round32",label:"Ronda de 32",matchNum:6,desc:"1ro Grupo I vs 3ro C/D/F/G/H",date:"30 Jun",home:"1ro Grupo I",away:"3ro Mejor",realHome:null,realAway:null},
-    {id:1007,phase:"round32",label:"Ronda de 32",matchNum:7,desc:"1ro Grupo A vs 3ro C/E/F/H/I",date:"30 Jun",home:"1ro Grupo A",away:"3ro Mejor",realHome:null,realAway:null},
-    {id:1008,phase:"round32",label:"Ronda de 32",matchNum:8,desc:"1ro Grupo L vs 3ro E/H/I/J/K",date:"1 Jul",home:"1ro Grupo L",away:"3ro Mejor",realHome:null,realAway:null},
-    {id:1009,phase:"round32",label:"Ronda de 32",matchNum:9,desc:"1ro Grupo G vs 3ro A/E/H/I/J",date:"1 Jul",home:"1ro Grupo G",away:"3ro Mejor",realHome:null,realAway:null},
-    {id:1010,phase:"round32",label:"Ronda de 32",matchNum:10,desc:"1ro Grupo D vs 3ro B/E/F/I/J",date:"1 Jul",home:"1ro Grupo D",away:"3ro Mejor",realHome:null,realAway:null},
-    {id:1011,phase:"round32",label:"Ronda de 32",matchNum:11,desc:"1ro Grupo H vs 2do Grupo J",date:"2 Jul",home:"1ro Grupo H",away:"2do Grupo J",realHome:null,realAway:null},
-    {id:1012,phase:"round32",label:"Ronda de 32",matchNum:12,desc:"2do Grupo K vs 2do Grupo L",date:"2 Jul",home:"2do Grupo K",away:"2do Grupo L",realHome:null,realAway:null},
-    {id:1013,phase:"round32",label:"Ronda de 32",matchNum:13,desc:"1ro Grupo B vs 3ro E/F/G/I/J",date:"2 Jul",home:"1ro Grupo B",away:"3ro Mejor",realHome:null,realAway:null},
-    {id:1014,phase:"round32",label:"Ronda de 32",matchNum:14,desc:"2do Grupo D vs 2do Grupo G",date:"3 Jul",home:"2do Grupo D",away:"2do Grupo G",realHome:null,realAway:null},
-    {id:1015,phase:"round32",label:"Ronda de 32",matchNum:15,desc:"1ro Grupo J vs 2do Grupo H",date:"3 Jul",home:"1ro Grupo J",away:"2do Grupo H",realHome:null,realAway:null},
-    {id:1016,phase:"round32",label:"Ronda de 32",matchNum:16,desc:"1ro Grupo K vs 3ro D/E/I/J/L",date:"3 Jul",home:"1ro Grupo K",away:"3ro Mejor",realHome:null,realAway:null},
+  // Official FIFA 2026 playoff bracket
+  // * = pending UEFA/IC playoff confirmation
+  return [
+    // ── DIECISEISAVOS (Ronda de 32) ─────────────────────────────────────
+    {id:1001,phase:"round32",label:"Ronda de 32",matchNum:1, date:"28 Jun",desc:"2º Grupo A vs 2º Grupo B",        home:"2º Grupo A",    away:"2º Grupo B",    realHome:null,realAway:null},
+    {id:1002,phase:"round32",label:"Ronda de 32",matchNum:2, date:"29 Jun",desc:"1º Grupo E vs 3º A/B/C/D/F",     home:"1º Grupo E",    away:"3º A/B/C/D/F",  realHome:null,realAway:null},
+    {id:1003,phase:"round32",label:"Ronda de 32",matchNum:3, date:"29 Jun",desc:"1º Grupo F vs 2º Grupo C",       home:"1º Grupo F",    away:"2º Grupo C",    realHome:null,realAway:null},
+    {id:1004,phase:"round32",label:"Ronda de 32",matchNum:4, date:"29 Jun",desc:"1º Grupo C vs 2º Grupo F",       home:"1º Grupo C",    away:"2º Grupo F",    realHome:null,realAway:null},
+    {id:1005,phase:"round32",label:"Ronda de 32",matchNum:5, date:"30 Jun",desc:"1º Grupo I vs 3º C/D/F/G/H",     home:"1º Grupo I",    away:"3º C/D/F/G/H",  realHome:null,realAway:null},
+    {id:1006,phase:"round32",label:"Ronda de 32",matchNum:6, date:"30 Jun",desc:"2º Grupo E vs 2º Grupo I",       home:"2º Grupo E",    away:"2º Grupo I",    realHome:null,realAway:null},
+    {id:1007,phase:"round32",label:"Ronda de 32",matchNum:7, date:"30 Jun",desc:"1º Grupo A vs 3º C/E/F/H/I",     home:"1º Grupo A",    away:"3º C/E/F/H/I",  realHome:null,realAway:null},
+    {id:1008,phase:"round32",label:"Ronda de 32",matchNum:8, date:"1 Jul", desc:"1º Grupo L vs 3º E/H/I/J/K",     home:"1º Grupo L",    away:"3º E/H/I/J/K",  realHome:null,realAway:null},
+    {id:1009,phase:"round32",label:"Ronda de 32",matchNum:9, date:"1 Jul", desc:"1º Grupo D vs 3º B/E/F/I/J",     home:"1º Grupo D",    away:"3º B/E/F/I/J",  realHome:null,realAway:null},
+    {id:1010,phase:"round32",label:"Ronda de 32",matchNum:10,date:"1 Jul", desc:"1º Grupo G vs 3º A/E/H/I/J",     home:"1º Grupo G",    away:"3º A/E/H/I/J",  realHome:null,realAway:null},
+    {id:1011,phase:"round32",label:"Ronda de 32",matchNum:11,date:"2 Jul", desc:"2º Grupo K vs 2º Grupo L",       home:"2º Grupo K",    away:"2º Grupo L",    realHome:null,realAway:null},
+    {id:1012,phase:"round32",label:"Ronda de 32",matchNum:12,date:"2 Jul", desc:"1º Grupo H vs 2º Grupo J",       home:"1º Grupo H",    away:"2º Grupo J",    realHome:null,realAway:null},
+    {id:1013,phase:"round32",label:"Ronda de 32",matchNum:13,date:"2 Jul", desc:"1º Grupo B vs 3º E/F/G/I/J",     home:"1º Grupo B",    away:"3º E/F/G/I/J",  realHome:null,realAway:null},
+    {id:1014,phase:"round32",label:"Ronda de 32",matchNum:14,date:"2 Jul", desc:"1º Grupo J vs 2º Grupo H",       home:"1º Grupo J",    away:"2º Grupo H",    realHome:null,realAway:null},
+    {id:1015,phase:"round32",label:"Ronda de 32",matchNum:15,date:"3 Jul", desc:"1º Grupo K vs 3º D/E/I/J/L",     home:"1º Grupo K",    away:"3º D/E/I/J/L",  realHome:null,realAway:null},
+    {id:1016,phase:"round32",label:"Ronda de 32",matchNum:16,date:"3 Jul", desc:"2º Grupo D vs 2º Grupo G",       home:"2º Grupo D",    away:"2º Grupo G",    realHome:null,realAway:null},
+    // ── OCTAVOS (Ronda de 16) ────────────────────────────────────────────
+    {id:1017,phase:"round16",label:"Octavos de Final",matchNum:1,date:"4 Jul",desc:"Gan. P74 vs Gan. P77",  home:"Gan. P74",away:"Gan. P77",realHome:null,realAway:null},
+    {id:1018,phase:"round16",label:"Octavos de Final",matchNum:2,date:"4 Jul",desc:"Gan. P73 vs Gan. P75",  home:"Gan. P73",away:"Gan. P75",realHome:null,realAway:null},
+    {id:1019,phase:"round16",label:"Octavos de Final",matchNum:3,date:"5 Jul",desc:"Gan. P76 vs Gan. P78",  home:"Gan. P76",away:"Gan. P78",realHome:null,realAway:null},
+    {id:1020,phase:"round16",label:"Octavos de Final",matchNum:4,date:"5 Jul",desc:"Gan. P79 vs Gan. P80",  home:"Gan. P79",away:"Gan. P80",realHome:null,realAway:null},
+    {id:1021,phase:"round16",label:"Octavos de Final",matchNum:5,date:"6 Jul",desc:"Gan. P83 vs Gan. P84",  home:"Gan. P83",away:"Gan. P84",realHome:null,realAway:null},
+    {id:1022,phase:"round16",label:"Octavos de Final",matchNum:6,date:"6 Jul",desc:"Gan. P81 vs Gan. P82",  home:"Gan. P81",away:"Gan. P82",realHome:null,realAway:null},
+    {id:1023,phase:"round16",label:"Octavos de Final",matchNum:7,date:"7 Jul",desc:"Gan. P86 vs Gan. P88",  home:"Gan. P86",away:"Gan. P88",realHome:null,realAway:null},
+    {id:1024,phase:"round16",label:"Octavos de Final",matchNum:8,date:"7 Jul",desc:"Gan. P85 vs Gan. P87",  home:"Gan. P85",away:"Gan. P87",realHome:null,realAway:null},
+    // ── CUARTOS DE FINAL ────────────────────────────────────────────────
+    {id:1025,phase:"quarters",label:"Cuartos de Final",matchNum:1,date:"9 Jul", desc:"Gan. P89 vs Gan. P90",home:"Gan. P89",away:"Gan. P90",realHome:null,realAway:null},
+    {id:1026,phase:"quarters",label:"Cuartos de Final",matchNum:2,date:"10 Jul",desc:"Gan. P93 vs Gan. P94",home:"Gan. P93",away:"Gan. P94",realHome:null,realAway:null},
+    {id:1027,phase:"quarters",label:"Cuartos de Final",matchNum:3,date:"11 Jul",desc:"Gan. P91 vs Gan. P92",home:"Gan. P91",away:"Gan. P92",realHome:null,realAway:null},
+    {id:1028,phase:"quarters",label:"Cuartos de Final",matchNum:4,date:"11 Jul",desc:"Gan. P95 vs Gan. P96",home:"Gan. P95",away:"Gan. P96",realHome:null,realAway:null},
+    // ── SEMIFINALES ─────────────────────────────────────────────────────
+    {id:1029,phase:"semis",label:"Semifinales",matchNum:1,date:"14 Jul",desc:"Gan. P97 vs Gan. P98",  home:"Gan. CF-1",away:"Gan. CF-2",realHome:null,realAway:null},
+    {id:1030,phase:"semis",label:"Semifinales",matchNum:2,date:"15 Jul",desc:"Gan. P99 vs Gan. P100", home:"Gan. CF-3",away:"Gan. CF-4",realHome:null,realAway:null},
+    // ── TERCER LUGAR ────────────────────────────────────────────────────
+    {id:1031,phase:"third",label:"Tercer Lugar",matchNum:1,date:"18 Jul",desc:"Per. SF1 vs Per. SF2", home:"Per. SF-1",away:"Per. SF-2",realHome:null,realAway:null},
+    // ── GRAN FINAL ──────────────────────────────────────────────────────
+    {id:1032,phase:"final",label:"Gran Final",matchNum:1,date:"19 Jul",desc:"Gan. SF1 vs Gan. SF2",  home:"Gan. SF-1",away:"Gan. SF-2",realHome:null,realAway:null},
   ];
-  const round16 = [
-    {id:1017,phase:"round16",label:"Ronda de 16",matchNum:1,desc:"Gan. P1 vs Gan. P3",date:"4 Jul",home:"Gan. P1",away:"Gan. P3",realHome:null,realAway:null},
-    {id:1018,phase:"round16",label:"Ronda de 16",matchNum:2,desc:"Gan. P2 vs Gan. P5",date:"4 Jul",home:"Gan. P2",away:"Gan. P5",realHome:null,realAway:null},
-    {id:1019,phase:"round16",label:"Ronda de 16",matchNum:3,desc:"Gan. P4 vs Gan. P6",date:"5 Jul",home:"Gan. P4",away:"Gan. P6",realHome:null,realAway:null},
-    {id:1020,phase:"round16",label:"Ronda de 16",matchNum:4,desc:"Gan. P7 vs Gan. P9",date:"5 Jul",home:"Gan. P7",away:"Gan. P9",realHome:null,realAway:null},
-    {id:1021,phase:"round16",label:"Ronda de 16",matchNum:5,desc:"Gan. P8 vs Gan. P10",date:"6 Jul",home:"Gan. P8",away:"Gan. P10",realHome:null,realAway:null},
-    {id:1022,phase:"round16",label:"Ronda de 16",matchNum:6,desc:"Gan. P11 vs Gan. P13",date:"6 Jul",home:"Gan. P11",away:"Gan. P13",realHome:null,realAway:null},
-    {id:1023,phase:"round16",label:"Ronda de 16",matchNum:7,desc:"Gan. P12 vs Gan. P14",date:"7 Jul",home:"Gan. P12",away:"Gan. P14",realHome:null,realAway:null},
-    {id:1024,phase:"round16",label:"Ronda de 16",matchNum:8,desc:"Gan. P15 vs Gan. P16",date:"7 Jul",home:"Gan. P15",away:"Gan. P16",realHome:null,realAway:null},
-  ];
-  const quarters = [
-    {id:1025,phase:"quarters",label:"Cuartos de Final",matchNum:1,desc:"Gan. R16-P1 vs Gan. R16-P2",date:"9 Jul",home:"Gan. R16-1",away:"Gan. R16-2",realHome:null,realAway:null},
-    {id:1026,phase:"quarters",label:"Cuartos de Final",matchNum:2,desc:"Gan. R16-P3 vs Gan. R16-P4",date:"9 Jul",home:"Gan. R16-3",away:"Gan. R16-4",realHome:null,realAway:null},
-    {id:1027,phase:"quarters",label:"Cuartos de Final",matchNum:3,desc:"Gan. R16-P5 vs Gan. R16-P6",date:"10 Jul",home:"Gan. R16-5",away:"Gan. R16-6",realHome:null,realAway:null},
-    {id:1028,phase:"quarters",label:"Cuartos de Final",matchNum:4,desc:"Gan. R16-P7 vs Gan. R16-P8",date:"11 Jul",home:"Gan. R16-7",away:"Gan. R16-8",realHome:null,realAway:null},
-  ];
-  const semis = [
-    {id:1029,phase:"semis",label:"Semifinales",matchNum:1,desc:"Gan. CF1 vs Gan. CF2",date:"14 Jul",home:"Gan. CF-1",away:"Gan. CF-2",realHome:null,realAway:null},
-    {id:1030,phase:"semis",label:"Semifinales",matchNum:2,desc:"Gan. CF3 vs Gan. CF4",date:"15 Jul",home:"Gan. CF-3",away:"Gan. CF-4",realHome:null,realAway:null},
-  ];
-  const third = [{id:1031,phase:"third",label:"Tercer Lugar",matchNum:1,desc:"Per. SF1 vs Per. SF2",date:"18 Jul",home:"Per. SF-1",away:"Per. SF-2",realHome:null,realAway:null}];
-  const final = [{id:1032,phase:"final",label:"Gran Final",matchNum:1,desc:"Gan. SF1 vs Gan. SF2",date:"19 Jul",home:"Gan. SF-1",away:"Gan. SF-2",realHome:null,realAway:null}];
-
-  return [...round32,...round16,...quarters,...semis,...third,...final];
 }
 
 const INITIAL_MATCHES = [...generateGroupMatches(), ...generateElimMatches()];
