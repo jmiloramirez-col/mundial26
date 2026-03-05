@@ -148,113 +148,135 @@ function calcParticipantPoints(predictions, matches, invoices) {
   return {total, exact, correct, invPts};
 }
 
+// BRAND
+const BRAND = {
+  red: "#d3172e",
+  redDark: "#a8101f",
+  redLight: "#f5e6e8",
+  white: "#ffffff",
+  gray50: "#f9fafb",
+  gray100: "#f3f4f6",
+  gray200: "#e5e7eb",
+  gray400: "#9ca3af",
+  gray600: "#4b5563",
+  gray900: "#ffffff",
+  black: "#0a0a0a",
+};
+
 // STYLES
 const S = {
   app: {
-    minHeight:"100vh", background:"#0a0e1a",
-    fontFamily:"'Segoe UI', sans-serif", color:"#e8eaf0",
+    minHeight:"100vh",
+    background:BRAND.gray50,
+    fontFamily:"'Segoe UI', system-ui, sans-serif",
+    color:BRAND.gray900,
   },
   header: {
-    background:"linear-gradient(135deg,#0d1b2a,#1a2744)",
-    borderBottom:"2px solid #c9a84c",
+    background:BRAND.white,
+    borderBottom:"3px solid "+BRAND.red,
     position:"sticky", top:0, zIndex:100,
-    boxShadow:"0 4px 30px rgba(0,0,0,0.5)",
+    boxShadow:"0 2px 12px rgba(0,0,0,0.08)",
   },
   headerInner: {
     maxWidth:1000, margin:"0 auto",
     display:"flex", alignItems:"center", justifyContent:"space-between",
-    padding:"12px 16px", flexWrap:"wrap", gap:8,
+    padding:"10px 16px", flexWrap:"wrap", gap:8,
   },
   logo: {
-    display:"flex", alignItems:"center", gap:8,
-    fontSize:"1.3rem", fontWeight:800,
-    letterSpacing:2, color:"#c9a84c",
+    display:"flex", alignItems:"center", gap:10,
   },
   nav: {display:"flex", gap:4, flexWrap:"wrap"},
   navBtn: (active) => ({
-    background: active?"#c9a84c":"transparent",
-    color: active?"#0a0e1a":"#8899bb",
-    border:"1px solid "+(active?"#c9a84c":"#2a3a5e"),
-    borderRadius:6, padding:"6px 12px",
+    background: active?BRAND.red:"transparent",
+    color: active?BRAND.white:BRAND.gray600,
+    border:"1.5px solid "+(active?BRAND.red:BRAND.gray200),
+    borderRadius:6, padding:"6px 14px",
     cursor:"pointer", fontSize:"0.78rem",
-    fontWeight:700, letterSpacing:1,
+    fontWeight:700, letterSpacing:0.5,
+    transition:"all .15s",
   }),
   main: {maxWidth:1000, margin:"0 auto", padding:"20px 14px"},
   card: {
-    background:"#111827", border:"1px solid #1e2d4a",
+    background:BRAND.white,
+    border:"1px solid "+BRAND.gray200,
     borderRadius:12, padding:18, marginBottom:14,
+    boxShadow:"0 1px 4px rgba(0,0,0,0.05)",
   },
   sectionTitle: {
-    fontSize:"1rem", fontWeight:800, letterSpacing:2,
-    color:"#c9a84c", borderBottom:"1px solid #1e2d4a",
+    fontSize:"0.85rem", fontWeight:800, letterSpacing:2,
+    color:BRAND.red, borderBottom:"2px solid "+BRAND.gray100,
     paddingBottom:8, marginBottom:14,
+    textTransform:"uppercase",
   },
   input: {
-    background:"#1a2540", border:"1px solid #2a3a5e",
-    color:"#e8eaf0", borderRadius:6, padding:"8px 12px",
+    background:BRAND.gray50, border:"1.5px solid "+BRAND.gray200,
+    color:BRAND.gray900, borderRadius:8, padding:"9px 12px",
     fontSize:"0.95rem", width:"100%",
     fontFamily:"inherit", outline:"none",
     boxSizing:"border-box",
+    transition:"border .15s",
   },
   scoreInput: {
-    background:"#1a2540", border:"1px solid #2a3a5e",
-    color:"#e8eaf0", borderRadius:6, padding:"5px 0",
+    background:BRAND.gray50, border:"1.5px solid "+BRAND.gray200,
+    color:BRAND.gray900, borderRadius:6, padding:"5px 0",
     fontSize:"1rem", fontWeight:700, width:46,
     textAlign:"center", fontFamily:"inherit", outline:"none",
   },
-  btn: (color="#c9a84c", outline=false) => ({
+  btn: (color=BRAND.red, outline=false) => ({
     background: outline?"transparent":color,
-    color: outline?color:"#0a0e1a",
+    color: outline?color:BRAND.white,
     border:"2px solid "+color,
     borderRadius:8, padding:"8px 18px",
     cursor:"pointer", fontSize:"0.85rem",
-    fontWeight:800, fontFamily:"inherit",
+    fontWeight:700, fontFamily:"inherit",
+    transition:"opacity .15s",
   }),
   matchRow: {
     display:"grid",
     gridTemplateColumns:"1fr 46px 10px 46px 1fr",
     gap:5, alignItems:"center",
-    background:"#0d1520", border:"1px solid #1e2d4a",
+    background:BRAND.gray50, border:"1px solid "+BRAND.gray200,
     borderRadius:8, padding:"7px 10px", marginBottom:5,
   },
   badge: (pts) => ({
     display:"inline-block",
-    background:pts===5?"#27ae60":pts===3?"#2980b9":pts===0?"#c0392b":"#2a3a5e",
-    color:"#fff", borderRadius:20,
-    padding:"2px 8px", fontSize:"0.78rem", fontWeight:700,
+    background:pts===5?"#16a34a":pts===3?"#2563eb":pts===0?"#dc2626":BRAND.gray200,
+    color:pts===null?BRAND.gray600:"#fff",
+    borderRadius:20, padding:"2px 8px",
+    fontSize:"0.78rem", fontWeight:700,
     minWidth:26, textAlign:"center",
   }),
   leaderRow: (i) => ({
-    background:i===0?"#1a1200":i===1?"#141414":i===2?"#110a05":"#111827",
-    border:"1px solid "+(i===0?"#c9a84c":i===1?"#9e9e9e":i===2?"#cd7f32":"#1e2d4a"),
+    background:i===0?"#fff7f7":i===1?"#fafafa":i===2?"#fff9f5":BRAND.white,
+    border:"1.5px solid "+(i===0?BRAND.red:i===1?BRAND.gray200:i===2?"#e8c99a":BRAND.gray200),
     borderRadius:10, padding:"10px 16px",
     display:"flex", alignItems:"center", gap:12,
     marginBottom:7,
   }),
   groupHeader: (color) => ({
-    background:color+"22", borderLeft:"4px solid "+color,
+    background:color+"15", borderLeft:"4px solid "+color,
     padding:"6px 12px", borderRadius:"0 8px 8px 0",
     marginBottom:7, marginTop:14,
-    fontSize:"0.95rem", fontWeight:800,
+    fontSize:"0.85rem", fontWeight:800,
     letterSpacing:2, color:color,
   }),
   phaseHeader: (color) => ({
     background:color, borderRadius:8,
-    padding:"8px 14px", fontSize:"0.9rem",
+    padding:"8px 14px", fontSize:"0.85rem",
     fontWeight:800, letterSpacing:2,
     marginBottom:8, marginTop:16,
     color:"#fff",
   }),
   invoiceCard: (status) => ({
-    background:"#0d1520",
-    border:"1px solid "+(status==="approved"?"#27ae6066":status==="rejected"?"#c0392b66":"#c9a84c66"),
+    background:BRAND.gray50,
+    border:"1px solid "+(status==="approved"?"#16a34a44":status==="rejected"?"#dc262644":BRAND.red+"44"),
     borderRadius:8, padding:"12px 14px", marginBottom:8,
     display:"flex", alignItems:"center", justifyContent:"space-between", gap:10,
     flexWrap:"wrap",
   }),
   statusBadge: (status) => ({
     display:"inline-block",
-    background:status==="approved"?"#27ae60":status==="rejected"?"#c0392b":"#e67e22",
+    background:status==="approved"?"#16a34a":status==="rejected"?"#dc2626":"#d97706",
     color:"#fff", borderRadius:20,
     padding:"3px 10px", fontSize:"0.75rem", fontWeight:700,
   }),
@@ -266,12 +288,13 @@ const FontStyle = () => (
     input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; }
     input[type=number] { -moz-appearance:textfield; }
     ::-webkit-scrollbar { width:5px; }
-    ::-webkit-scrollbar-thumb { background:#2a3a5e; border-radius:3px; }
+    ::-webkit-scrollbar-thumb { background:#e5e7eb; border-radius:3px; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
     .fi { animation:fadeIn .3s ease forwards; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
     .pulse { animation:pulse 2s infinite; }
-    button:hover { opacity:.85; }
+    button:hover { opacity:.82; }
+    input:focus { border-color:#d3172e !important; box-shadow:0 0 0 3px #d3172e18; }
   `}</style>
 );
 
@@ -288,7 +311,7 @@ function Leaderboard({ participants, matches, invoices }) {
     <div className="fi">
       <div style={S.sectionTitle}>Tabla de Clasificacion</div>
       {ranked.length===0 && (
-        <div style={{textAlign:"center",color:"#4a5a7e",padding:40}}>
+        <div style={{textAlign:"center",color:"#9ca3af",padding:40}}>
           Aun no hay participantes registrados
         </div>
       )}
@@ -296,44 +319,44 @@ function Leaderboard({ participants, matches, invoices }) {
         <div key={p.id} style={S.leaderRow(i)}>
           <div style={{fontSize:"1.5rem"}}>
             {i===0?"":i===1?"":i===2?"":
-              <span style={{color:"#4a5a7e",fontSize:"0.9rem",fontWeight:700}}>#{i+1}</span>}
+              <span style={{color:"#9ca3af",fontSize:"0.9rem",fontWeight:700}}>#{i+1}</span>}
           </div>
           <div style={{flex:1}}>
             <div style={{fontWeight:800,fontSize:"1rem"}}>{p.name}</div>
-            <div style={{color:"#4a5a7e",fontSize:"0.75rem",marginTop:2,display:"flex",gap:10,flexWrap:"wrap"}}>
+            <div style={{color:"#9ca3af",fontSize:"0.75rem",marginTop:2,display:"flex",gap:10,flexWrap:"wrap"}}>
               <span>{p.exact} exactos</span>
               <span>{p.correct} acertados</span>
-              {p.invPts>0 && <span style={{color:"#c9a84c"}}>+{p.invPts} pts facturas</span>}
+              {p.invPts>0 && <span style={{color:"#d3172e"}}>+{p.invPts} pts facturas</span>}
             </div>
           </div>
           <div style={{textAlign:"right"}}>
             <div style={{fontSize:"1.8rem",fontWeight:800,
-              color:i===0?"#c9a84c":i===1?"#9e9e9e":i===2?"#cd7f32":"#e8eaf0",
+              color:i===0?"#d3172e":i===1?"#9e9e9e":i===2?"#cd7f32":"#ffffff",
               lineHeight:1}}>{p.total}</div>
-            <div style={{color:"#4a5a7e",fontSize:"0.7rem"}}>PUNTOS</div>
+            <div style={{color:"#9ca3af",fontSize:"0.7rem"}}>PUNTOS</div>
           </div>
         </div>
       ))}
       <div style={{...S.card,marginTop:20}}>
         <div style={S.sectionTitle}>Sistema de Puntos</div>
         <div style={{marginBottom:14}}>
-          <div style={{fontSize:"0.8rem",color:"#c9a84c",fontWeight:700,marginBottom:8,letterSpacing:1}}>PRONOSTICOS</div>
+          <div style={{fontSize:"0.8rem",color:"#d3172e",fontWeight:700,marginBottom:8,letterSpacing:1}}>PRONOSTICOS</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8}}>
             {[["5 pts","Resultado exacto","#27ae60"],["3 pts","Ganador correcto","#2980b9"],["0 pts","Resultado fallado","#c0392b"]].map(([pts,desc,color])=>(
-              <div key={pts} style={{background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"10px",textAlign:"center"}}>
+              <div key={pts} style={{background:"#f9fafb",border:"1px solid "+color+"44",borderRadius:10,padding:"10px",textAlign:"center"}}>
                 <div style={{fontSize:"1.6rem",fontWeight:800,color}}>{pts}</div>
-                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>{desc}</div>
+                <div style={{color:"#6b7280",fontSize:"0.78rem",marginTop:2}}>{desc}</div>
               </div>
             ))}
           </div>
         </div>
         <div>
-          <div style={{fontSize:"0.8rem",color:"#c9a84c",fontWeight:700,marginBottom:8,letterSpacing:1}}>FACTURAS (CAD)</div>
+          <div style={{fontSize:"0.8rem",color:"#d3172e",fontWeight:700,marginBottom:8,letterSpacing:1}}>FACTURAS (CAD)</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8}}>
-            {[["5 pts","$10 - $50","#27ae60"],["10 pts","$51 - $100","#2980b9"],["20 pts","$101 - $200","#8e44ad"],["30 pts","Mas de $200","#c9a84c"]].map(([pts,range,color])=>(
-              <div key={pts} style={{background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"10px",textAlign:"center"}}>
+            {[["5 pts","$10 - $50","#27ae60"],["10 pts","$51 - $100","#2980b9"],["20 pts","$101 - $200","#8e44ad"],["30 pts","Mas de $200","#d3172e"]].map(([pts,range,color])=>(
+              <div key={pts} style={{background:"#f9fafb",border:"1px solid "+color+"44",borderRadius:10,padding:"10px",textAlign:"center"}}>
                 <div style={{fontSize:"1.4rem",fontWeight:800,color}}>{pts}</div>
-                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>{range}</div>
+                <div style={{color:"#6b7280",fontSize:"0.78rem",marginTop:2}}>{range}</div>
               </div>
             ))}
           </div>
@@ -391,14 +414,14 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
       <div style={S.sectionTitle}>Registrar Factura</div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
         <div>
-          <label style={{fontSize:"0.75rem",color:"#c9a84c",letterSpacing:2,display:"block",marginBottom:5}}>
+          <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>
             NUMERO DE FACTURA
           </label>
           <input style={S.input} placeholder="Ej: FAC-001234"
             value={invoiceNum} onChange={e=>setInvoiceNum(e.target.value)} />
         </div>
         <div>
-          <label style={{fontSize:"0.75rem",color:"#c9a84c",letterSpacing:2,display:"block",marginBottom:5}}>
+          <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>
             MONTO (CAD $)
           </label>
           <input style={S.input} type="number" min="10" placeholder="Ej: 150.00"
@@ -407,11 +430,11 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
       </div>
       {amount && parseFloat(amount)>=10 && (
         <div style={{background:"#0d2215",border:"1px solid #27ae6044",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:"0.85rem"}}>
-          Esta factura vale <strong style={{color:"#27ae60",fontSize:"1rem"}}>{calcInvoicePoints(amount)} puntos</strong> si es aprobada
+          Esta factura vale <strong style={{color:"#16a34a",fontSize:"1rem"}}>{calcInvoicePoints(amount)} puntos</strong> si es aprobada
         </div>
       )}
       {success && (
-        <div style={{background:"#0d2215",border:"1px solid #27ae60",borderRadius:8,padding:"10px 14px",marginBottom:12,color:"#27ae60",fontSize:"0.85rem",fontWeight:700}}>
+        <div style={{background:"#0d2215",border:"1px solid #27ae60",borderRadius:8,padding:"10px 14px",marginBottom:12,color:"#16a34a",fontSize:"0.85rem",fontWeight:700}}>
           Factura enviada! Pendiente de aprobacion por el administrador.
         </div>
       )}
@@ -421,14 +444,14 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
 
       {myInvoices.length>0 && (
         <div style={{marginTop:20}}>
-          <div style={{fontSize:"0.8rem",color:"#c9a84c",fontWeight:700,letterSpacing:1,marginBottom:10}}>
+          <div style={{fontSize:"0.8rem",color:"#d3172e",fontWeight:700,letterSpacing:1,marginBottom:10}}>
             MIS FACTURAS ({myInvoices.length}) — {approvedPts} puntos acumulados
           </div>
           {myInvoices.map(inv=>(
             <div key={inv.id} style={S.invoiceCard(inv.status)}>
               <div>
                 <div style={{fontWeight:700,fontSize:"0.9rem"}}>{inv.invoiceNum}</div>
-                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>
+                <div style={{color:"#6b7280",fontSize:"0.78rem",marginTop:2}}>
                   ${inv.amount} CAD &nbsp;|&nbsp; {inv.points} pts potenciales
                 </div>
               </div>
@@ -461,7 +484,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   const elimMatches = matches.filter(m=>m.phase!=="groups");
   const phases = [...new Set(elimMatches.map(m=>m.phase))];
   const phaseLabels = {round32:"Octavos",quarters:"Cuartos",semis:"Semifinales",third:"3er Lugar",final:"Gran Final"};
-  const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#c9a84c"};
+  const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#d3172e"};
 
   const groupsLocked = isPhaseLocked("groups", adminUnlocked);
 
@@ -522,12 +545,12 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       <div key={m.id} style={{...S.matchRow, opacity:m.home==="Por definir"?.55:1}}>
         <div style={{textAlign:"right",fontSize:"0.85rem",fontWeight:600}}>{m.home}</div>
         <input type="number" min="0" max="99" placeholder="-"
-          style={{...S.scoreInput, background:locked?"#0d1520":"#1a2540", cursor:locked?"not-allowed":"text"}}
+          style={{...S.scoreInput, background:locked?"#f9fafb":"#f3f4f6", cursor:locked?"not-allowed":"text"}}
           value={pred.home??""} disabled={locked}
           onChange={e=>!locked&&setPred(m.id,"home",e.target.value)} />
-        <div style={{textAlign:"center",color:"#4a5a7e",fontSize:"0.68rem",fontWeight:700}}>VS</div>
+        <div style={{textAlign:"center",color:"#9ca3af",fontSize:"0.68rem",fontWeight:700}}>VS</div>
         <input type="number" min="0" max="99" placeholder="-"
-          style={{...S.scoreInput, background:locked?"#0d1520":"#1a2540", cursor:locked?"not-allowed":"text"}}
+          style={{...S.scoreInput, background:locked?"#f9fafb":"#f3f4f6", cursor:locked?"not-allowed":"text"}}
           value={pred.away??""} disabled={locked}
           onChange={e=>!locked&&setPred(m.id,"away",e.target.value)} />
         <div style={{textAlign:"left",fontSize:"0.85rem",fontWeight:600}}>{m.away}</div>
@@ -540,25 +563,25 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     <div className="fi" style={{maxWidth:400,margin:"0 auto"}}>
       <div style={S.card}>
         <div style={S.sectionTitle}>Acceso al Concurso</div>
-        <p style={{color:"#8899bb",marginBottom:16,fontSize:"0.85rem",lineHeight:1.6}}>
+        <p style={{color:"#6b7280",marginBottom:16,fontSize:"0.85rem",lineHeight:1.6}}>
           Nuevo: escribe tu nombre y crea un PIN de 4+ digitos.<br/>
           Ya participas: usa el mismo nombre y PIN.
         </p>
         <div style={{marginBottom:12}}>
-          <label style={{fontSize:"0.75rem",color:"#c9a84c",letterSpacing:2,display:"block",marginBottom:5}}>TU NOMBRE</label>
+          <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>TU NOMBRE</label>
           <input style={S.input} placeholder="Ej: Carlos Perez"
             value={name} onChange={e=>setName(e.target.value)}
             onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
         </div>
         <div style={{marginBottom:16}}>
-          <label style={{fontSize:"0.75rem",color:"#c9a84c",letterSpacing:2,display:"block",marginBottom:5}}>PIN (minimo 4 digitos)</label>
+          <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>PIN (minimo 4 digitos)</label>
           <input style={S.input} type="password" placeholder="****"
             value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,""))}
             onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
         </div>
-        {error && <div style={{color:"#e74c3c",marginBottom:10,fontSize:"0.85rem"}}>{error}</div>}
+        {error && <div style={{color:"#dc2626",marginBottom:10,fontSize:"0.85rem"}}>{error}</div>}
         <button style={S.btn()} onClick={handleLogin}>Entrar / Registrarse</button>
-        <div style={{marginTop:10,color:"#4a5a7e",fontSize:"0.75rem"}}>{participants.length} participante{participants.length!==1?"s":""} registrado{participants.length!==1?"s":""}</div>
+        <div style={{marginTop:10,color:"#9ca3af",fontSize:"0.75rem"}}>{participants.length} participante{participants.length!==1?"s":""} registrado{participants.length!==1?"s":""}</div>
       </div>
     </div>
   );
@@ -567,11 +590,11 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     <div className="fi" style={{maxWidth:440,margin:"0 auto",textAlign:"center"}}>
       <div style={S.card}>
         <div style={{fontSize:"3rem",marginBottom:10}}>OK</div>
-        <div style={{fontSize:"1.2rem",fontWeight:800,color:"#c9a84c",marginBottom:8}}>Guardado!</div>
-        <div style={{color:"#8899bb",marginBottom:16}}>Hola <strong style={{color:"#e8eaf0"}}>{currentUser?.name}</strong></div>
+        <div style={{fontSize:"1.2rem",fontWeight:800,color:"#d3172e",marginBottom:8}}>Guardado!</div>
+        <div style={{color:"#6b7280",marginBottom:16}}>Hola <strong style={{color:"#ffffff"}}>{currentUser?.name}</strong></div>
         <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
           <button style={S.btn()} onClick={()=>setStep("form")}>Editar Pronosticos</button>
-          <button style={S.btn("#8899bb",true)} onClick={()=>{setStep("login");setName("");setPin("");}}>Cambiar Usuario</button>
+          <button style={S.btn("#6b7280",true)} onClick={()=>{setStep("login");setName("");setPin("");}}>Cambiar Usuario</button>
         </div>
       </div>
     </div>
@@ -580,12 +603,12 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   return (
     <div className="fi">
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-        <span style={{color:"#c9a84c",fontWeight:800}}>{currentUser?.name}</span>
+        <span style={{color:"#d3172e",fontWeight:800}}>{currentUser?.name}</span>
         <div style={{display:"flex",gap:8}}>
           <button style={{...S.btn("#27ae60"),fontSize:"0.8rem",padding:"6px 14px"}} onClick={handleSave} disabled={saving}>
             {saving?"Guardando...":"Guardar Todo"}
           </button>
-          <button style={{...S.btn("#8899bb",true),fontSize:"0.8rem",padding:"6px 12px"}} onClick={()=>{setStep("login");setName("");setPin("");}}>Salir</button>
+          <button style={{...S.btn("#6b7280",true),fontSize:"0.8rem",padding:"6px 12px"}} onClick={()=>{setStep("login");setName("");setPin("");}}>Salir</button>
         </div>
       </div>
 
@@ -622,7 +645,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
                 ))}
               </div>
               {(()=>{const lk=getLockMsg("groups"); return(
-                <div style={{background:lk.locked?"#2a0a0a":"#0a2215",border:"1px solid "+(lk.locked?"#c0392b88":"#27ae6066"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
+                <div style={{background:lk.locked?"#fef2f2":"#f0fdf4",border:"1px solid "+(lk.locked?"#dc262688":"#16a34a66"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
                   {lk.locked?"Pronosticos de grupos cerrados":lk.msg}
                 </div>
               );})()}
@@ -651,7 +674,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
                 ))}
               </div>
               {(()=>{const lk=getLockMsg(activePh); return(
-                <div style={{background:lk.locked?"#2a0a0a":"#0a2215",border:"1px solid "+(lk.locked?"#c0392b88":"#27ae6066"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
+                <div style={{background:lk.locked?"#fef2f2":"#f0fdf4",border:"1px solid "+(lk.locked?"#dc262688":"#16a34a66"),borderRadius:7,padding:"7px 12px",marginBottom:10,fontSize:"0.8rem",color:lk.locked?"#e74c3c":"#2ecc71"}}>
                   {lk.locked?"Cerrado":lk.msg}
                 </div>
               );})()}
@@ -679,7 +702,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
 function FixtureView({ matches }) {
   const [activeGroup, setActiveGroup] = useState("A");
   const [activePhase, setActivePhase] = useState("groups");
-  const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#c9a84c"};
+  const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#d3172e"};
   const phaseLabels = {round32:"Octavos de Final",quarters:"Cuartos de Final",semis:"Semifinales",third:"Tercer Lugar",final:"Gran Final"};
   const groupMatches = matches.filter(m=>m.phase==="groups");
   const elimMatches = matches.filter(m=>m.phase!=="groups");
@@ -690,11 +713,11 @@ function FixtureView({ matches }) {
     return (
       <div key={m.id} style={{...S.matchRow,gridTemplateColumns:"1fr auto auto auto 1fr",opacity:m.home==="Por definir"?.5:1}}>
         <div style={{textAlign:"right",fontWeight:600,fontSize:"0.85rem"}}>{m.home}</div>
-        <div style={{background:hasResult?"#1e3a2e":"#1a2540",border:"1px solid "+(hasResult?"#27ae6066":"#2a3a5e"),borderRadius:6,padding:"3px 8px",fontSize:"1rem",fontWeight:800,color:hasResult?"#27ae60":"#4a5a7e",minWidth:32,textAlign:"center"}}>
+        <div style={{background:hasResult?"#f0fdf4":"#f3f4f6",border:"1px solid "+(hasResult?"#16a34a66":"#d1d5db"),borderRadius:6,padding:"3px 8px",fontSize:"1rem",fontWeight:800,color:hasResult?"#27ae60":"#9ca3af",minWidth:32,textAlign:"center"}}>
           {hasResult?m.realHome:"-"}
         </div>
-        <div style={{color:"#4a5a7e",fontWeight:700,fontSize:"0.68rem",padding:"0 3px"}}>VS</div>
-        <div style={{background:hasResult?"#1e3a2e":"#1a2540",border:"1px solid "+(hasResult?"#27ae6066":"#2a3a5e"),borderRadius:6,padding:"3px 8px",fontSize:"1rem",fontWeight:800,color:hasResult?"#27ae60":"#4a5a7e",minWidth:32,textAlign:"center"}}>
+        <div style={{color:"#9ca3af",fontWeight:700,fontSize:"0.68rem",padding:"0 3px"}}>VS</div>
+        <div style={{background:hasResult?"#f0fdf4":"#f3f4f6",border:"1px solid "+(hasResult?"#16a34a66":"#d1d5db"),borderRadius:6,padding:"3px 8px",fontSize:"1rem",fontWeight:800,color:hasResult?"#27ae60":"#9ca3af",minWidth:32,textAlign:"center"}}>
           {hasResult?m.realAway:"-"}
         </div>
         <div style={{textAlign:"left",fontWeight:600,fontSize:"0.85rem"}}>{m.away}</div>
@@ -721,7 +744,7 @@ function FixtureView({ matches }) {
           <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>GRUPO {activeGroup}</div>
           {groupMatches.filter(m=>m.group===activeGroup).map(m=>(
             <div key={m.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-              <span style={{color:"#4a5a7e",fontSize:"0.72rem",minWidth:38}}>{m.date}</span>
+              <span style={{color:"#9ca3af",fontSize:"0.72rem",minWidth:38}}>{m.date}</span>
               {renderMatch(m)}
             </div>
           ))}
@@ -734,7 +757,7 @@ function FixtureView({ matches }) {
               <div style={S.phaseHeader(phaseColors[ph])}>{phaseLabels[ph]}</div>
               {elimMatches.filter(m=>m.phase===ph).map(m=>(
                 <div key={m.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                  <span style={{color:"#4a5a7e",fontSize:"0.72rem",minWidth:38}}>{m.date}</span>
+                  <span style={{color:"#9ca3af",fontSize:"0.72rem",minWidth:38}}>{m.date}</span>
                   {renderMatch(m)}
                 </div>
               ))}
@@ -757,7 +780,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
   const [activeTab, setActiveTab] = useState("results");
   const ADMIN = "2026";
 
-  const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#c9a84c"};
+  const phaseColors = {round32:"#c0392b",quarters:"#8e44ad",semis:"#e67e22",third:"#2980b9",final:"#d3172e"};
   const phaseLabels = {round32:"Octavos de Final",quarters:"Cuartos de Final",semis:"Semifinales",third:"Tercer Lugar",final:"Gran Final"};
   const groupMatches = matches.filter(m=>m.phase==="groups");
   const elimMatches = matches.filter(m=>m.phase!=="groups");
@@ -824,7 +847,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
             <button key={t} style={{...S.navBtn(activeTab===t),background:t==="invoices"&&pendingInvoices.length>0&&activeTab!==t?"#e67e2222":undefined}} onClick={()=>setActiveTab(t)}>{l}</button>
           ))}
         </div>
-        <button style={{...S.btn(saved?"#27ae60":"#c9a84c"),fontSize:"0.8rem"}} onClick={handleSave}>
+        <button style={{...S.btn(saved?"#27ae60":"#d3172e"),fontSize:"0.8rem"}} onClick={handleSave}>
           {saved?"Guardado!":"Guardar Resultados"}
         </button>
       </div>
@@ -833,18 +856,18 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
         <div>
           <div style={S.sectionTitle}>Facturas Pendientes de Aprobacion</div>
           {pendingInvoices.length===0 && (
-            <div style={{color:"#4a5a7e",padding:20,textAlign:"center"}}>No hay facturas pendientes</div>
+            <div style={{color:"#9ca3af",padding:20,textAlign:"center"}}>No hay facturas pendientes</div>
           )}
           {invoices.map(inv=>(
             <div key={inv.id} style={S.invoiceCard(inv.status)}>
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:"0.9rem"}}>{inv.participantName}</div>
-                <div style={{color:"#8899bb",fontSize:"0.78rem",marginTop:2}}>
-                  Factura: <strong style={{color:"#e8eaf0"}}>{inv.invoiceNum}</strong>
-                  &nbsp;|&nbsp; Monto: <strong style={{color:"#c9a84c"}}>${inv.amount} CAD</strong>
-                  &nbsp;|&nbsp; Pts: <strong style={{color:"#27ae60"}}>{inv.points}</strong>
+                <div style={{color:"#6b7280",fontSize:"0.78rem",marginTop:2}}>
+                  Factura: <strong style={{color:"#ffffff"}}>{inv.invoiceNum}</strong>
+                  &nbsp;|&nbsp; Monto: <strong style={{color:"#d3172e"}}>${inv.amount} CAD</strong>
+                  &nbsp;|&nbsp; Pts: <strong style={{color:"#16a34a"}}>{inv.points}</strong>
                 </div>
-                <div style={{fontSize:"0.72rem",color:"#4a5a7e",marginTop:2}}>
+                <div style={{fontSize:"0.72rem",color:"#9ca3af",marginTop:2}}>
                   {new Date(inv.createdAt).toLocaleDateString()}
                 </div>
               </div>
@@ -884,16 +907,16 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
               </div>
               <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>GRUPO {activeGroup}</div>
               {groupMatches.filter(m=>m.group===activeGroup).map(m=>(
-                <div key={m.id} style={{display:"grid",gridTemplateColumns:"38px 1fr 46px 12px 46px 1fr 24px",gap:5,alignItems:"center",background:"#0d1520",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
-                  <span style={{color:"#4a5a7e",fontSize:"0.7rem"}}>{m.date}</span>
+                <div key={m.id} style={{display:"grid",gridTemplateColumns:"38px 1fr 46px 12px 46px 1fr 24px",gap:5,alignItems:"center",background:"#f9fafb",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
+                  <span style={{color:"#9ca3af",fontSize:"0.7rem"}}>{m.date}</span>
                   <div style={{textAlign:"right",fontWeight:600,fontSize:"0.82rem"}}>{m.home}</div>
                   <input type="number" min="0" max="99" placeholder="-" style={S.scoreInput}
                     value={m.realHome??""} onChange={e=>setResult(m.id,"home",e.target.value)} />
-                  <span style={{color:"#4a5a7e",fontSize:"0.68rem",textAlign:"center"}}>VS</span>
+                  <span style={{color:"#9ca3af",fontSize:"0.68rem",textAlign:"center"}}>VS</span>
                   <input type="number" min="0" max="99" placeholder="-" style={S.scoreInput}
                     value={m.realAway??""} onChange={e=>setResult(m.id,"away",e.target.value)} />
                   <div style={{fontWeight:600,fontSize:"0.82rem"}}>{m.away}</div>
-                  <span style={{fontSize:"0.8rem",color:m.realHome!==null?"#27ae60":"#4a5a7e"}}>
+                  <span style={{fontSize:"0.8rem",color:m.realHome!==null?"#27ae60":"#9ca3af"}}>
                     {m.realHome!==null?"OK":"..."}
                   </span>
                 </div>
@@ -909,16 +932,16 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
               </div>
               <div style={S.phaseHeader(phaseColors[activePh])}>{phaseLabels[activePh]}</div>
               {elimMatches.filter(m=>m.phase===activePh).map(m=>(
-                <div key={m.id} style={{display:"grid",gridTemplateColumns:"38px 1fr 46px 12px 46px 1fr 24px",gap:5,alignItems:"center",background:"#0d1520",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
-                  <span style={{color:"#4a5a7e",fontSize:"0.7rem"}}>{m.date}</span>
-                  <div style={{textAlign:"right",fontWeight:600,fontSize:"0.82rem",color:"#8899bb"}}>{m.home}</div>
+                <div key={m.id} style={{display:"grid",gridTemplateColumns:"38px 1fr 46px 12px 46px 1fr 24px",gap:5,alignItems:"center",background:"#f9fafb",border:"1px solid #1e2d4a",borderRadius:8,padding:"6px 10px",marginBottom:5}}>
+                  <span style={{color:"#9ca3af",fontSize:"0.7rem"}}>{m.date}</span>
+                  <div style={{textAlign:"right",fontWeight:600,fontSize:"0.82rem",color:"#6b7280"}}>{m.home}</div>
                   <input type="number" min="0" max="99" placeholder="-" style={S.scoreInput}
                     value={m.realHome??""} onChange={e=>setResult(m.id,"home",e.target.value)} />
-                  <span style={{color:"#4a5a7e",fontSize:"0.68rem",textAlign:"center"}}>VS</span>
+                  <span style={{color:"#9ca3af",fontSize:"0.68rem",textAlign:"center"}}>VS</span>
                   <input type="number" min="0" max="99" placeholder="-" style={S.scoreInput}
                     value={m.realAway??""} onChange={e=>setResult(m.id,"away",e.target.value)} />
-                  <div style={{fontWeight:600,fontSize:"0.82rem",color:"#8899bb"}}>{m.away}</div>
-                  <span style={{fontSize:"0.8rem",color:m.realHome!==null?"#27ae60":"#4a5a7e"}}>
+                  <div style={{fontWeight:600,fontSize:"0.82rem",color:"#6b7280"}}>{m.away}</div>
+                  <span style={{fontSize:"0.8rem",color:m.realHome!==null?"#27ae60":"#9ca3af"}}>
                     {m.realHome!==null?"OK":"..."}
                   </span>
                 </div>
@@ -930,7 +953,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
 
       {activeTab==="teams" && (
         <div>
-          <p style={{color:"#8899bb",marginBottom:14,fontSize:"0.85rem"}}>Actualiza los equipos eliminatorias.</p>
+          <p style={{color:"#6b7280",marginBottom:14,fontSize:"0.85rem"}}>Actualiza los equipos eliminatorias.</p>
           {phases.map(ph=>(
             <div key={ph}>
               <div style={S.phaseHeader(phaseColors[ph])}>{phaseLabels[ph]}</div>
@@ -938,7 +961,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                 <div key={m.id} style={{display:"grid",gridTemplateColumns:"1fr 30px 1fr",gap:6,alignItems:"center",marginBottom:7}}>
                   <input style={{...S.input,textAlign:"right",marginBottom:0}} value={m.home}
                     onChange={e=>setTeamName(m.id,"home",e.target.value)} />
-                  <div style={{textAlign:"center",color:"#4a5a7e",fontWeight:700}}>VS</div>
+                  <div style={{textAlign:"center",color:"#9ca3af",fontWeight:700}}>VS</div>
                   <input style={{...S.input,marginBottom:0}} value={m.away}
                     onChange={e=>setTeamName(m.id,"away",e.target.value)} />
                 </div>
@@ -951,23 +974,23 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
 
       {activeTab==="locks" && (
         <div>
-          <p style={{color:"#8899bb",marginBottom:14,fontSize:"0.85rem"}}>Desbloquea una fase si hubo un error legitimo.</p>
+          <p style={{color:"#6b7280",marginBottom:14,fontSize:"0.85rem"}}>Desbloquea una fase si hubo un error legitimo.</p>
           {[
             {phase:"groups",label:"Fase de Grupos",lockDate:"10 Jun 2026",color:"#1F618D"},
             {phase:"round32",label:"Octavos de Final",lockDate:"1 Jul 2026",color:"#c0392b"},
             {phase:"quarters",label:"Cuartos de Final",lockDate:"3 Jul 2026",color:"#8e44ad"},
             {phase:"semis",label:"Semifinales",lockDate:"14 Jul 2026",color:"#e67e22"},
             {phase:"third",label:"Tercer Lugar",lockDate:"17 Jul 2026",color:"#2980b9"},
-            {phase:"final",label:"Gran Final",lockDate:"18 Jul 2026",color:"#c9a84c"},
+            {phase:"final",label:"Gran Final",lockDate:"18 Jul 2026",color:"#d3172e"},
           ].map(({phase,label,lockDate,color})=>{
             const autoLocked=isPhaseLocked(phase,{});
             const manUnlocked=!!adminUnlocked[phase];
             const currentlyLocked=autoLocked&&!manUnlocked;
             return (
-              <div key={phase} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0d1520",border:"1px solid "+color+"44",borderRadius:10,padding:"12px 16px",marginBottom:8,flexWrap:"wrap",gap:8}}>
+              <div key={phase} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f9fafb",border:"1px solid "+color+"44",borderRadius:10,padding:"12px 16px",marginBottom:8,flexWrap:"wrap",gap:8}}>
                 <div>
                   <div style={{fontWeight:700,fontSize:"0.95rem"}}>{label}</div>
-                  <div style={{fontSize:"0.75rem",color:"#4a5a7e",marginTop:2}}>Bloqueo: {lockDate}</div>
+                  <div style={{fontSize:"0.75rem",color:"#9ca3af",marginTop:2}}>Bloqueo: {lockDate}</div>
                   <div style={{fontSize:"0.8rem",marginTop:3,color:currentlyLocked?"#e74c3c":"#2ecc71"}}>
                     {currentlyLocked?"Bloqueado":autoLocked?"Desbloqueado por admin":"Abierto"}
                   </div>
@@ -987,7 +1010,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
       {activeTab==="users" && (
         <div>
           <div style={{...S.sectionTitle,marginBottom:12}}>{participants.length} Participantes</div>
-          {participants.length===0 && <div style={{color:"#4a5a7e",padding:16}}>Sin participantes</div>}
+          {participants.length===0 && <div style={{color:"#9ca3af",padding:16}}>Sin participantes</div>}
           {[...participants].sort((a,b)=>{
             const ai=invoices.filter(inv=>inv.participantId===a.id);
             const bi=invoices.filter(inv=>inv.participantId===b.id);
@@ -1000,20 +1023,20 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
             return (
               <div key={p.id} style={{...S.leaderRow(i),justifyContent:"space-between"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#4a5a7e",fontWeight:700,minWidth:24}}>#{i+1}</span>
+                  <span style={{color:"#9ca3af",fontWeight:700,minWidth:24}}>#{i+1}</span>
                   <div>
                     <div style={{fontWeight:700}}>{p.name}</div>
-                    <div style={{fontSize:"0.72rem",color:"#4a5a7e"}}>
+                    <div style={{fontSize:"0.72rem",color:"#9ca3af"}}>
                       {Object.keys(p.predictions||{}).length} pronosticos
                       &nbsp;|&nbsp; {userInv.length} facturas
-                      {pts.invPts>0 && <span style={{color:"#c9a84c"}}> | +{pts.invPts}pts facturas</span>}
+                      {pts.invPts>0 && <span style={{color:"#d3172e"}}> | +{pts.invPts}pts facturas</span>}
                     </div>
                   </div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:"1.3rem",fontWeight:800,color:"#c9a84c"}}>{pts.total}</div>
-                    <div style={{fontSize:"0.68rem",color:"#4a5a7e"}}>pts</div>
+                    <div style={{fontSize:"1.3rem",fontWeight:800,color:"#d3172e"}}>{pts.total}</div>
+                    <div style={{fontSize:"0.68rem",color:"#9ca3af"}}>pts</div>
                   </div>
                   <button onClick={()=>removeParticipant(p.id)}
                     style={{background:"transparent",border:"1px solid #c0392b44",color:"#c0392b",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:"0.78rem"}}>
@@ -1070,8 +1093,10 @@ export default function App() {
     <div style={{...S.app,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <FontStyle />
       <div style={{textAlign:"center"}}>
-        <div style={{fontSize:"2.5rem",marginBottom:10}} className="pulse">...</div>
-        <div style={{color:"#c9a84c",fontSize:"1rem",letterSpacing:3}}>CARGANDO...</div>
+        <img src="https://www.nuevaweb.saborlatino.ca/wp-content/uploads/2025/04/Logo-Sabor-Latino_.jpg"
+          alt="Sabor Latino" style={{height:60,marginBottom:16,opacity:.8}} />
+        <div style={{fontSize:"2rem",marginBottom:8,color:BRAND.red}} className="pulse">...</div>
+        <div style={{color:BRAND.gray400,fontSize:"0.85rem",letterSpacing:3}}>CARGANDO...</div>
       </div>
     </div>
   );
@@ -1081,20 +1106,31 @@ export default function App() {
       <FontStyle />
       <header style={S.header}>
         <div style={S.headerInner}>
-          <div style={S.logo}>Mundial 2026</div>
+          <div style={S.logo}>
+            <img
+              src="https://www.nuevaweb.saborlatino.ca/wp-content/uploads/2025/04/Logo-Sabor-Latino_.jpg"
+              alt="Sabor Latino"
+              style={{height:44, width:"auto", objectFit:"contain", borderRadius:4}}
+              onError={e=>{e.target.style.display="none";}}
+            />
+            <div>
+              <div style={{fontSize:"0.65rem",color:BRAND.red,fontWeight:800,letterSpacing:2,textTransform:"uppercase"}}>Concurso</div>
+              <div style={{fontSize:"1rem",fontWeight:800,color:BRAND.gray900,letterSpacing:1}}>Mundial 2026</div>
+            </div>
+          </div>
           <nav style={S.nav}>
             {tabs.map(t=>(
               <button key={t.id} style={S.navBtn(view===t.id)} onClick={()=>setView(t.id)}>
                 {t.label}
                 {t.id==="admin"&&pendingInv>0 && (
-                  <span style={{background:"#e67e22",color:"#fff",borderRadius:"50%",padding:"1px 6px",fontSize:"0.7rem",marginLeft:5}}>{pendingInv}</span>
+                  <span style={{background:BRAND.red,color:"#fff",borderRadius:"50%",padding:"1px 6px",fontSize:"0.7rem",marginLeft:5}}>{pendingInv}</span>
                 )}
               </button>
             ))}
           </nav>
         </div>
-        <div style={{background:"#0a0e1a",borderTop:"1px solid #1e2d4a",padding:"4px 16px",textAlign:"center",fontSize:"0.7rem",color:"#4a5a7e"}}>
-          {participants.length} PARTICIPANTES | {totalMatches} PARTIDOS | 11 JUN - 19 JUL 2026
+        <div style={{background:BRAND.red,padding:"4px 16px",textAlign:"center",fontSize:"0.7rem",color:"rgba(255,255,255,0.85)",letterSpacing:1}}>
+          {participants.length} PARTICIPANTES &nbsp;|&nbsp; {totalMatches} PARTIDOS &nbsp;|&nbsp; 11 JUN - 19 JUL 2026
         </div>
       </header>
 
