@@ -532,10 +532,22 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
 }
 
 // PARTICIPANT FORM
+const SUCURSALES = ["St-Hubert", "St-Laurent", "Brossard"];
+
 function ParticipantForm({ participants, setParticipants, matches, adminUnlocked, invoices, setInvoices }) {
   const [step, setStep] = useState("login");
-  const [name, setName] = useState("");
-  const [pin, setPin] = useState("");
+  const [isNew, setIsNew] = useState(false);
+  // Login
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPin, setLoginPin] = useState("");
+  // Register
+  const [regNombre, setRegNombre] = useState("");
+  const [regApellido, setRegApellido] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regTel, setRegTel] = useState("");
+  const [regSucursal, setRegSucursal] = useState("");
+  const [regPin, setRegPin] = useState("");
+  const [regPin2, setRegPin2] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [preds, setPreds] = useState({});
   const [activeGroup, setActiveGroup] = useState("A");
@@ -568,19 +580,52 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
 
   function handleLogin() {
     setError("");
-    if (!name.trim()) { setError("Ingresa tu nombre"); return; }
-    if (!pin.trim()||pin.length<4) { setError("PIN minimo 4 digitos"); return; }
-    const existing = participants.find(p=>p.name.toLowerCase()===name.trim().toLowerCase());
-    if (existing) {
-      if (existing.pin!==pin) { setError("PIN incorrecto"); return; }
-      setCurrentUser(existing);
-      setPreds(existing.predictions||{});
-    } else {
-      const newUser = {id:Date.now(), name:name.trim(), pin, predictions:{}, createdAt:new Date().toISOString()};
+    if (!loginEmail.trim()) { setError("Ingresa tu correo"); return; }
+    if (!loginPin.trim()||loginPin.length<4) { setError("PIN minimo 4 digitos"); return; }
+    const existing = participants.find(p=>p.email&&p.email.toLowerCase()===loginEmail.trim().toLowerCase());
+    if (!existing) { setError("Correo no registrado. Crea una cuenta nueva."); return; }
+    if (existing.pin!==loginPin) { setError("PIN incorrecto"); return; }
+    setCurrentUser(existing);
+    setPreds(existing.predictions||{});
+    setStep("form");
+  }
+
+  async function handleRegister() {
+    setError("");
+    if (!regNombre.trim()) { setError("Ingresa tu nombre"); return; }
+    if (!regApellido.trim()) { setError("Ingresa tu apellido"); return; }
+    if (!regEmail.trim()||!regEmail.includes("@")) { setError("Ingresa un correo valido"); return; }
+    if (!regTel.trim()) { setError("Ingresa tu telefono"); return; }
+    if (!regSucursal) { setError("Selecciona una sucursal"); return; }
+    if (!regPin.trim()||regPin.length<4) { setError("PIN minimo 4 digitos"); return; }
+    if (regPin!==regPin2) { setError("Los PINs no coinciden"); return; }
+    const exists = participants.find(p=>p.email&&p.email.toLowerCase()===regEmail.trim().toLowerCase());
+    if (exists) { setError("Este correo ya esta registrado. Inicia sesion."); return; }
+    setSaving(true);
+    try {
+      const newUser = {
+        id: Date.now(),
+        nombre: regNombre.trim(),
+        apellido: regApellido.trim(),
+        name: regNombre.trim()+" "+regApellido.trim(),
+        email: regEmail.trim().toLowerCase(),
+        telefono: regTel.trim(),
+        sucursal: regSucursal,
+        pin: regPin,
+        predictions: {},
+        createdAt: new Date().toISOString(),
+      };
+      const newParticipants = [...participants, newUser];
+      await setDoc(PARTICIPANTS_DOC, {list: newParticipants});
+      setParticipants(newParticipants);
       setCurrentUser(newUser);
       setPreds({});
+      setStep("form");
+    } catch(e) {
+      setError("Error al registrar: "+e.message);
+    } finally {
+      setSaving(false);
     }
-    setStep("form");
   }
 
   function setPred(matchId, side, val) {
@@ -624,29 +669,92 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     );
   }
 
+  const selectStyle = {...S.input, appearance:"none", WebkitAppearance:"none", cursor:"pointer"};
+
   if (step==="login") return (
-    <div className="fi" style={{maxWidth:400,margin:"0 auto"}}>
+    <div className="fi" style={{maxWidth:460,margin:"0 auto"}}>
       <div style={S.card}>
-        <div style={S.sectionTitle}>Acceso al Concurso</div>
-        <p style={{color:"#6b7280",marginBottom:16,fontSize:"0.85rem",lineHeight:1.6}}>
-          Nuevo: escribe tu nombre y crea un PIN de 4+ digitos.<br/>
-          Ya participas: usa el mismo nombre y PIN.
-        </p>
-        <div style={{marginBottom:12}}>
-          <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>TU NOMBRE</label>
-          <input style={S.input} placeholder="Ej: Carlos Perez"
-            value={name} onChange={e=>setName(e.target.value)}
-            onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
+        <div style={{display:"flex",borderBottom:"2px solid "+BRAND.gray100,marginBottom:20}}>
+          {[["login","Ya tengo cuenta"],["register","Registrarme"]].map(([t,l])=>(
+            <button key={t} onClick={()=>{setIsNew(t==="register");setError("");}}
+              style={{flex:1,padding:"10px",border:"none",background:"transparent",
+                fontWeight:700,fontSize:"0.85rem",cursor:"pointer",
+                color:(!isNew&&t==="login")||(isNew&&t==="register")?BRAND.red:"#9ca3af",
+                borderBottom:"2px solid "+((!isNew&&t==="login")||(isNew&&t==="register")?BRAND.red:"transparent"),
+                marginBottom:"-2px",
+              }}>{l}</button>
+          ))}
         </div>
-        <div style={{marginBottom:16}}>
-          <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>PIN (minimo 4 digitos)</label>
-          <input style={S.input} type="password" placeholder="****"
-            value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,""))}
-            onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
-        </div>
-        {error && <div style={{color:"#dc2626",marginBottom:10,fontSize:"0.85rem"}}>{error}</div>}
-        <button style={S.btn()} onClick={handleLogin}>Entrar / Registrarse</button>
-        <div style={{marginTop:10,color:"#9ca3af",fontSize:"0.75rem"}}>{participants.length} participante{participants.length!==1?"s":""} registrado{participants.length!==1?"s":""}</div>
+
+        {!isNew && (
+          <>
+            <div style={S.sectionTitle}>Iniciar Sesion</div>
+            <div style={{marginBottom:12}}>
+              <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:5,fontWeight:700}}>CORREO ELECTRONICO</label>
+              <input style={S.input} type="email" placeholder="tu@correo.com"
+                value={loginEmail} onChange={e=>setLoginEmail(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
+            </div>
+            <div style={{marginBottom:16}}>
+              <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:5,fontWeight:700}}>PIN</label>
+              <input style={S.input} type="password" placeholder="****"
+                value={loginPin} onChange={e=>setLoginPin(e.target.value.replace(/\D/g,""))}
+                onKeyDown={e=>e.key==="Enter"&&handleLogin()} />
+            </div>
+            {error && <div style={{color:"#dc2626",marginBottom:12,fontSize:"0.85rem",background:"#fef2f2",padding:"8px 12px",borderRadius:6}}>{error}</div>}
+            <button style={{...S.btn(),width:"100%"}} onClick={handleLogin}>Entrar</button>
+            <div style={{marginTop:12,textAlign:"center",color:"#9ca3af",fontSize:"0.78rem"}}>
+              {participants.length} participante{participants.length!==1?"s":""} registrado{participants.length!==1?"s":""}
+            </div>
+          </>
+        )}
+
+        {isNew && (
+          <>
+            <div style={S.sectionTitle}>Crear Cuenta</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+              <div>
+                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>NOMBRE</label>
+                <input style={S.input} placeholder="Juan" value={regNombre} onChange={e=>setRegNombre(e.target.value)} />
+              </div>
+              <div>
+                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>APELLIDO</label>
+                <input style={S.input} placeholder="Perez" value={regApellido} onChange={e=>setRegApellido(e.target.value)} />
+              </div>
+            </div>
+            <div style={{marginBottom:10}}>
+              <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>CORREO ELECTRONICO</label>
+              <input style={S.input} type="email" placeholder="tu@correo.com" value={regEmail} onChange={e=>setRegEmail(e.target.value)} />
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+              <div>
+                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>TELEFONO</label>
+                <input style={S.input} placeholder="514-000-0000" value={regTel} onChange={e=>setRegTel(e.target.value)} />
+              </div>
+              <div>
+                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>SUCURSAL</label>
+                <select style={selectStyle} value={regSucursal} onChange={e=>setRegSucursal(e.target.value)}>
+                  <option value="">Seleccionar...</option>
+                  {SUCURSALES.map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              <div>
+                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>PIN (min. 4 dig.)</label>
+                <input style={S.input} type="password" placeholder="****" value={regPin} onChange={e=>setRegPin(e.target.value.replace(/\D/g,""))} />
+              </div>
+              <div>
+                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>CONFIRMAR PIN</label>
+                <input style={S.input} type="password" placeholder="****" value={regPin2} onChange={e=>setRegPin2(e.target.value.replace(/\D/g,""))} />
+              </div>
+            </div>
+            {error && <div style={{color:"#dc2626",marginBottom:12,fontSize:"0.85rem",background:"#fef2f2",padding:"8px 12px",borderRadius:6}}>{error}</div>}
+            <button style={{...S.btn(),width:"100%"}} onClick={handleRegister} disabled={saving}>
+              {saving?"Registrando...":"Crear Cuenta y Participar"}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1090,6 +1198,8 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
                   <div>
                     <div style={{fontWeight:700,color:BRAND.gray900}}>{p.name}</div>
                     <div style={{fontSize:"0.72rem",color:"#9ca3af"}}>
+                      {p.email && <span>{p.email} &nbsp;|&nbsp; </span>}
+                      {p.sucursal && <span style={{color:BRAND.red,fontWeight:600}}>{p.sucursal} &nbsp;|&nbsp; </span>}
                       {Object.keys(p.predictions||{}).length} pronosticos
                       &nbsp;|&nbsp; {p._totalInv} facturas
                       {p._invPts>0 && <span style={{color:BRAND.red}}> | +{p._invPts}pts facturas</span>}
