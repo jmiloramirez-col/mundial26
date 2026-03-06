@@ -1027,7 +1027,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       </div>
 
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-        {[["pronosticos","Iniciar Sesión"],["tablas","Tablas"],["facturas","Mis Facturas"]].map(([t,l])=>(
+        {[["pronosticos","Pronósticos"],["facturas","Mis Facturas"]].map(([t,l])=>(
           <button key={t} style={S.navBtn(activeTab===t)} onClick={()=>setActiveTab(t)}>{l}</button>
         ))}
       </div>
@@ -1215,6 +1215,27 @@ function FixtureView({ matches }) {
               {renderMatch(m)}
             </div>
           ))}
+          {(()=>{
+            const grpMatches=groupMatches.filter(m=>m.group===activeGroup);
+            const teamSet=new Set();
+            grpMatches.forEach(m=>{if(m.home)teamSet.add(m.home);if(m.away)teamSet.add(m.away);});
+            const stats={};
+            teamSet.forEach(t=>{stats[t]={team:t,pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0};});
+            grpMatches.forEach(m=>{
+              if(m.realHome===null||m.realAway===null) return;
+              const h=Number(m.realHome),a=Number(m.realAway);
+              if(!stats[m.home]||!stats[m.away]) return;
+              stats[m.home].pj++;stats[m.away].pj++;
+              stats[m.home].gf+=h;stats[m.home].gc+=a;
+              stats[m.away].gf+=a;stats[m.away].gc+=h;
+              if(h>a){stats[m.home].g++;stats[m.home].pts+=3;stats[m.away].p++;}
+              else if(h<a){stats[m.away].g++;stats[m.away].pts+=3;stats[m.home].p++;}
+              else{stats[m.home].e++;stats[m.away].e++;stats[m.home].pts++;stats[m.away].pts++;}
+            });
+            const table=Object.values(stats).sort((a,b)=>b.pts-a.pts||(b.gf-b.gc)-(a.gf-a.gc)||b.gf-a.gf);
+            const hasData=table.some(s=>s.pj>0);
+            return <GroupTable grp={activeGroup} table={table} hasData={hasData} emptyMsg="Aun no hay resultados para este grupo" />;
+          })()}
         </>
       )}
       {activePhase==="elim" && (
@@ -1619,7 +1640,7 @@ export default function App() {
 
   const tabs = [
     {id:"leaderboard", label:"Clasificacion"},
-    {id:"form", label:"Iniciar Sesión"},
+    {id:"form", label:"Pronósticos"},
     {id:"fixture", label:"Fixture"},
     {id:"admin", label:"Admin"},
   ];
