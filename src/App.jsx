@@ -1257,6 +1257,112 @@ function FixtureView({ matches }) {
   );
 }
 
+
+// Auto-resolve Round32 team names from group standings
+function resolveRound32Teams(matches) {
+  // 1. Calculate standings for each group
+  const standings = {};
+  Object.keys(GROUPS).forEach(grp => {
+    const grpMatches = matches.filter(m => m.phase === "groups" && m.group === grp);
+    const teamSet = new Set();
+    grpMatches.forEach(m => { if(m.home) teamSet.add(m.home); if(m.away) teamSet.add(m.away); });
+    const stats = {};
+    teamSet.forEach(t => { stats[t] = {team:t, pj:0, g:0, e:0, p:0, gf:0, gc:0, pts:0}; });
+    grpMatches.forEach(m => {
+      if(m.realHome === null || m.realAway === null) return;
+      const h = Number(m.realHome), a = Number(m.realAway);
+      if(!stats[m.home] || !stats[m.away]) return;
+      stats[m.home].pj++; stats[m.away].pj++;
+      stats[m.home].gf += h; stats[m.home].gc += a;
+      stats[m.away].gf += a; stats[m.away].gc += h;
+      if(h > a){ stats[m.home].g++; stats[m.home].pts += 3; stats[m.away].p++; }
+      else if(h < a){ stats[m.away].g++; stats[m.away].pts += 3; stats[m.home].p++; }
+      else { stats[m.home].e++; stats[m.away].e++; stats[m.home].pts++; stats[m.away].pts++; }
+    });
+    standings[grp] = Object.values(stats).sort((a,b) =>
+      b.pts - a.pts || (b.gf - b.gc) - (a.gf - a.gc) || b.gf - a.gf
+    );
+  });
+
+  // Helper: get team by position in group (1-indexed)
+  function pos(grp, position) {
+    const s = standings[grp];
+    if (!s || s.length < position) return null;
+    // Only return if the group has played enough matches to determine this position
+    if (s[position-1].pj === 0) return null;
+    return s[position-1].team;
+  }
+
+  // 2. Determine best 3rd place teams
+  // Rank all thirds by pts, gd, gf
+  const thirds = Object.keys(GROUPS).map(grp => {
+    const s = standings[grp];
+    if (!s || s.length < 3 || s[2].pj === 0) return null;
+    return { grp, ...s[2] };
+  }).filter(Boolean).sort((a,b) =>
+    b.pts - a.pts || (b.gf - b.gc) - (a.gf - a.gc) || b.gf - a.gf
+  );
+
+  // Best 8 thirds (FIFA 2026 has 32 teams in round of 32, 8 thirds qualify)
+  const best8thirds = thirds.slice(0, 8);
+
+  // Helper: find best 3rd from specific groups
+  function best3rd(groupList) {
+    const groups = groupList.split("/");
+    const candidates = best8thirds.filter(t => groups.includes(t.grp));
+    return candidates.length > 0 ? candidates[0].team : null;
+  }
+
+  // 3. Map round32 placeholders to real team names
+  // Only update if we have the data, otherwise keep placeholder
+  const round32Map = {
+    // Match 1001: 2º A vs 2º B
+    1001: { home: pos("A",2), away: pos("B",2) },
+    // Match 1002: 1º E vs 3º A/B/C/D/F
+    1002: { home: pos("E",1), away: best3rd("A/B/C/D/F") },
+    // Match 1003: 1º F vs 2º C
+    1003: { home: pos("F",1), away: pos("C",2) },
+    // Match 1004: 1º C vs 2º F
+    1004: { home: pos("C",1), away: pos("F",2) },
+    // Match 1005: 1º I vs 3º C/D/F/G/H
+    1005: { home: pos("I",1), away: best3rd("C/D/F/G/H") },
+    // Match 1006: 2º E vs 2º I
+    1006: { home: pos("E",2), away: pos("I",2) },
+    // Match 1007: 1º A vs 3º C/E/F/H/I
+    1007: { home: pos("A",1), away: best3rd("C/E/F/H/I") },
+    // Match 1008: 1º L vs 3º E/H/I/J/K
+    1008: { home: pos("L",1), away: best3rd("E/H/I/J/K") },
+    // Match 1009: 1º D vs 3º B/E/F/I/J
+    1009: { home: pos("D",1), away: best3rd("B/E/F/I/J") },
+    // Match 1010: 1º G vs 3º A/E/H/I/J
+    1010: { home: pos("G",1), away: best3rd("A/E/H/I/J") },
+    // Match 1011: 2º K vs 2º L
+    1011: { home: pos("K",2), away: pos("L",2) },
+    // Match 1012: 1º H vs 2º J
+    1012: { home: pos("H",1), away: pos("J",2) },
+    // Match 1013: 1º B vs 3º E/F/G/I/J
+    1013: { home: pos("B",1), away: best3rd("E/F/G/I/J") },
+    // Match 1014: 1º J vs 2º H
+    1014: { home: pos("J",1), away: pos("H",2) },
+    // Match 1015: 1º K vs 3º D/E/I/J/L
+    1015: { home: pos("K",1), away: best3rd("D/E/I/J/L") },
+    // Match 1016: 2º D vs 2º G
+    1016: { home: pos("D",2), away: pos("G",2) },
+  };
+
+  // 4. Apply updates to matches
+  return matches.map(m => {
+    if (m.phase !== "round32") return m;
+    const update = round32Map[m.id];
+    if (!update) return m;
+    return {
+      ...m,
+      home: update.home || m.home,
+      away: update.away || m.away,
+    };
+  });
+}
+
 // ADMIN PANEL
 function AdminPanel({ matches, setMatches, participants, setParticipants, adminUnlocked, setAdminUnlocked, invoices, setInvoices }) {
   const [authed, setAuthed] = useState(false);
@@ -1286,7 +1392,10 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
 
   async function handleSave() {
     try {
-      await setDoc(MATCHES_DOC, {list: matches});
+      // Auto-fill Round32 teams from group standings before saving
+      const resolved = resolveRound32Teams(matches);
+      setMatches(resolved);
+      await setDoc(MATCHES_DOC, {list: resolved});
       setSaved(true);
       setTimeout(()=>setSaved(false),2000);
     } catch(e) { alert("Error: "+e.message); }
