@@ -1701,6 +1701,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
 
 // MAIN APP
 export default function App() {
+  const isAdmin = typeof window !== "undefined" && window.location.search.includes("admin");
   const [view, setView] = useState("leaderboard");
   const [matches, setMatches] = useState(INITIAL_MATCHES);
   const [participants, setParticipants] = useState([]);
@@ -1751,7 +1752,7 @@ export default function App() {
     {id:"leaderboard", label:"Clasificacion"},
     {id:"form", label:"Iniciar Sesión"},
     {id:"fixture", label:"Fixture"},
-    {id:"admin", label:"Admin"},
+    ...(isAdmin ? [{id:"admin", label:"Admin"}] : []),
   ];
 
   const totalMatches = matches.filter(m=>m.realHome!==null).length;
