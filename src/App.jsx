@@ -62,100 +62,110 @@ function calcInvoicePoints(amount) {
 }
 
 function isPhaseLocked(phase, adminUnlocked = {}) {
-  if (adminUnlocked[phase+"_forced"]) return true;  // admin forced lock
-  if (adminUnlocked[phase]) return false;            // admin manually unlocked
+  if (adminUnlocked[phase+"_forced"]) return true;
+  if (adminUnlocked[phase]) return false;
   const lockDate = LOCK_DATES[phase];
   if (!lockDate) return false;
   return new Date() >= lockDate;
+}
+
+function isMatchLocked(match, adminUnlocked = {}) {
+  if (!match) return false;
+  if (match.phase !== "groups") return isPhaseLocked(match.phase, adminUnlocked);
+  // Per-match lock: 1 hour before kickoff
+  if (adminUnlocked["groups"]) return false;         // admin unlocked whole phase
+  if (adminUnlocked["groups_forced"]) return true;   // admin force-locked whole phase
+  if (!match.lockTime) return isPhaseLocked("groups", adminUnlocked);
+  return new Date() >= new Date(match.lockTime);
 }
 
 function generateGroupMatches() {
   // Official FIFA 2026 schedule - all 72 group matches
   const matches = [
     // GRUPO A
-    {id:1,  phase:"groups",group:"A",date:"11 Jun",home:"México",            away:"Sudáfrica",         realHome:null,realAway:null},
-    {id:2,  phase:"groups",group:"A",date:"11 Jun",home:"Corea del Sur",     away:"Dinamarca*",        realHome:null,realAway:null},
-    {id:3,  phase:"groups",group:"A",date:"18 Jun",home:"Dinamarca*",        away:"Sudáfrica",         realHome:null,realAway:null},
-    {id:4,  phase:"groups",group:"A",date:"18 Jun",home:"México",            away:"Corea del Sur",     realHome:null,realAway:null},
-    {id:5,  phase:"groups",group:"A",date:"24 Jun",home:"Dinamarca*",        away:"México",            realHome:null,realAway:null},
-    {id:6,  phase:"groups",group:"A",date:"24 Jun",home:"Sudáfrica",         away:"Corea del Sur",     realHome:null,realAway:null},
+    {id:1,  phase:"groups",group:"A",date:"11 Jun",home:"México",            away:"Sudáfrica",         realHome:null,realAway:null,lockTime:"2026-06-11T15:00:00"},
+    {id:2,  phase:"groups",group:"A",date:"11 Jun",home:"Corea del Sur",     away:"Dinamarca*",        realHome:null,realAway:null,lockTime:"2026-06-11T18:00:00"},
+    {id:3,  phase:"groups",group:"A",date:"18 Jun",home:"Dinamarca*",        away:"Sudáfrica",         realHome:null,realAway:null,lockTime:"2026-06-18T15:00:00"},
+    {id:4,  phase:"groups",group:"A",date:"18 Jun",home:"México",            away:"Corea del Sur",     realHome:null,realAway:null,lockTime:"2026-06-18T18:00:00"},
+    {id:5,  phase:"groups",group:"A",date:"24 Jun",home:"Dinamarca*",        away:"México",            realHome:null,realAway:null,lockTime:"2026-06-24T15:00:00"},
+    {id:6,  phase:"groups",group:"A",date:"24 Jun",home:"Sudáfrica",         away:"Corea del Sur",     realHome:null,realAway:null,lockTime:"2026-06-24T15:00:00"},
     // GRUPO B
-    {id:7,  phase:"groups",group:"B",date:"12 Jun",home:"Canadá",            away:"Italia*",           realHome:null,realAway:null},
-    {id:8,  phase:"groups",group:"B",date:"13 Jun",home:"Catar",             away:"Suiza",             realHome:null,realAway:null},
-    {id:9,  phase:"groups",group:"B",date:"18 Jun",home:"Suiza",             away:"Italia*",           realHome:null,realAway:null},
-    {id:10, phase:"groups",group:"B",date:"18 Jun",home:"Canadá",            away:"Catar",             realHome:null,realAway:null},
-    {id:11, phase:"groups",group:"B",date:"24 Jun",home:"Suiza",             away:"Canadá",            realHome:null,realAway:null},
-    {id:12, phase:"groups",group:"B",date:"24 Jun",home:"Italia*",           away:"Catar",             realHome:null,realAway:null},
+    {id:7,  phase:"groups",group:"B",date:"12 Jun",home:"Canadá",            away:"Italia*",           realHome:null,realAway:null,lockTime:"2026-06-12T15:00:00"},
+    {id:8,  phase:"groups",group:"B",date:"13 Jun",home:"Catar",             away:"Suiza",             realHome:null,realAway:null,lockTime:"2026-06-13T15:00:00"},
+    {id:9,  phase:"groups",group:"B",date:"18 Jun",home:"Suiza",             away:"Italia*",           realHome:null,realAway:null,lockTime:"2026-06-18T12:00:00"},
+    {id:10, phase:"groups",group:"B",date:"18 Jun",home:"Canadá",            away:"Catar",             realHome:null,realAway:null,lockTime:"2026-06-18T21:00:00"},
+    {id:11, phase:"groups",group:"B",date:"24 Jun",home:"Suiza",             away:"Canadá",            realHome:null,realAway:null,lockTime:"2026-06-24T18:00:00"},
+    {id:12, phase:"groups",group:"B",date:"24 Jun",home:"Italia*",           away:"Catar",             realHome:null,realAway:null,lockTime:"2026-06-24T18:00:00"},
     // GRUPO C
-    {id:13, phase:"groups",group:"C",date:"13 Jun",home:"Brasil",            away:"Marruecos",         realHome:null,realAway:null},
-    {id:14, phase:"groups",group:"C",date:"13 Jun",home:"Haití",             away:"Escocia",           realHome:null,realAway:null},
-    {id:15, phase:"groups",group:"C",date:"19 Jun",home:"Escocia",           away:"Marruecos",         realHome:null,realAway:null},
-    {id:16, phase:"groups",group:"C",date:"19 Jun",home:"Brasil",            away:"Haití",             realHome:null,realAway:null},
-    {id:17, phase:"groups",group:"C",date:"24 Jun",home:"Brasil",            away:"Escocia",           realHome:null,realAway:null},
-    {id:18, phase:"groups",group:"C",date:"24 Jun",home:"Marruecos",         away:"Haití",             realHome:null,realAway:null},
+    {id:13, phase:"groups",group:"C",date:"13 Jun",home:"Brasil",            away:"Marruecos",         realHome:null,realAway:null,lockTime:"2026-06-13T18:00:00"},
+    {id:14, phase:"groups",group:"C",date:"13 Jun",home:"Haití",             away:"Escocia",           realHome:null,realAway:null,lockTime:"2026-06-13T21:00:00"},
+    {id:15, phase:"groups",group:"C",date:"19 Jun",home:"Escocia",           away:"Marruecos",         realHome:null,realAway:null,lockTime:"2026-06-19T15:00:00"},
+    {id:16, phase:"groups",group:"C",date:"19 Jun",home:"Brasil",            away:"Haití",             realHome:null,realAway:null,lockTime:"2026-06-19T18:00:00"},
+    {id:17, phase:"groups",group:"C",date:"24 Jun",home:"Brasil",            away:"Escocia",           realHome:null,realAway:null,lockTime:"2026-06-25T15:00:00"},
+    {id:18, phase:"groups",group:"C",date:"24 Jun",home:"Marruecos",         away:"Haití",             realHome:null,realAway:null,lockTime:"2026-06-25T15:00:00"},
     // GRUPO D
-    {id:19, phase:"groups",group:"D",date:"12 Jun",home:"Estados Unidos",    away:"Paraguay",          realHome:null,realAway:null},
-    {id:20, phase:"groups",group:"D",date:"12 Jun",home:"Australia",         away:"Turquía*",          realHome:null,realAway:null},
-    {id:21, phase:"groups",group:"D",date:"18 Jun",home:"Turquía*",          away:"Paraguay",          realHome:null,realAway:null},
-    {id:22, phase:"groups",group:"D",date:"19 Jun",home:"Estados Unidos",    away:"Australia",         realHome:null,realAway:null},
-    {id:23, phase:"groups",group:"D",date:"25 Jun",home:"Turquía*",          away:"Estados Unidos",    realHome:null,realAway:null},
-    {id:24, phase:"groups",group:"D",date:"25 Jun",home:"Paraguay",          away:"Australia",         realHome:null,realAway:null},
+    {id:19, phase:"groups",group:"D",date:"12 Jun",home:"Estados Unidos",    away:"Paraguay",          realHome:null,realAway:null,lockTime:"2026-06-12T18:00:00"},
+    {id:20, phase:"groups",group:"D",date:"12 Jun",home:"Australia",         away:"Turquía*",          realHome:null,realAway:null,lockTime:"2026-06-12T21:00:00"},
+    {id:21, phase:"groups",group:"D",date:"18 Jun",home:"Turquía*",          away:"Paraguay",          realHome:null,realAway:null,lockTime:"2026-06-18T18:00:00"},
+    {id:22, phase:"groups",group:"D",date:"19 Jun",home:"Estados Unidos",    away:"Australia",         realHome:null,realAway:null,lockTime:"2026-06-19T21:00:00"},
+    {id:23, phase:"groups",group:"D",date:"25 Jun",home:"Turquía*",          away:"Estados Unidos",    realHome:null,realAway:null,lockTime:"2026-06-25T18:00:00"},
+    {id:24, phase:"groups",group:"D",date:"25 Jun",home:"Paraguay",          away:"Australia",         realHome:null,realAway:null,lockTime:"2026-06-25T18:00:00"},
     // GRUPO E
-    {id:25, phase:"groups",group:"E",date:"14 Jun",home:"Alemania",          away:"Curazao",           realHome:null,realAway:null},
-    {id:26, phase:"groups",group:"E",date:"14 Jun",home:"Costa de Marfil",   away:"Ecuador",           realHome:null,realAway:null},
-    {id:27, phase:"groups",group:"E",date:"20 Jun",home:"Alemania",          away:"Costa de Marfil",   realHome:null,realAway:null},
-    {id:28, phase:"groups",group:"E",date:"20 Jun",home:"Ecuador",           away:"Curazao",           realHome:null,realAway:null},
-    {id:29, phase:"groups",group:"E",date:"25 Jun",home:"Curazao",           away:"Costa de Marfil",   realHome:null,realAway:null},
-    {id:30, phase:"groups",group:"E",date:"25 Jun",home:"Ecuador",           away:"Alemania",          realHome:null,realAway:null},
+    {id:25, phase:"groups",group:"E",date:"14 Jun",home:"Alemania",          away:"Curazao",           realHome:null,realAway:null,lockTime:"2026-06-14T15:00:00"},
+    {id:26, phase:"groups",group:"E",date:"14 Jun",home:"Costa de Marfil",   away:"Ecuador",           realHome:null,realAway:null,lockTime:"2026-06-14T18:00:00"},
+    {id:27, phase:"groups",group:"E",date:"20 Jun",home:"Alemania",          away:"Costa de Marfil",   realHome:null,realAway:null,lockTime:"2026-06-20T15:00:00"},
+    {id:28, phase:"groups",group:"E",date:"20 Jun",home:"Ecuador",           away:"Curazao",           realHome:null,realAway:null,lockTime:"2026-06-20T18:00:00"},
+    {id:29, phase:"groups",group:"E",date:"25 Jun",home:"Curazao",           away:"Costa de Marfil",   realHome:null,realAway:null,lockTime:"2026-06-26T15:00:00"},
+    {id:30, phase:"groups",group:"E",date:"25 Jun",home:"Ecuador",           away:"Alemania",          realHome:null,realAway:null,lockTime:"2026-06-26T15:00:00"},
     // GRUPO F
-    {id:31, phase:"groups",group:"F",date:"14 Jun",home:"Países Bajos",      away:"Japón",             realHome:null,realAway:null},
-    {id:32, phase:"groups",group:"F",date:"14 Jun",home:"Ucrania*",          away:"Túnez",             realHome:null,realAway:null},
-    {id:33, phase:"groups",group:"F",date:"19 Jun",home:"Túnez",             away:"Japón",             realHome:null,realAway:null},
-    {id:34, phase:"groups",group:"F",date:"20 Jun",home:"Países Bajos",      away:"Ucrania*",          realHome:null,realAway:null},
-    {id:35, phase:"groups",group:"F",date:"25 Jun",home:"Japón",             away:"Ucrania*",          realHome:null,realAway:null},
-    {id:36, phase:"groups",group:"F",date:"25 Jun",home:"Túnez",             away:"Países Bajos",      realHome:null,realAway:null},
+    {id:31, phase:"groups",group:"F",date:"14 Jun",home:"Países Bajos",      away:"Japón",             realHome:null,realAway:null,lockTime:"2026-06-15T15:00:00"},
+    {id:32, phase:"groups",group:"F",date:"14 Jun",home:"Ucrania*",          away:"Túnez",             realHome:null,realAway:null,lockTime:"2026-06-15T18:00:00"},
+    {id:33, phase:"groups",group:"F",date:"19 Jun",home:"Túnez",             away:"Japón",             realHome:null,realAway:null,lockTime:"2026-06-20T21:00:00"},
+    {id:34, phase:"groups",group:"F",date:"20 Jun",home:"Países Bajos",      away:"Ucrania*",          realHome:null,realAway:null,lockTime:"2026-06-21T15:00:00"},
+    {id:35, phase:"groups",group:"F",date:"25 Jun",home:"Japón",             away:"Ucrania*",          realHome:null,realAway:null,lockTime:"2026-06-26T18:00:00"},
+    {id:36, phase:"groups",group:"F",date:"25 Jun",home:"Túnez",             away:"Países Bajos",      realHome:null,realAway:null,lockTime:"2026-06-26T18:00:00"},
     // GRUPO G
-    {id:37, phase:"groups",group:"G",date:"15 Jun",home:"Bélgica",           away:"Egipto",            realHome:null,realAway:null},
-    {id:38, phase:"groups",group:"G",date:"15 Jun",home:"Irán",              away:"Nueva Zelanda",     realHome:null,realAway:null},
-    {id:39, phase:"groups",group:"G",date:"21 Jun",home:"Bélgica",           away:"Irán",              realHome:null,realAway:null},
-    {id:40, phase:"groups",group:"G",date:"21 Jun",home:"Nueva Zelanda",     away:"Egipto",            realHome:null,realAway:null},
-    {id:41, phase:"groups",group:"G",date:"26 Jun",home:"Egipto",            away:"Irán",              realHome:null,realAway:null},
-    {id:42, phase:"groups",group:"G",date:"26 Jun",home:"Nueva Zelanda",     away:"Bélgica",           realHome:null,realAway:null},
+    {id:37, phase:"groups",group:"G",date:"15 Jun",home:"Bélgica",           away:"Egipto",            realHome:null,realAway:null,lockTime:"2026-06-15T21:00:00"},
+    {id:38, phase:"groups",group:"G",date:"15 Jun",home:"Irán",              away:"Nueva Zelanda",     realHome:null,realAway:null,lockTime:"2026-06-16T15:00:00"},
+    {id:39, phase:"groups",group:"G",date:"21 Jun",home:"Bélgica",           away:"Irán",              realHome:null,realAway:null,lockTime:"2026-06-21T18:00:00"},
+    {id:40, phase:"groups",group:"G",date:"21 Jun",home:"Nueva Zelanda",     away:"Egipto",            realHome:null,realAway:null,lockTime:"2026-06-21T21:00:00"},
+    {id:41, phase:"groups",group:"G",date:"26 Jun",home:"Egipto",            away:"Irán",              realHome:null,realAway:null,lockTime:"2026-06-26T21:00:00"},
+    {id:42, phase:"groups",group:"G",date:"26 Jun",home:"Nueva Zelanda",     away:"Bélgica",           realHome:null,realAway:null,lockTime:"2026-06-26T21:00:00"},
     // GRUPO H
-    {id:43, phase:"groups",group:"H",date:"15 Jun",home:"España",            away:"Cabo Verde",        realHome:null,realAway:null},
-    {id:44, phase:"groups",group:"H",date:"15 Jun",home:"Arabia Saudí",      away:"Uruguay",           realHome:null,realAway:null},
-    {id:45, phase:"groups",group:"H",date:"21 Jun",home:"España",            away:"Arabia Saudí",      realHome:null,realAway:null},
-    {id:46, phase:"groups",group:"H",date:"21 Jun",home:"Uruguay",           away:"Cabo Verde",        realHome:null,realAway:null},
-    {id:47, phase:"groups",group:"H",date:"26 Jun",home:"Cabo Verde",        away:"Arabia Saudí",      realHome:null,realAway:null},
-    {id:48, phase:"groups",group:"H",date:"26 Jun",home:"Uruguay",           away:"España",            realHome:null,realAway:null},
+    {id:43, phase:"groups",group:"H",date:"15 Jun",home:"España",            away:"Cabo Verde",        realHome:null,realAway:null,lockTime:"2026-06-16T18:00:00"},
+    {id:44, phase:"groups",group:"H",date:"15 Jun",home:"Arabia Saudí",      away:"Uruguay",           realHome:null,realAway:null,lockTime:"2026-06-16T21:00:00"},
+    {id:45, phase:"groups",group:"H",date:"21 Jun",home:"España",            away:"Arabia Saudí",      realHome:null,realAway:null,lockTime:"2026-06-22T15:00:00"},
+    {id:46, phase:"groups",group:"H",date:"21 Jun",home:"Uruguay",           away:"Cabo Verde",        realHome:null,realAway:null,lockTime:"2026-06-22T18:00:00"},
+    {id:47, phase:"groups",group:"H",date:"26 Jun",home:"Cabo Verde",        away:"Arabia Saudí",      realHome:null,realAway:null,lockTime:"2026-06-27T15:00:00"},
+    {id:48, phase:"groups",group:"H",date:"26 Jun",home:"Uruguay",           away:"España",            realHome:null,realAway:null,lockTime:"2026-06-27T15:00:00"},
     // GRUPO I
-    {id:49, phase:"groups",group:"I",date:"16 Jun",home:"Francia",           away:"Senegal",           realHome:null,realAway:null},
-    {id:50, phase:"groups",group:"I",date:"16 Jun",home:"Irak*",             away:"Noruega",           realHome:null,realAway:null},
-    {id:51, phase:"groups",group:"I",date:"22 Jun",home:"Francia",           away:"Irak*",             realHome:null,realAway:null},
-    {id:52, phase:"groups",group:"I",date:"22 Jun",home:"Noruega",           away:"Senegal",           realHome:null,realAway:null},
-    {id:53, phase:"groups",group:"I",date:"26 Jun",home:"Noruega",           away:"Francia",           realHome:null,realAway:null},
-    {id:54, phase:"groups",group:"I",date:"26 Jun",home:"Senegal",           away:"Irak*",             realHome:null,realAway:null},
+    {id:49, phase:"groups",group:"I",date:"16 Jun",home:"Francia",           away:"Senegal",           realHome:null,realAway:null,lockTime:"2026-06-17T15:00:00"},
+    {id:50, phase:"groups",group:"I",date:"16 Jun",home:"Irak*",             away:"Noruega",           realHome:null,realAway:null,lockTime:"2026-06-17T18:00:00"},
+    {id:51, phase:"groups",group:"I",date:"22 Jun",home:"Francia",           away:"Irak*",             realHome:null,realAway:null,lockTime:"2026-06-22T21:00:00"},
+    {id:52, phase:"groups",group:"I",date:"22 Jun",home:"Noruega",           away:"Senegal",           realHome:null,realAway:null,lockTime:"2026-06-23T15:00:00"},
+    {id:53, phase:"groups",group:"I",date:"26 Jun",home:"Noruega",           away:"Francia",           realHome:null,realAway:null,lockTime:"2026-06-27T18:00:00"},
+    {id:54, phase:"groups",group:"I",date:"26 Jun",home:"Senegal",           away:"Irak*",             realHome:null,realAway:null,lockTime:"2026-06-27T18:00:00"},
     // GRUPO J
-    {id:55, phase:"groups",group:"J",date:"15 Jun",home:"Austria",           away:"Jordania",          realHome:null,realAway:null},
-    {id:56, phase:"groups",group:"J",date:"16 Jun",home:"Argentina",         away:"Argelia",           realHome:null,realAway:null},
-    {id:57, phase:"groups",group:"J",date:"22 Jun",home:"Argentina",         away:"Austria",           realHome:null,realAway:null},
-    {id:58, phase:"groups",group:"J",date:"22 Jun",home:"Jordania",          away:"Argelia",           realHome:null,realAway:null},
-    {id:59, phase:"groups",group:"J",date:"27 Jun",home:"Argelia",           away:"Austria",           realHome:null,realAway:null},
-    {id:60, phase:"groups",group:"J",date:"27 Jun",home:"Jordania",          away:"Argentina",         realHome:null,realAway:null},
+    {id:55, phase:"groups",group:"J",date:"15 Jun",home:"Austria",           away:"Jordania",          realHome:null,realAway:null,lockTime:"2026-06-17T21:00:00"},
+    {id:56, phase:"groups",group:"J",date:"16 Jun",home:"Argentina",         away:"Argelia",           realHome:null,realAway:null,lockTime:"2026-06-18T15:00:00"},
+    {id:57, phase:"groups",group:"J",date:"22 Jun",home:"Argentina",         away:"Austria",           realHome:null,realAway:null,lockTime:"2026-06-23T18:00:00"},
+    {id:58, phase:"groups",group:"J",date:"22 Jun",home:"Jordania",          away:"Argelia",           realHome:null,realAway:null,lockTime:"2026-06-23T21:00:00"},
+    {id:59, phase:"groups",group:"J",date:"27 Jun",home:"Argelia",           away:"Austria",           realHome:null,realAway:null,lockTime:"2026-06-27T21:00:00"},
+    {id:60, phase:"groups",group:"J",date:"27 Jun",home:"Jordania",          away:"Argentina",         realHome:null,realAway:null,lockTime:"2026-06-27T21:00:00"},
     // GRUPO K
-    {id:61, phase:"groups",group:"K",date:"17 Jun",home:"Portugal",          away:"Jamaica*",          realHome:null,realAway:null},
-    {id:62, phase:"groups",group:"K",date:"17 Jun",home:"Uzbekistán",        away:"Colombia",          realHome:null,realAway:null},
-    {id:63, phase:"groups",group:"K",date:"23 Jun",home:"Portugal",          away:"Uzbekistán",        realHome:null,realAway:null},
-    {id:64, phase:"groups",group:"K",date:"23 Jun",home:"Colombia",          away:"Jamaica*",          realHome:null,realAway:null},
-    {id:65, phase:"groups",group:"K",date:"27 Jun",home:"Colombia",          away:"Portugal",          realHome:null,realAway:null},
-    {id:66, phase:"groups",group:"K",date:"27 Jun",home:"Jamaica*",          away:"Uzbekistán",        realHome:null,realAway:null},
+    {id:61, phase:"groups",group:"K",date:"17 Jun",home:"Portugal",          away:"Jamaica*",          realHome:null,realAway:null,lockTime:"2026-06-17T12:00:00"},
+    {id:62, phase:"groups",group:"K",date:"17 Jun",home:"Uzbekistán",        away:"Colombia",          realHome:null,realAway:null,lockTime:"2026-06-17T21:00:00"},
+    {id:63, phase:"groups",group:"K",date:"23 Jun",home:"Portugal",          away:"Uzbekistán",        realHome:null,realAway:null,lockTime:"2026-06-23T12:00:00"},
+    {id:64, phase:"groups",group:"K",date:"23 Jun",home:"Colombia",          away:"Jamaica*",          realHome:null,realAway:null,lockTime:"2026-06-23T18:00:00"},
+    {id:65, phase:"groups",group:"K",date:"27 Jun",home:"Colombia",          away:"Portugal",          realHome:null,realAway:null,lockTime:"2026-06-28T12:00:00"},
+    {id:66, phase:"groups",group:"K",date:"27 Jun",home:"Jamaica*",          away:"Uzbekistán",        realHome:null,realAway:null,lockTime:"2026-06-28T12:00:00"},
     // GRUPO L
-    {id:67, phase:"groups",group:"L",date:"17 Jun",home:"Inglaterra",        away:"Croacia",           realHome:null,realAway:null},
-    {id:68, phase:"groups",group:"L",date:"17 Jun",home:"Ghana",             away:"Panamá",            realHome:null,realAway:null},
-    {id:69, phase:"groups",group:"L",date:"23 Jun",home:"Inglaterra",        away:"Ghana",             realHome:null,realAway:null},
-    {id:70, phase:"groups",group:"L",date:"23 Jun",home:"Panamá",            away:"Croacia",           realHome:null,realAway:null},
-    {id:71, phase:"groups",group:"L",date:"27 Jun",home:"Panamá",            away:"Inglaterra",        realHome:null,realAway:null},
-    {id:72, phase:"groups",group:"L",date:"27 Jun",home:"Croacia",           away:"Ghana",             realHome:null,realAway:null},
+    {id:67, phase:"groups",group:"L",date:"17 Jun",home:"Inglaterra",        away:"Croacia",           realHome:null,realAway:null,lockTime:"2026-06-17T15:00:00"},
+    {id:68, phase:"groups",group:"L",date:"17 Jun",home:"Ghana",             away:"Panamá",            realHome:null,realAway:null,lockTime:"2026-06-17T18:00:00"},
+    {id:69, phase:"groups",group:"L",date:"23 Jun",home:"Inglaterra",        away:"Ghana",             realHome:null,realAway:null,lockTime:"2026-06-23T15:00:00"},
+    {id:70, phase:"groups",group:"L",date:"23 Jun",home:"Panamá",            away:"Croacia",           realHome:null,realAway:null,lockTime:"2026-06-23T21:00:00"},
+    {id:71, phase:"groups",group:"L",date:"27 Jun",home:"Panamá",            away:"Inglaterra",        realHome:null,realAway:null,lockTime:"2026-06-28T15:00:00"},
+    {id:72, phase:"groups",group:"L",date:"27 Jun",home:"Croacia",           away:"Ghana",             realHome:null,realAway:null,lockTime:"2026-06-28T15:00:00"},
   ];
   return matches;
 }
@@ -836,7 +846,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     if (!regEmail.trim()||!regEmail.includes("@")) { setError("Ingresa un correo valido"); return; }
     if (!regTel.trim()) { setError("Ingresa tu telefono"); return; }
     if (!regSucursal) { setError("Selecciona una sucursal"); return; }
-    if (!regPin.trim()||regPin.length<4) { setError("PIN minimo 4 digitos"); return; }
+    if (!regPin.trim()||regPin.length<6) { setError("PIN minimo 6 digitos"); return; }
     if (regPin!==regPin2) { setError("Los PINs no coinciden"); return; }
     const exists = participants.find(p=>p.email&&p.email.toLowerCase()===regEmail.trim().toLowerCase());
     if (exists) { setError("Este correo ya esta registrado. Inicia sesion."); return; }
@@ -892,6 +902,10 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   function renderMatchRow(m, locked=false) {
     const pred = preds[m.id]||{};
     const pts = calcPoints(pred.home, pred.away, m.realHome, m.realAway);
+    const lockTime = m.lockTime ? new Date(m.lockTime) : null;
+    const now = new Date();
+    const minutesLeft = lockTime ? Math.round((lockTime - now) / 60000) : null;
+    const closingSoon = minutesLeft !== null && minutesLeft > 0 && minutesLeft <= 60;
     return (
       <div key={m.id} style={{...S.matchRow, opacity:(m.home==="Por definir"||m.home?.startsWith("Gan.")||m.home?.startsWith("Per."))?.55:1}}>
         <div style={{textAlign:"right",fontSize:"0.85rem",fontWeight:600}}>{m.home}</div>
@@ -899,7 +913,11 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
           style={{...S.scoreInput, background:locked?"#f9fafb":"#f3f4f6", cursor:locked?"not-allowed":"text"}}
           value={pred.home??""} disabled={locked}
           onChange={e=>!locked&&setPred(m.id,"home",e.target.value)} />
-        <div style={{textAlign:"center",color:"#9ca3af",fontSize:"0.68rem",fontWeight:700}}>VS</div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+          <div style={{textAlign:"center",color:"#9ca3af",fontSize:"0.68rem",fontWeight:700}}>VS</div>
+          {locked && <div style={{fontSize:"0.58rem",color:"#e74c3c",fontWeight:700}}>🔒</div>}
+          {closingSoon && <div style={{fontSize:"0.58rem",color:"#e67e22",fontWeight:700}}>⏱{minutesLeft}m</div>}
+        </div>
         <input type="number" min="0" max="99" placeholder="-"
           style={{...S.scoreInput, background:locked?"#f9fafb":"#f3f4f6", cursor:locked?"not-allowed":"text"}}
           value={pred.away??""} disabled={locked}
@@ -944,6 +962,18 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
             </div>
             {error && <div style={{color:"#dc2626",marginBottom:12,fontSize:"0.85rem",background:"#fef2f2",padding:"8px 12px",borderRadius:6}}>{error}</div>}
             <button style={{...S.btn(),width:"100%"}} onClick={handleLogin}>Entrar</button>
+            <button style={{...S.btn("#6b7280",true),width:"100%",marginTop:8}} onClick={()=>{setIsNew(true);setError("");}}>Crear cuenta nueva</button>
+            <button style={{background:"transparent",border:"none",color:"#2563eb",fontSize:"0.82rem",marginTop:10,cursor:"pointer",textDecoration:"underline",width:"100%",textAlign:"center"}}
+              onClick={()=>{
+                const email=loginEmail.trim().toLowerCase();
+                if(!email||!email.includes("@")){setError("Ingresa tu correo primero para recuperar el PIN");return;}
+                const user=participants.find(p=>p.email&&p.email.toLowerCase()===email);
+                if(!user){setError("No encontramos ese correo registrado");return;}
+                setError("");
+                alert("Tu PIN es: "+user.pin+"\n\nPor seguridad te recomendamos cambiarlo desde Mi Perfil.");
+              }}>
+              ¿Olvidaste tu PIN?
+            </button>
             <div style={{marginTop:12,textAlign:"center",color:"#9ca3af",fontSize:"0.78rem"}}>
               {participants.length} participante{participants.length!==1?"s":""} registrado{participants.length!==1?"s":""}
             </div>
@@ -1027,7 +1057,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       </div>
 
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-        {[["pronosticos","Pronósticos"],["facturas","Mis Facturas"]].map(([t,l])=>(
+        {[["pronosticos","Pronósticos"],["facturas","Mis Facturas"],["perfil","Mi Perfil"]].map(([t,l])=>(
           <button key={t} style={S.navBtn(activeTab===t)} onClick={()=>setActiveTab(t)}>{l}</button>
         ))}
       </div>
@@ -1035,6 +1065,114 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       {activeTab==="facturas" && (
         <InvoiceForm currentUser={currentUser} invoices={invoices} setInvoices={setInvoices} />
       )}
+
+
+      {activeTab==="perfil" && (()=>{
+        const userInv=(invoices||[]).filter(inv=>inv.participantId===currentUser.id&&inv.status==="approved");
+        const invPts=userInv.reduce((sum,inv)=>sum+calcInvoicePoints(inv.amount),0);
+        let gamePts=0;
+        matches.forEach(m=>{const pred=preds[m.id];if(!pred)return;const pts=calcPoints(pred.home,pred.away,m.realHome,m.realAway);if(pts!==null)gamePts+=pts;});
+        const {bonus:classPts}=calcClassificationBonus(preds,matches);
+        const total=gamePts+invPts+classPts;
+        const ranked=[...participants].map(p=>{
+          const ui=(invoices||[]).filter(i=>i.participantId===p.id&&i.status==="approved");
+          const ip=ui.reduce((s,i)=>s+calcInvoicePoints(i.amount),0);
+          let gp=0; matches.forEach(m=>{const pr=p.predictions?.[m.id];if(!pr)return;const pts=calcPoints(pr.home,pr.away,m.realHome,m.realAway);if(pts!==null)gp+=pts;});
+          const {bonus:cp}=calcClassificationBonus(p.predictions||{},matches);
+          return {...p,_total:gp+ip+cp};
+        }).sort((a,b)=>b._total-a._total);
+        const pos=ranked.findIndex(p=>p.id===currentUser.id)+1;
+        const [editMode,setEditMode]=React.useState(false);
+        const [editNombre,setEditNombre]=React.useState(currentUser.nombre||"");
+        const [editApellido,setEditApellido]=React.useState(currentUser.apellido||"");
+        const [editTel,setEditTel]=React.useState(currentUser.telefono||"");
+        const [editPin,setEditPin]=React.useState("");
+        const [editPin2,setEditPin2]=React.useState("");
+        const [editErr,setEditErr]=React.useState("");
+        const [editOk,setEditOk]=React.useState(false);
+        async function saveProfile(){
+          setEditErr("");
+          if(!editNombre.trim()||!editApellido.trim()){setEditErr("Nombre y apellido requeridos");return;}
+          if(editPin&&editPin.length<6){setEditErr("PIN minimo 6 digitos");return;}
+          if(editPin&&editPin!==editPin2){setEditErr("Los PINs no coinciden");return;}
+          const updated={...currentUser,nombre:editNombre.trim(),apellido:editApellido.trim(),name:editNombre.trim()+" "+editApellido.trim(),telefono:editTel.trim(),...(editPin?{pin:editPin}:{})};
+          const newList=[...participants.filter(p=>p.id!==currentUser.id),updated];
+          await setDoc(PARTICIPANTS_DOC,{list:newList});
+          setParticipants(newList);
+          setCurrentUser(updated);
+          try{localStorage.setItem("sl_user",JSON.stringify(updated));}catch(e){}
+          setEditOk(true);setEditMode(false);setTimeout(()=>setEditOk(false),3000);
+        }
+        return (
+          <div style={{maxWidth:480,margin:"0 auto"}}>
+            <div style={{background:"linear-gradient(135deg,#d3172e,#a01020)",borderRadius:16,padding:"24px 20px",marginBottom:16,color:"#fff",textAlign:"center"}}>
+              <div style={{width:64,height:64,borderRadius:"50%",background:"rgba(255,255,255,0.2)",margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.8rem",fontWeight:800}}>
+                {(currentUser.nombre||"?")[0].toUpperCase()}
+              </div>
+              <div style={{fontSize:"1.3rem",fontWeight:800}}>{currentUser.nombre} {currentUser.apellido}</div>
+              <div style={{fontSize:"0.85rem",opacity:0.85,marginTop:4}}>{currentUser.email}</div>
+              <div style={{fontSize:"0.8rem",opacity:0.75,marginTop:2}}>{currentUser.sucursal}</div>
+              <div style={{marginTop:16,display:"flex",justifyContent:"center",gap:20}}>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:"1.8rem",fontWeight:900}}>{total}</div>
+                  <div style={{fontSize:"0.7rem",opacity:0.8}}>PUNTOS TOTAL</div>
+                </div>
+                <div style={{width:1,background:"rgba(255,255,255,0.3)"}}></div>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:"1.8rem",fontWeight:900}}>#{pos}</div>
+                  <div style={{fontSize:"0.7rem",opacity:0.8}}>POSICIÓN</div>
+                </div>
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+              {[["Pronósticos",gamePts,"#2563eb"],["Clasificados",classPts,"#7c3aed"],["Facturas",invPts,"#16a34a"]].map(([l,v,c])=>(
+                <div key={l} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:"12px 8px",textAlign:"center"}}>
+                  <div style={{fontSize:"1.4rem",fontWeight:800,color:c}}>{v}</div>
+                  <div style={{fontSize:"0.7rem",color:"#6b7280",marginTop:2}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            {editOk && <div style={{background:"#f0fdf4",border:"1px solid #16a34a",borderRadius:10,padding:"10px 14px",marginBottom:12,color:"#16a34a",fontWeight:600,fontSize:"0.85rem"}}>✅ Perfil actualizado</div>}
+            {!editMode ? (
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                  <div style={{fontWeight:700,fontSize:"0.95rem"}}>Mis datos</div>
+                  <button style={{...S.btn("#2563eb",true),fontSize:"0.78rem",padding:"5px 12px"}} onClick={()=>setEditMode(true)}>Editar</button>
+                </div>
+                {[["Nombre",currentUser.nombre+" "+currentUser.apellido],["Correo",currentUser.email],["Teléfono",currentUser.telefono||"-"],["Sucursal",currentUser.sucursal||"-"]].map(([l,v])=>(
+                  <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid #f3f4f6",fontSize:"0.85rem"}}>
+                    <span style={{color:"#6b7280"}}>{l}</span>
+                    <span style={{fontWeight:600,color:"#111827"}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:12,padding:16}}>
+                <div style={{fontWeight:700,fontSize:"0.95rem",marginBottom:12}}>Editar datos</div>
+                {editErr && <div style={{color:"#e74c3c",fontSize:"0.82rem",marginBottom:8}}>{editErr}</div>}
+                {[["Nombre",editNombre,setEditNombre],["Apellido",editApellido,setEditApellido],["Teléfono",editTel,setEditTel]].map(([l,v,sv])=>(
+                  <div key={l} style={{marginBottom:10}}>
+                    <label style={{fontSize:"0.75rem",color:BRAND.red,fontWeight:700,display:"block",marginBottom:4}}>{l.toUpperCase()}</label>
+                    <input style={S.input} value={v} onChange={e=>sv(e.target.value)} />
+                  </div>
+                ))}
+                <div style={{marginBottom:10}}>
+                  <label style={{fontSize:"0.75rem",color:BRAND.red,fontWeight:700,display:"block",marginBottom:4}}>NUEVO PIN (dejar vacío para no cambiar)</label>
+                  <input style={S.input} type="password" placeholder="Mínimo 6 dígitos" value={editPin} onChange={e=>setEditPin(e.target.value)} />
+                </div>
+                {editPin && <div style={{marginBottom:10}}>
+                  <label style={{fontSize:"0.75rem",color:BRAND.red,fontWeight:700,display:"block",marginBottom:4}}>CONFIRMAR NUEVO PIN</label>
+                  <input style={S.input} type="password" value={editPin2} onChange={e=>setEditPin2(e.target.value)} />
+                </div>}
+                <div style={{display:"flex",gap:8,marginTop:4}}>
+                  <button style={{...S.btn("#6b7280",true),flex:1}} onClick={()=>{setEditMode(false);setEditErr("");}}>Cancelar</button>
+                  <button style={{...S.btn(),flex:1}} onClick={saveProfile}>Guardar</button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {activeTab==="tablas" && (
         <div className="fi">
@@ -1094,8 +1232,8 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
                 </div>
               );})()}
               <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>GRUPO {activeGroup}</div>
-              {groupMatches.filter(m=>m.group===activeGroup).map(m=>renderMatchRow(m,groupsLocked))}
-              {!groupsLocked && (
+              {groupMatches.filter(m=>m.group===activeGroup).map(m=>renderMatchRow(m,isMatchLocked(m,adminUnlocked)))}
+              {!isPhaseLocked("groups",adminUnlocked) && (
                 <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
                   <button style={{...S.btn("#16a34a"),fontSize:"0.8rem"}} onClick={handleSave} disabled={saving}>
                     {saving?"Guardando...":"Guardar"}
@@ -1666,32 +1804,69 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
             const {bonus:classPts}=calcClassificationBonus(p.predictions,matches);
             return {...p,_total:gamePts+invPts+classPts,_invPts:invPts,_classPts:classPts,_exact:exact,_correct:correct,_totalInv:totalInv};
           }).sort((a,b)=>b._total-a._total).map((p,i)=>(
-              <div key={p.id} style={{...S.leaderRow(i),justifyContent:"space-between"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#9ca3af",fontWeight:700,minWidth:24}}>#{i+1}</span>
-                  <div>
-                    <div style={{fontWeight:700,color:BRAND.gray900}}>{p.name}</div>
-                    <div style={{fontSize:"0.72rem",color:"#9ca3af"}}>
-                      {p.email && <span>{p.email} &nbsp;|&nbsp; </span>}
-                      {p.sucursal && <span style={{color:BRAND.red,fontWeight:600}}>{p.sucursal} &nbsp;|&nbsp; </span>}
-                      {Object.keys(p.predictions||{}).length} pronosticos
-                      &nbsp;|&nbsp; {p._totalInv} facturas
-                      {p._invPts>0 && <span style={{color:BRAND.red}}> | +{p._invPts}pts facturas</span>}
-                      {p._classPts>0 && <span style={{color:"#7c3aed"}}> | +{p._classPts}pts clasificados</span>}
+              {(()=>{
+                const [editing,setEditing]=React.useState(false);
+                const [eNombre,setENombre]=React.useState(p.nombre||p.name||"");
+                const [eApellido,setEApellido]=React.useState(p.apellido||"");
+                const [eTel,setETel]=React.useState(p.telefono||"");
+                const [ePin,setEPin]=React.useState("");
+                async function saveEdit(){
+                  const updated={...p,nombre:eNombre.trim(),apellido:eApellido.trim(),name:eNombre.trim()+" "+eApellido.trim(),telefono:eTel.trim(),...(ePin.length>=6?{pin:ePin}:{})};
+                  const newList=[...participants.filter(x=>x.id!==p.id),updated];
+                  await setDoc(PARTICIPANTS_DOC,{list:newList});
+                  setParticipants(newList);
+                  setEditing(false);
+                }
+                return (
+                  <div key={p.id} style={{...S.leaderRow(i),flexDirection:"column",alignItems:"stretch",gap:6}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:10}}>
+                        <span style={{color:"#9ca3af",fontWeight:700,minWidth:24}}>#{i+1}</span>
+                        <div>
+                          <div style={{fontWeight:700,color:BRAND.gray900}}>{p.name}</div>
+                          <div style={{fontSize:"0.72rem",color:"#9ca3af"}}>
+                            {p.email && <span>{p.email} &nbsp;|&nbsp; </span>}
+                            {p.sucursal && <span style={{color:BRAND.red,fontWeight:600}}>{p.sucursal} &nbsp;|&nbsp; </span>}
+                            {Object.keys(p.predictions||{}).length} pronosticos &nbsp;|&nbsp; {p._totalInv} facturas
+                            {p._invPts>0 && <span style={{color:BRAND.red}}> | +{p._invPts}pts</span>}
+                            {p._classPts>0 && <span style={{color:"#7c3aed"}}> | +{p._classPts}pts</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <div style={{textAlign:"right"}}>
+                          <div style={{fontSize:"1.3rem",fontWeight:800,color:BRAND.red}}>{p._total}</div>
+                          <div style={{fontSize:"0.68rem",color:"#9ca3af"}}>pts</div>
+                        </div>
+                        <button onClick={()=>setEditing(e=>!e)}
+                          style={{background:editing?"#f3f4f6":"transparent",border:"1px solid #2563eb44",color:"#2563eb",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:"0.78rem"}}>
+                          ✏️
+                        </button>
+                        <button onClick={()=>removeParticipant(p.id)}
+                          style={{background:"transparent",border:"1px solid #dc262644",color:"#dc2626",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:"0.78rem"}}>
+                          X
+                        </button>
+                      </div>
                     </div>
+                    {editing && (
+                      <div style={{background:"#f9fafb",borderRadius:8,padding:"10px 12px",display:"flex",flexWrap:"wrap",gap:8,alignItems:"flex-end"}}>
+                        {[["Nombre",eNombre,setENombre],["Apellido",eApellido,setEApellido],["Teléfono",eTel,setETel]].map(([l,v,sv])=>(
+                          <div key={l} style={{flex:"1 1 120px"}}>
+                            <label style={{fontSize:"0.7rem",color:"#6b7280",display:"block",marginBottom:3}}>{l}</label>
+                            <input style={{...S.input,padding:"5px 8px",fontSize:"0.82rem"}} value={v} onChange={e=>sv(e.target.value)} />
+                          </div>
+                        ))}
+                        <div style={{flex:"1 1 120px"}}>
+                          <label style={{fontSize:"0.7rem",color:"#6b7280",display:"block",marginBottom:3}}>Nuevo PIN</label>
+                          <input style={{...S.input,padding:"5px 8px",fontSize:"0.82rem"}} type="password" placeholder="min 6 dígitos" value={ePin} onChange={e=>setEPin(e.target.value)} />
+                        </div>
+                        <button style={{...S.btn(),padding:"6px 14px",fontSize:"0.82rem"}} onClick={saveEdit}>Guardar</button>
+                        <button style={{...S.btn("#6b7280",true),padding:"6px 10px",fontSize:"0.82rem"}} onClick={()=>setEditing(false)}>✕</button>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:"1.3rem",fontWeight:800,color:BRAND.red}}>{p._total}</div>
-                    <div style={{fontSize:"0.68rem",color:"#9ca3af"}}>pts</div>
-                  </div>
-                  <button onClick={()=>removeParticipant(p.id)}
-                    style={{background:"transparent",border:"1px solid #dc262644",color:"#dc2626",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:"0.78rem"}}>
-                    X
-                  </button>
-                </div>
-              </div>
+                );
+              })()}
           ))}
         </div>
       )}
