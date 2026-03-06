@@ -1640,7 +1640,7 @@ export default function App() {
 
   const tabs = [
     {id:"leaderboard", label:"Clasificacion"},
-    {id:"form", label:"Pronósticos"},
+    {id:"form", label:"Iniciar Sesión"},
     {id:"fixture", label:"Fixture"},
     {id:"admin", label:"Admin"},
   ];
