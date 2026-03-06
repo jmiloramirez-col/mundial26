@@ -767,7 +767,9 @@ function GroupTable({ grp, table, hasData, emptyMsg }) {
 const SUCURSALES = ["St-Hubert", "St-Laurent", "Brossard"];
 
 function ParticipantForm({ participants, setParticipants, matches, adminUnlocked, invoices, setInvoices }) {
-  const [step, setStep] = useState("login");
+  // Restore session from localStorage
+  const savedUser = (() => { try { const s=localStorage.getItem("sl_user"); return s?JSON.parse(s):null; } catch(e){return null;} })();
+  const [step, setStep] = useState(savedUser ? "form" : "login");
   const [isNew, setIsNew] = useState(false);
   // Login
   const [loginEmail, setLoginEmail] = useState("");
@@ -780,8 +782,8 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   const [regSucursal, setRegSucursal] = useState("");
   const [regPin, setRegPin] = useState("");
   const [regPin2, setRegPin2] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
-  const [preds, setPreds] = useState({});
+  const [currentUser, setCurrentUser] = useState(savedUser);
+  const [preds, setPreds] = useState(savedUser?.predictions||{});
   const [activeGroup, setActiveGroup] = useState("A");
   const [activePhase, setActivePhase] = useState("groups");
   const [activePh, setActivePh] = useState("round32");
@@ -852,6 +854,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       setParticipants(newParticipants);
       setCurrentUser(newUser);
       setPreds({});
+      try { localStorage.setItem("sl_user", JSON.stringify(newUser)); } catch(e){}
       setStep("form");
     } catch(e) {
       setError("Error al registrar: "+e.message);
@@ -872,6 +875,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
       const newParticipants = [...participants.filter(p=>p.id!==currentUser.id), updatedUser];
       await setDoc(PARTICIPANTS_DOC, {list: newParticipants});
       setParticipants(newParticipants);
+      try { localStorage.setItem("sl_user", JSON.stringify(updatedUser)); } catch(e){}
       setStep("done");
     } catch(e) {
       alert("Error al guardar: "+e.message);
@@ -999,7 +1003,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
         <div style={{color:"#6b7280",marginBottom:16}}>Hola <strong style={{color:"#111827"}}>{currentUser?.name}</strong></div>
         <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
           <button style={S.btn()} onClick={()=>setStep("form")}>Editar Pronosticos</button>
-          <button style={S.btn("#6b7280",true)} onClick={()=>{setStep("login");setName("");setPin("");}}>Cambiar Usuario</button>
+          <button style={S.btn("#6b7280",true)} onClick={()=>{setStep("login");try{localStorage.removeItem("sl_user");}catch(e){}setLoginEmail("");setLoginPin("");}}>Cambiar Usuario</button>
         </div>
       </div>
     </div>
@@ -1013,7 +1017,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
           <button style={{...S.btn("#27ae60"),fontSize:"0.8rem",padding:"6px 14px"}} onClick={handleSave} disabled={saving}>
             {saving?"Guardando...":"Guardar Todo"}
           </button>
-          <button style={{...S.btn("#6b7280",true),fontSize:"0.8rem",padding:"6px 12px"}} onClick={()=>{setStep("login");setName("");setPin("");}}>Salir</button>
+          <button style={{...S.btn("#6b7280",true),fontSize:"0.8rem",padding:"6px 12px"}} onClick={()=>{setStep("login");try{localStorage.removeItem("sl_user");}catch(e){}setLoginEmail("");setLoginPin("");}}>Salir</button>
         </div>
       </div>
 
