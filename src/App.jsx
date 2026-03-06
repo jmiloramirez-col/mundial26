@@ -1942,7 +1942,7 @@ export default function App() {
   const tabs = [
     {id:"leaderboard", label:"Clasificacion"},
     {id:"form", label:"Iniciar Sesión"},
-    {id:"fixture", label:"Fixture"},
+    {id:"fixture", label:"Calendario"},
     ...(isAdmin ? [{id:"admin", label:"Admin"}] : []),
   ];
 
