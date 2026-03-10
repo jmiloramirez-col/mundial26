@@ -1312,7 +1312,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
               );})()}
               {(()=>{const phaseLocked=isPhaseLocked(activePh,adminUnlocked); return(
                 <>
-                  {elimMatches.filter(m=>m.phase===activePh).map(m=>renderMatchRow(m,phaseLocked))}
+                  {elimMatches.filter(m=>m.phase===activePh).map(m=>renderMatchRow(m,isMatchLocked(m,adminUnlocked)))}
                   {!phaseLocked && (
                     <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
                       <button style={{...S.btn("#27ae60"),fontSize:"0.8rem"}} onClick={handleSave} disabled={saving}>
