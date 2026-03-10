@@ -42,7 +42,7 @@ const GROUP_COLORS = {
 };
 
 const LOCK_DATES = {
-  groups:  new Date("2026-06-11T00:00:00"),
+  groups:  new Date("2026-06-10T00:00:00"),
   round32: new Date("2026-06-28T00:00:00"),
   round16: new Date("2026-07-04T00:00:00"),
   quarters:new Date("2026-07-09T00:00:00"),
@@ -72,12 +72,17 @@ function isPhaseLocked(phase, adminUnlocked = {}) {
 
 function isMatchLocked(match, adminUnlocked = {}) {
   if (!match) return false;
-  if (match.phase !== "groups") return isPhaseLocked(match.phase, adminUnlocked);
-  // Per-match lock: 1 hour before kickoff
-  if (adminUnlocked["groups"]) return false;         // admin unlocked whole phase
-  if (adminUnlocked["groups_forced"]) return true;   // admin force-locked whole phase
-  if (!match.lockTime) return isPhaseLocked("groups", adminUnlocked);
-  return new Date() >= new Date(match.lockTime);
+  // Groups: locked globally on June 10
+  if (match.phase === "groups") {
+    if (adminUnlocked["groups"]) return false;
+    if (adminUnlocked["groups_forced"]) return true;
+    return new Date() >= LOCK_DATES["groups"];
+  }
+  // Elimination: lock 24 hours before each match kickoff
+  if (adminUnlocked[match.phase]) return false;
+  if (adminUnlocked[match.phase+"_forced"]) return true;
+  if (match.lockTime) return new Date() >= new Date(new Date(match.lockTime).getTime() - 24*60*60*1000);
+  return isPhaseLocked(match.phase, adminUnlocked);
 }
 
 function generateGroupMatches() {
