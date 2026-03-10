@@ -62,16 +62,12 @@ function calcInvoicePoints(amount) {
   return 12;
 }
 
-function getNow(adminUnlocked = {}) {
-  return adminUnlocked.simDate ? new Date(adminUnlocked.simDate) : new Date();
-}
-
 function isPhaseLocked(phase, adminUnlocked = {}) {
   if (adminUnlocked[phase+"_forced"]) return true;
   if (adminUnlocked[phase]) return false;
   const lockDate = LOCK_DATES[phase];
   if (!lockDate) return false;
-  return getNow(adminUnlocked) >= lockDate;
+  return new Date() >= lockDate;
 }
 
 function isMatchLocked(match, adminUnlocked = {}) {
@@ -80,12 +76,14 @@ function isMatchLocked(match, adminUnlocked = {}) {
   if (match.phase === "groups") {
     if (adminUnlocked["groups"]) return false;
     if (adminUnlocked["groups_forced"]) return true;
-    return getNow(adminUnlocked) >= LOCK_DATES["groups"];
+    return new Date() >= LOCK_DATES["groups"];
   }
-  // Elimination: lock 24 hours before each match kickoff
+  // Elimination: check per-match manual lock first, then auto 24h before lockTime
+  if (adminUnlocked["match_"+match.id]) return false;       // manually unlocked
+  if (adminUnlocked["match_"+match.id+"_forced"]) return true; // manually locked
   if (adminUnlocked[match.phase]) return false;
   if (adminUnlocked[match.phase+"_forced"]) return true;
-  if (match.lockTime) return getNow(adminUnlocked) >= new Date(new Date(match.lockTime).getTime() - 24*60*60*1000);
+  if (match.lockTime) return new Date() >= new Date(new Date(match.lockTime).getTime() - 24*60*60*1000);
   return isPhaseLocked(match.phase, adminUnlocked);
 }
 
@@ -947,7 +945,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     if (!locked) {
       const d = LOCK_DATES[phase];
       if (d) {
-        const diff = Math.ceil((d-getNow(adminUnlocked))/(1000*60*60*24));
+        const diff = Math.ceil((d-new Date())/(1000*60*60*24));
         if (diff>0) return {locked:false, msg:"Abierto - se bloquea en "+diff+" dia"+(diff!==1?"s":"")};
       }
       return {locked:false, msg:"Abierto"};
@@ -1606,7 +1604,6 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
   const [activePh, setActivePh] = useState("round32");
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState("results");
-  const [simDate, setSimDate] = useState(adminUnlocked.simDate||"");
   const ADMIN = "2026";
 
   const phaseColors = {round32:"#0369a1",round16:"#7c3aed",quarters:"#c0392b",semis:"#e67e22",third:"#2980b9",final:"#d3172e"};
@@ -1809,86 +1806,106 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
         <div>
           <p style={{color:"#6b7280",marginBottom:14,fontSize:"0.85rem"}}>Bloquea o desbloquea manualmente cada fase para pruebas o correcciones.</p>
 
-          {/* SIMULADOR DE FECHA */}
-          <div style={{background:"#fffbeb",border:"1px solid #f59e0b",borderRadius:12,padding:"14px 16px",marginBottom:20}}>
-            <div style={{fontWeight:700,fontSize:"0.9rem",color:"#92400e",marginBottom:6}}>🧪 Simulador de Fecha</div>
-            <div style={{fontSize:"0.8rem",color:"#78350f",marginBottom:10}}>
-              Establece una fecha simulada para probar los bloqueos sin esperar las fechas reales. Deja vacío para usar la fecha real.
-            </div>
-            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-              <input
-                type="datetime-local"
-                style={{...S.input,marginBottom:0,flex:"1 1 200px",fontSize:"0.85rem"}}
-                value={simDate}
-                onChange={e=>setSimDate(e.target.value)}
-              />
-              <button style={{...S.btn("#f59e0b"),fontSize:"0.8rem",padding:"7px 14px",whiteSpace:"nowrap"}}
-                onClick={async ()=>{
-                  const updated = {...adminUnlocked, simDate: simDate||null};
-                  setAdminUnlocked(updated);
-                  await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
-                  alert(simDate ? "✅ Fecha simulada: "+new Date(simDate).toLocaleString() : "✅ Usando fecha real del sistema");
-                }}>
-                {simDate ? "Activar Simulación" : "Usar Fecha Real"}
-              </button>
-              {adminUnlocked.simDate && (
-                <button style={{...S.btn("#6b7280",true),fontSize:"0.8rem",padding:"7px 14px"}}
-                  onClick={async ()=>{
-                    setSimDate("");
-                    const updated = {...adminUnlocked, simDate: null};
-                    setAdminUnlocked(updated);
-                    await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
-                  }}>
-                  Quitar Simulación
-                </button>
-              )}
-            </div>
-            {adminUnlocked.simDate && (
-              <div style={{marginTop:8,fontSize:"0.78rem",color:"#b45309",fontWeight:600}}>
-                ⚠️ Fecha simulada activa: {new Date(adminUnlocked.simDate).toLocaleString()}
-              </div>
-            )}
-          </div>
-          {[
-            {phase:"groups",label:"Grupos",lockDate:"11 Jun 2026",color:"#1F618D"},
-            {phase:"round32",label:"Ronda de 32",lockDate:"28 Jun 2026",color:"#0369a1"},
-            {phase:"round16",label:"Ronda de 16",lockDate:"4 Jul 2026",color:"#7c3aed"},
-            {phase:"quarters",label:"Cuartos de Final",lockDate:"9 Jul 2026",color:"#c0392b"},
-            {phase:"semis",label:"Semifinales",lockDate:"14 Jul 2026",color:"#e67e22"},
-            {phase:"third",label:"Tercer Lugar",lockDate:"18 Jul 2026",color:"#2980b9"},
-            {phase:"final",label:"Gran Final",lockDate:"19 Jul 2026",color:"#d3172e"},
-          ].map(({phase,label,lockDate,color})=>{
+
+          {/* GRUPOS - bloqueo general */}
+          {(()=>{
+            const phase="groups";
+            const color="#1F618D";
             const manLocked=!!adminUnlocked[phase+"_forced"];
             const autoLocked=isPhaseLocked(phase,adminUnlocked);
             const manUnlocked=!!adminUnlocked[phase];
             const isLocked = manLocked || (autoLocked && !manUnlocked);
             return (
-              <div key={phase} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f9fafb",border:"1px solid "+color+"44",borderRadius:10,padding:"12px 16px",marginBottom:8,flexWrap:"wrap",gap:8}}>
-                <div>
-                  <div style={{fontWeight:700,fontSize:"0.95rem",color:"#111827"}}>{label}</div>
-                  <div style={{fontSize:"0.75rem",color:"#9ca3af",marginTop:2}}>Bloqueo automatico: {lockDate}</div>
-                  <div style={{fontSize:"0.8rem",marginTop:3,fontWeight:600,color:isLocked?"#e74c3c":"#16a34a"}}>
-                    {isLocked ? "🔒 BLOQUEADO" : "🔓 ABIERTO"}
+              <div style={{marginBottom:20}}>
+                <div style={{fontWeight:800,fontSize:"0.8rem",color:"#6b7280",letterSpacing:2,marginBottom:8}}>FASE DE GRUPOS</div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f9fafb",border:"1px solid "+color+"44",borderRadius:10,padding:"12px 16px",flexWrap:"wrap",gap:8}}>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:"0.95rem",color:"#111827"}}>Todos los grupos</div>
+                    <div style={{fontSize:"0.75rem",color:"#9ca3af",marginTop:2}}>Bloqueo automático: 10 Jun 2026 00:00</div>
+                    <div style={{fontSize:"0.8rem",marginTop:3,fontWeight:600,color:isLocked?"#e74c3c":"#16a34a"}}>
+                      {isLocked ? "🔒 BLOQUEADO" : "🔓 ABIERTO"}
+                    </div>
                   </div>
-                </div>
-                <div style={{display:"flex",gap:6}}>
                   <button
                     style={{...S.btn(isLocked?"#16a34a":"#e74c3c",true),fontSize:"0.78rem",padding:"6px 14px"}}
                     onClick={async ()=>{
-                      let updated;
-                      if (isLocked) {
-                        // Unlock: set manUnlocked=true, remove forced lock
-                        updated = {...adminUnlocked, [phase]:true, [phase+"_forced"]:false};
-                      } else {
-                        // Lock: set forced lock, remove manual unlock
-                        updated = {...adminUnlocked, [phase]:false, [phase+"_forced"]:true};
-                      }
+                      const updated = isLocked
+                        ? {...adminUnlocked, [phase]:true, [phase+"_forced"]:false}
+                        : {...adminUnlocked, [phase]:false, [phase+"_forced"]:true};
                       setAdminUnlocked(updated);
                       await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
                     }}>
                     {isLocked ? "Desbloquear" : "Bloquear"}
                   </button>
                 </div>
+              </div>
+            );
+          })()}
+
+          {/* ELIMINATORIAS - bloqueo por partido */}
+          {[
+            {phase:"round32",label:"Ronda de 32",color:"#0369a1",lockDate:"28 Jun 2026"},
+            {phase:"round16",label:"Ronda de 16",color:"#7c3aed",lockDate:"4 Jul 2026"},
+            {phase:"quarters",label:"Cuartos de Final",color:"#c0392b",lockDate:"9 Jul 2026"},
+            {phase:"semis",label:"Semifinales",color:"#e67e22",lockDate:"14 Jul 2026"},
+            {phase:"third",label:"Tercer Lugar",color:"#2980b9",lockDate:"18 Jul 2026"},
+            {phase:"final",label:"Gran Final",color:"#d3172e",lockDate:"19 Jul 2026"},
+          ].map(({phase,label,color,lockDate})=>{
+            const phaseMatches = matches.filter(m=>m.phase===phase);
+            const phaseManLocked=!!adminUnlocked[phase+"_forced"];
+            const phaseAutoLocked=isPhaseLocked(phase,adminUnlocked);
+            const phaseManUnlocked=!!adminUnlocked[phase];
+            const phaseLocked = phaseManLocked || (phaseAutoLocked && !phaseManUnlocked);
+            return (
+              <div key={phase} style={{marginBottom:20}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,flexWrap:"wrap",gap:6}}>
+                  <div style={{fontWeight:800,fontSize:"0.8rem",color:"#6b7280",letterSpacing:2}}>{label.toUpperCase()}</div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <span style={{fontSize:"0.72rem",color:"#9ca3af"}}>Auto: {lockDate}</span>
+                    <button
+                      style={{...S.btn(phaseLocked?"#16a34a":"#e74c3c",true),fontSize:"0.72rem",padding:"4px 10px"}}
+                      onClick={async ()=>{
+                        const updated = phaseLocked
+                          ? {...adminUnlocked, [phase]:true, [phase+"_forced"]:false}
+                          : {...adminUnlocked, [phase]:false, [phase+"_forced"]:true};
+                        setAdminUnlocked(updated);
+                        await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
+                      }}>
+                      {phaseLocked ? "Desbloquear todo" : "Bloquear todo"}
+                    </button>
+                  </div>
+                </div>
+                {phaseMatches.map(m=>{
+                  const matchManLocked=!!adminUnlocked["match_"+m.id+"_forced"];
+                  const matchManUnlocked=!!adminUnlocked["match_"+m.id];
+                  const matchLocked = isMatchLocked(m, adminUnlocked);
+                  return (
+                    <div key={m.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f9fafb",border:"1px solid "+color+"33",borderRadius:8,padding:"9px 12px",marginBottom:6,flexWrap:"wrap",gap:6}}>
+                      <div>
+                        <div style={{fontWeight:600,fontSize:"0.85rem",color:"#111827"}}>P{m.matchNum} · {m.date} · {m.home} vs {m.away}</div>
+                        <div style={{fontSize:"0.72rem",marginTop:2,fontWeight:600,color:matchLocked?"#e74c3c":"#16a34a"}}>
+                          {matchLocked ? "🔒 Bloqueado" : "🔓 Abierto"}
+                          {matchManLocked && <span style={{color:"#9ca3af"}}> (manual)</span>}
+                          {matchManUnlocked && <span style={{color:"#9ca3af"}}> (desbloqueado)</span>}
+                        </div>
+                      </div>
+                      <button
+                        style={{...S.btn(matchLocked?"#16a34a":"#e74c3c",true),fontSize:"0.72rem",padding:"4px 10px"}}
+                        onClick={async ()=>{
+                          let updated;
+                          if (matchLocked) {
+                            updated = {...adminUnlocked, ["match_"+m.id]:true, ["match_"+m.id+"_forced"]:false};
+                          } else {
+                            updated = {...adminUnlocked, ["match_"+m.id]:false, ["match_"+m.id+"_forced"]:true};
+                          }
+                          setAdminUnlocked(updated);
+                          await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
+                        }}>
+                        {matchLocked ? "Desbloquear" : "Bloquear"}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
