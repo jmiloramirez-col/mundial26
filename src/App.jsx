@@ -1943,6 +1943,7 @@ function AdminParticipantRow({ p, i, participants, setParticipants, invoices, ma
 
 // ADMIN PANEL
 function AdminInvoicesTab({ invoices, handleInvoice, pendingInvoices }) {
+  const lang = useLang(); const ti = T[lang].invoice;
   const [editingId, setEditingId] = useState(null);
   const [filter, setFilter] = useState("all");
 
@@ -1979,7 +1980,7 @@ function AdminInvoicesTab({ invoices, handleInvoice, pendingInvoices }) {
                 <span style={{color:"#9ca3af"}}>{new Date(inv.createdAt).toLocaleDateString()}</span>
                 {inv.amount>=50 && (
                   <span style={{fontWeight:600,color:inv.hasProduct?"#16a34a":"#f59e0b"}}>
-                    {inv.hasProduct?T[useLang()].invoice.withProduct+":"+T[useLang()].invoice.noProduct}
+                    {inv.hasProduct ? ti.withProduct : ti.noProduct}
                   </span>
                 )}
               </div>
