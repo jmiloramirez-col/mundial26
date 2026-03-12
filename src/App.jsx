@@ -1865,6 +1865,100 @@ function AdminParticipantRow({ p, i, participants, setParticipants, invoices, ma
 }
 
 // ADMIN PANEL
+function AdminInvoicesTab({ invoices, handleInvoice, pendingInvoices }) {
+  const [editingId, setEditingId] = useState(null);
+  const [filter, setFilter] = useState("all");
+
+  const filtered = invoices.filter(inv =>
+    filter==="all" ? true : filter==="pending" ? inv.status==="pending" : filter==="approved" ? inv.status==="approved" : inv.status==="rejected"
+  );
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+        <div style={S.sectionTitle}>Gestión de Facturas</div>
+        <div style={{display:"flex",gap:5}}>
+          {[["all","Todas"],["pending","Pendientes"],["approved","Aprobadas"],["rejected","Rechazadas"]].map(([v,l])=>(
+            <button key={v} style={{...S.navBtn(filter===v),fontSize:"0.75rem",padding:"4px 10px"}} onClick={()=>setFilter(v)}>
+              {l}{v==="pending"&&pendingInvoices.length>0?` (${pendingInvoices.length})`:""}
+            </button>
+          ))}
+        </div>
+      </div>
+      {filtered.length===0 && (
+        <div style={{color:"#9ca3af",padding:20,textAlign:"center"}}>No hay facturas en esta categoría</div>
+      )}
+      {filtered.map(inv=>(
+        <div key={inv.id}>
+          <div style={S.invoiceCard(inv.status)}>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,fontSize:"0.9rem"}}>{inv.participantName}</div>
+              <div style={{color:"#6b7280",fontSize:"0.78rem",marginTop:2}}>
+                Factura: <strong style={{color:"#111827"}}>{inv.invoiceNum}</strong>
+                &nbsp;|&nbsp; Monto: <strong style={{color:"#d3172e"}}>${inv.amount} CAD</strong>
+                &nbsp;|&nbsp; Pts: <strong style={{color:"#16a34a"}}>{inv.points}</strong>
+              </div>
+              <div style={{fontSize:"0.72rem",marginTop:3,display:"flex",gap:8,flexWrap:"wrap"}}>
+                <span style={{color:"#9ca3af"}}>{new Date(inv.createdAt).toLocaleDateString()}</span>
+                {inv.amount>=50 && (
+                  <span style={{fontWeight:600,color:inv.hasProduct?"#16a34a":"#f59e0b"}}>
+                    {inv.hasProduct?"✅ Producto elegible":"⚠️ Sin producto elegible"}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+              <div style={S.statusBadge(inv.status)}>
+                {inv.status==="approved"?"Aprobada":inv.status==="rejected"?"Rechazada":"Pendiente"}
+              </div>
+              {inv.status==="pending" && (
+                <>
+                  <button style={{...S.btn("#27ae60"),fontSize:"0.78rem",padding:"5px 12px"}}
+                    onClick={()=>handleInvoice(inv.id,"approved")}>Aprobar</button>
+                  <button style={{...S.btn("#c0392b",true),fontSize:"0.78rem",padding:"5px 12px"}}
+                    onClick={()=>handleInvoice(inv.id,"rejected")}>Rechazar</button>
+                </>
+              )}
+              {inv.status!=="pending" && (
+                <button
+                  style={{...S.btn(editingId===inv.id?"#6b7280":"#d97706",true),fontSize:"0.78rem",padding:"5px 12px"}}
+                  onClick={()=>setEditingId(editingId===inv.id?null:inv.id)}>
+                  {editingId===inv.id?"Cancelar":"✏️ Corregir"}
+                </button>
+              )}
+            </div>
+          </div>
+          {editingId===inv.id && (
+            <div style={{background:"#fffbeb",border:"1px solid #f59e0b",borderRadius:"0 0 10px 10px",padding:"12px 16px",marginTop:-6,marginBottom:8,display:"flex",flexDirection:"column",gap:8}}>
+              <div style={{fontSize:"0.8rem",color:"#92400e",fontWeight:600}}>
+                ⚠️ Corrigiendo factura <strong>{inv.invoiceNum}</strong> — actualmente: <strong>{inv.status==="approved"?"Aprobada":"Rechazada"}</strong>
+              </div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {inv.status==="approved" && (
+                  <button style={{...S.btn("#c0392b",true),fontSize:"0.82rem",padding:"7px 16px"}}
+                    onClick={()=>{handleInvoice(inv.id,"rejected");setEditingId(null);}}>
+                    Cambiar a Rechazada
+                  </button>
+                )}
+                {inv.status==="rejected" && (
+                  <button style={{...S.btn("#27ae60"),fontSize:"0.82rem",padding:"7px 16px"}}
+                    onClick={()=>{handleInvoice(inv.id,"approved");setEditingId(null);}}>
+                    Cambiar a Aprobada
+                  </button>
+                )}
+                <button style={{...S.btn("#6b7280",true),fontSize:"0.82rem",padding:"7px 16px"}}
+                  onClick={()=>{handleInvoice(inv.id,"pending");setEditingId(null);}}>
+                  Volver a Pendiente
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function AdminPanel({ matches, setMatches, participants, setParticipants, adminUnlocked, setAdminUnlocked, invoices, setInvoices, pinRequests, setPinRequests }) {
   const [authed, setAuthed] = useState(false);
   const [pinInput, setPinInput] = useState("");
@@ -1952,40 +2046,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
       </div>
 
       {activeTab==="invoices" && (
-        <div>
-          <div style={S.sectionTitle}>Facturas Pendientes de Aprobacion</div>
-          {pendingInvoices.length===0 && (
-            <div style={{color:"#9ca3af",padding:20,textAlign:"center"}}>No hay facturas pendientes</div>
-          )}
-          {invoices.map(inv=>(
-            <div key={inv.id} style={S.invoiceCard(inv.status)}>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:700,fontSize:"0.9rem"}}>{inv.participantName}</div>
-                <div style={{color:"#6b7280",fontSize:"0.78rem",marginTop:2}}>
-                  Factura: <strong style={{color:"#111827"}}>{inv.invoiceNum}</strong>
-                  &nbsp;|&nbsp; Monto: <strong style={{color:"#d3172e"}}>${inv.amount} CAD</strong>
-                  &nbsp;|&nbsp; Pts: <strong style={{color:"#16a34a"}}>{inv.points}</strong>
-                </div>
-                <div style={{fontSize:"0.72rem",color:"#9ca3af",marginTop:2}}>
-                  {new Date(inv.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                <div style={S.statusBadge(inv.status)}>
-                  {inv.status==="approved"?"Aprobada":inv.status==="rejected"?"Rechazada":"Pendiente"}
-                </div>
-                {inv.status==="pending" && (
-                  <>
-                    <button style={{...S.btn("#27ae60"),fontSize:"0.78rem",padding:"5px 12px"}}
-                      onClick={()=>handleInvoice(inv.id,"approved")}>Aprobar</button>
-                    <button style={{...S.btn("#c0392b",true),fontSize:"0.78rem",padding:"5px 12px"}}
-                      onClick={()=>handleInvoice(inv.id,"rejected")}>Rechazar</button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <AdminInvoicesTab invoices={invoices} handleInvoice={handleInvoice} pendingInvoices={pendingInvoices} />
       )}
 
       {activeTab==="results" && (
