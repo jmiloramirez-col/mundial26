@@ -2607,6 +2607,12 @@ export default function App() {
         </div>
         <div style={{background:BRAND.red,padding:"4px 16px",textAlign:"center",fontSize:"0.7rem",color:"rgba(255,255,255,0.85)",letterSpacing:1}}>
           {participants.length} {t.status.participants} &nbsp;|&nbsp; {totalMatches} {t.status.matches} &nbsp;|&nbsp; 11 JUN - 19 JUL 2026
+          {(() => {
+            const diff = Math.ceil((new Date("2026-06-11") - new Date()) / (1000*60*60*24));
+            if (diff > 0) return <> &nbsp;|&nbsp; 🏆 {diff} {lang==="fr"?`jour${diff!==1?"s":""} avant le Mondial`:`día${diff!==1?"s":""} para el Mundial`}</>;
+            if (diff === 0) return <> &nbsp;|&nbsp; 🏆 {lang==="fr"?"Le Mondial commence aujourd'hui !":"¡El Mundial empieza hoy!"}</>;
+            return null;
+          })()}
         </div>
       </header>
 
