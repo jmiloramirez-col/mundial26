@@ -711,7 +711,7 @@ function ReglamentoView() {
   );
 }
 
-function Leaderboard({ participants, matches, invoices }) {
+function Leaderboard({ participants, matches, invoices, currentUser }) {
   const [activeTab, setActiveTab] = useState("tabla");
 
   const ranked = [...participants]
@@ -744,6 +744,23 @@ function Leaderboard({ participants, matches, invoices }) {
       </div>
 
       {activeTab==="top20" && (
+        <div>
+          {currentUser && (()=>{
+            const myInv = (invoices||[]).filter(inv=>inv.participantId===currentUser.id);
+            const validInv = myInv.find(inv=>parseFloat(inv.amount)>=50 && inv.hasProduct);
+            if (validInv) return null;
+            return (
+              <div style={{background:"#fffbeb",border:"1px solid #f59e0b",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"flex-start"}}>
+                <span style={{fontSize:"1.2rem",flexShrink:0}}>⚠️</span>
+                <div>
+                  <div style={{fontWeight:700,fontSize:"0.85rem",color:"#92400e",marginBottom:2}}>Participación no válida</div>
+                  <div style={{fontSize:"0.8rem",color:"#92400e",lineHeight:1.5}}>
+                    Registra una factura de <strong>$50 o más</strong> que incluya alguno de los <strong>productos elegibles*</strong> para que tu participación sea válida.
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         <div style={{...S.card, padding:0, overflow:"hidden"}}>
           <div style={{background:BRAND.red, padding:"12px 18px"}}>
             <div style={{color:"#fff", fontWeight:800, fontSize:"1rem", letterSpacing:1}}>CLASIFICACION GENERAL — {ranked.length} PARTICIPANTES</div>
@@ -779,6 +796,7 @@ function Leaderboard({ participants, matches, invoices }) {
               </div>
             </div>
           ))}
+        </div>
         </div>
       )}
 
@@ -2389,7 +2407,7 @@ export default function App() {
       </header>
 
       <main style={S.main}>
-        {view==="leaderboard" && <Leaderboard participants={participants} matches={matches} invoices={invoices} />}
+        {view==="leaderboard" && <Leaderboard participants={participants} matches={matches} invoices={invoices} currentUser={currentUser} />}
         {(view==="predictions"||view==="login") && <ParticipantForm participants={participants} setParticipants={setParticipants} matches={matches} adminUnlocked={adminUnlocked} invoices={invoices} setInvoices={setInvoices} currentUser={currentUser} setCurrentUser={setCurrentUser} initialStep={view==="login"?"login":undefined} />}
         {view==="fixture" && <FixtureView matches={matches} />}
         {view==="admin" && <AdminPanel matches={matches} setMatches={setMatches} participants={participants} setParticipants={setParticipants} adminUnlocked={adminUnlocked} setAdminUnlocked={setAdminUnlocked} invoices={invoices} setInvoices={setInvoices} pinRequests={pinRequests} setPinRequests={setPinRequests} />}
