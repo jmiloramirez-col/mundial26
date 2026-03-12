@@ -1022,7 +1022,7 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
         </div>
       )}
       <button style={S.btn()} onClick={handleSubmit} disabled={saving}>
-        {saving?{tp.enviando}:{tp.enviarFactura}}
+        {saving?tp.enviando:tp.enviarFactura}
       </button>
 
       {myInvoices.length>0 && (
@@ -1609,7 +1609,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
               {!isPhaseLocked("groups",adminUnlocked) && (
                 <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
                   <button style={{...S.btn("#16a34a"),fontSize:"0.8rem"}} onClick={handleSave} disabled={saving}>
-                    {saving?"Guardando...":{tp.guardar}}
+                    {saving?"Guardando...":tp.guardar}
                   </button>
                 </div>
               )}
@@ -1662,7 +1662,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
                   {!phaseLocked && (
                     <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
                       <button style={{...S.btn("#27ae60"),fontSize:"0.8rem"}} onClick={handleSave} disabled={saving}>
-                        {saving?"Guardando...":{tp.guardar}}
+                        {saving?"Guardando...":tp.guardar}
                       </button>
                     </div>
                   )}
@@ -2000,7 +2000,7 @@ function AdminInvoicesTab({ invoices, handleInvoice, pendingInvoices }) {
                 <button
                   style={{...S.btn(editingId===inv.id?"#6b7280":"#d97706",true),fontSize:"0.78rem",padding:"5px 12px"}}
                   onClick={()=>setEditingId(editingId===inv.id?null:inv.id)}>
-                  {editingId===inv.id?{tp.cancelar}:"✏️ Corregir"}
+                  {editingId===inv.id?tp.cancelar:"✏️ Corregir"}
                 </button>
               )}
             </div>
