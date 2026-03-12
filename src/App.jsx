@@ -513,6 +513,204 @@ const FontStyle = () => (
 );
 
 // LEADERBOARD
+// REGLAMENTO VIEW
+function ReglamentoView() {
+  const [lang, setLang] = useState("fr");
+
+  const T = {
+    fr: {
+      toggle: "Ver en Español",
+      title: "RÈGLEMENT OFFICIEL — CONCOURS MUNDIAL 2026",
+      subtitle: "Sabor Latino · mundial26.vercel.app",
+      s1: "1. Objectif du concours",
+      s1b: "Le Concours Mundial 2026 de Sabor Latino est une compétition de pronostics sportifs dans laquelle les participants prédisent les résultats des matchs de la Coupe du Monde de Football 2026. Le participant ayant le plus grand nombre de points à la fin du tournoi sera déclaré gagnant.",
+      s2: "2. Conditions de participation",
+      s2intro: "Pour participer de façon valide au concours, TOUTES les conditions suivantes doivent être remplies :",
+      s2items: [
+        "S'inscrire sur la plateforme officielle (mundial26.vercel.app) avant le 10 juin 2026.",
+        "Avoir effectué au moins UN achat de 50,00 $ CAD ou plus chez Sabor Latino.",
+        "La facture de 50,00 $ CAD ou plus doit inclure au moins un des produits participants au concours*. La liste sera publiée prochainement.",
+        "Si le participant remporte un prix, il doit accepter qu'une photo le montrant en train de recevoir son prix soit publiée sur les réseaux sociaux officiels de Sabor Latino.",
+      ],
+      s2note1: "⚠️ IMPORTANT : Les achats inférieurs à 50,00 $ CAD génèrent des points supplémentaires, mais NE valident PAS la participation. Si un gagnant ne dispose pas d'une facture de 50,00 $ + incluant un produit participant, son prix ne lui sera pas remis et passera au suivant au classement.",
+      s2note2: "* Les produits participants seront publiés prochainement sur les réseaux sociaux de Sabor Latino.",
+      s3: "3. Prix",
+      s3b: "Les prix seront annoncés prochainement sur les réseaux sociaux et la plateforme du concours.",
+      s3items: ["1re place : Prix à annoncer *", "2e place : Prix à annoncer *", "3e place : Prix à annoncer *"],
+      s4: "4. Système de points",
+      s4a: "4.1  Pronostics de matchs",
+      s4aRows: [["Résultat exact (score correct)","5 pts"],["Vainqueur correct (nul, domicile ou extérieur)","3 pts"],["Pronostic incorrect","0 pt"]],
+      s4b: "4.2  Équipes qualifiées de la phase de groupes",
+      s4bRows: [["Équipe correcte + position exacte (1re ou 2e du groupe)","10 pts"],["Équipe correcte, mauvaise position","5 pts"],["Meilleur 3e : position exacte","10 pts"],["Meilleur 3e : équipe correcte, mauvaise position","5 pts"]],
+      s4c: "4.3  Points par factures (CAD $)",
+      s4cRows: [["10 $ – 50 $","1 pt"],["51 $ – 100 $","3 pts"],["101 $ – 150 $","6 pts"],["151 $ – 200 $","9 pts"],["201 $ ou plus","12 pts"]],
+      s4note: "Les factures doivent être enregistrées sur la plateforme. Seules les factures approuvées par l'administrateur génèrent des points.",
+      s5: "5. Enregistrement des factures",
+      s5items: [
+        "Enregistrer les factures dans la section « Mon Profil » sur la plateforme.",
+        "Saisir le numéro de facture et le montant total en dollars canadiens (CAD).",
+        "L'administrateur approuvera ou rejettera chaque facture enregistrée.",
+        "Une même facture ne peut pas être enregistrée deux fois.",
+        "Montant minimum pour obtenir des points : 10,00 $ CAD.",
+      ],
+      s6: "6. Clôture des pronostics",
+      s6items: [
+        "Phase de groupes : tous les pronostics doivent être saisis avant le 10 juin 2026 à 00 h 00. Aucune modification acceptée après cette heure.",
+        "Phases éliminatoires : chaque match sera verrouillé 24 heures avant son heure de coup d'envoi officielle.",
+      ],
+      s7: "7. Conditions générales",
+      s7items: [
+        "Sabor Latino se réserve le droit de modifier, suspendre ou annuler le concours en cas de force majeure.",
+        "La décision de l'administrateur sur la validité des factures et pronostics est définitive.",
+        "En cas d'égalité : (1) plus de résultats exacts, (2) plus de vainqueurs corrects, (3) score de factures le plus élevé.",
+        "En participant, le concurrent accepte toutes les conditions du présent règlement.",
+      ],
+    },
+    es: {
+      toggle: "Voir en Français",
+      title: "REGLAMENTO OFICIAL — CONCURSO MUNDIAL 2026",
+      subtitle: "Sabor Latino · mundial26.vercel.app",
+      s1: "1. Objetivo del concurso",
+      s1b: "El Concurso Mundial 2026 de Sabor Latino es una competencia de pronósticos deportivos en la que los participantes predicen los resultados de los partidos de la Copa Mundial de Fútbol 2026. El participante con mayor puntaje al finalizar el torneo será declarado ganador.",
+      s2: "2. Requisitos de participación",
+      s2intro: "Para participar de forma válida en el concurso, se deben cumplir TODOS los siguientes requisitos:",
+      s2items: [
+        "Registrarse en la plataforma oficial (mundial26.vercel.app) antes del 10 de junio de 2026.",
+        "Haber realizado al menos UNA compra de $50.00 CAD o más en Sabor Latino.",
+        "La factura de $50.00 CAD o más debe incluir al menos uno de los productos participantes del concurso*. La lista será publicada próximamente.",
+        "Si el participante resulta ganador de algún premio, debe permitir que una fotografía recibiendo el premio sea publicada en las redes sociales oficiales de Sabor Latino.",
+      ],
+      s2note1: "⚠️ IMPORTANTE: Las compras menores de $50.00 CAD generan puntos adicionales, pero NO validan la participación. Si un ganador no cuenta con una factura de $50.00+ que incluya un producto participante, su premio no será entregado y pasará al siguiente clasificado.",
+      s2note2: "* Los productos participantes serán publicados próximamente en las redes sociales de Sabor Latino.",
+      s3: "3. Premios",
+      s3b: "Los premios serán anunciados próximamente en las redes sociales y en la plataforma del concurso.",
+      s3items: ["1er lugar: Premio por anunciar *", "2do lugar: Premio por anunciar *", "3er lugar: Premio por anunciar *"],
+      s4: "4. Sistema de puntos",
+      s4a: "4.1  Pronósticos de partidos",
+      s4aRows: [["Resultado exacto (marcador correcto)","5 pts"],["Ganador correcto (empate, local o visitante)","3 pts"],["Pronóstico incorrecto","0 pts"]],
+      s4b: "4.2  Clasificados de grupos",
+      s4bRows: [["Equipo correcto + posición exacta (1° o 2° del grupo)","10 pts"],["Equipo correcto, posición equivocada","5 pts"],["Mejor tercero: posición exacta","10 pts"],["Mejor tercero: equipo correcto, posición equivocada","5 pts"]],
+      s4c: "4.3  Puntos por facturas (CAD $)",
+      s4cRows: [["$10 – $50","1 pt"],["$51 – $100","3 pts"],["$101 – $150","6 pts"],["$151 – $200","9 pts"],["$201 o más","12 pts"]],
+      s4note: "Las facturas deben registrarse en la plataforma. Solo las facturas aprobadas por el administrador generan puntos.",
+      s5: "5. Registro de facturas",
+      s5items: [
+        "Registrar las facturas en la sección "Mi Perfil" dentro de la plataforma.",
+        "Ingresar el número de factura y el monto total en dólares canadienses (CAD).",
+        "El administrador aprobará o rechazará cada factura registrada.",
+        "Una misma factura no puede ser registrada dos veces.",
+        "Monto mínimo para obtener puntos: $10.00 CAD.",
+      ],
+      s6: "6. Cierre de pronósticos",
+      s6items: [
+        "Fase de grupos: todos los pronósticos deben ingresarse antes del 10 de junio de 2026 a las 00:00. Sin cambios después de esa hora.",
+        "Fases eliminatorias: cada partido se bloqueará 24 horas antes de su horario oficial de juego.",
+      ],
+      s7: "7. Condiciones generales",
+      s7items: [
+        "Sabor Latino se reserva el derecho de modificar, suspender o cancelar el concurso en caso de fuerza mayor.",
+        "La decisión del administrador sobre la validez de facturas y pronósticos es definitiva.",
+        "En caso de empate: (1) mayor número de resultados exactos, (2) mayor número de ganadores correctos, (3) mayor puntaje en facturas.",
+        "Al participar, el concursante acepta todas las condiciones de este reglamento.",
+      ],
+    }
+  };
+
+  const t = T[lang];
+
+  const Section = ({title, children}) => (
+    <div style={{marginBottom:22}}>
+      <div style={{fontWeight:800,fontSize:"0.95rem",color:BRAND.red,borderBottom:"2px solid "+BRAND.red,paddingBottom:5,marginBottom:10,letterSpacing:0.5}}>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+
+  const BulletItem = ({text}) => (
+    <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}>
+      <span style={{color:BRAND.red,fontWeight:800,flexShrink:0,marginTop:1}}>•</span>
+      <span style={{fontSize:"0.85rem",color:"#374151",lineHeight:1.6}}>{text}</span>
+    </div>
+  );
+
+  const Note = ({text}) => (
+    <div style={{background:"#fff5f5",border:"1px solid #fca5a5",borderRadius:8,padding:"10px 14px",marginTop:8,marginBottom:8}}>
+      <span style={{fontSize:"0.8rem",color:"#991b1b",lineHeight:1.6}}>{text}</span>
+    </div>
+  );
+
+  const PointsTable = ({rows}) => (
+    <div style={{border:"1px solid #e5e7eb",borderRadius:10,overflow:"hidden",marginBottom:8}}>
+      {rows.map(([desc,pts],i)=>(
+        <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 14px",background:i%2===0?"#fff":"#f9fafb",borderBottom:i<rows.length-1?"1px solid #f3f4f6":"none"}}>
+          <span style={{fontSize:"0.83rem",color:"#374151"}}>{desc}</span>
+          <span style={{fontWeight:800,color:BRAND.red,fontSize:"0.9rem",flexShrink:0,marginLeft:12}}>{pts}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="fi" style={{maxWidth:600,margin:"0 auto"}}>
+      {/* Header */}
+      <div style={{background:"linear-gradient(135deg,#d3172e,#a01020)",borderRadius:14,padding:"18px 20px",marginBottom:18,textAlign:"center",color:"#fff"}}>
+        <div style={{fontSize:"0.7rem",letterSpacing:3,opacity:0.8,marginBottom:6}}>SABOR LATINO</div>
+        <div style={{fontSize:"1rem",fontWeight:800,letterSpacing:1,lineHeight:1.3}}>{t.title}</div>
+        <div style={{fontSize:"0.72rem",opacity:0.75,marginTop:6}}>{t.subtitle}</div>
+        <button
+          onClick={()=>setLang(lang==="fr"?"es":"fr")}
+          style={{marginTop:14,background:"rgba(255,255,255,0.2)",border:"1px solid rgba(255,255,255,0.5)",color:"#fff",borderRadius:20,padding:"6px 18px",fontSize:"0.8rem",fontWeight:700,cursor:"pointer",letterSpacing:0.5}}>
+          {t.toggle}
+        </button>
+      </div>
+
+      {/* Sections */}
+      <div style={{background:"#fff",borderRadius:14,border:"1px solid #e5e7eb",padding:"20px 18px"}}>
+
+        <Section title={t.s1}>
+          <p style={{fontSize:"0.85rem",color:"#374151",lineHeight:1.7,margin:0}}>{t.s1b}</p>
+        </Section>
+
+        <Section title={t.s2}>
+          <p style={{fontSize:"0.85rem",color:"#374151",marginBottom:8,fontWeight:600}}>{t.s2intro}</p>
+          {t.s2items.map((item,i)=><BulletItem key={i} text={item}/>)}
+          <Note text={t.s2note1}/>
+          <Note text={t.s2note2}/>
+        </Section>
+
+        <Section title={t.s3}>
+          <p style={{fontSize:"0.85rem",color:"#374151",marginBottom:8}}>{t.s3b}</p>
+          {t.s3items.map((item,i)=><BulletItem key={i} text={item}/>)}
+        </Section>
+
+        <Section title={t.s4}>
+          <div style={{fontWeight:700,fontSize:"0.82rem",color:"#374151",marginBottom:6,marginTop:4}}>{t.s4a}</div>
+          <PointsTable rows={t.s4aRows}/>
+          <div style={{fontWeight:700,fontSize:"0.82rem",color:"#374151",marginBottom:6,marginTop:12}}>{t.s4b}</div>
+          <PointsTable rows={t.s4bRows}/>
+          <div style={{fontWeight:700,fontSize:"0.82rem",color:"#374151",marginBottom:6,marginTop:12}}>{t.s4c}</div>
+          <PointsTable rows={t.s4cRows}/>
+          <Note text={t.s4note}/>
+        </Section>
+
+        <Section title={t.s5}>
+          {t.s5items.map((item,i)=><BulletItem key={i} text={item}/>)}
+        </Section>
+
+        <Section title={t.s6}>
+          {t.s6items.map((item,i)=><BulletItem key={i} text={item}/>)}
+        </Section>
+
+        <Section title={t.s7}>
+          {t.s7items.map((item,i)=><BulletItem key={i} text={item}/>)}
+        </Section>
+
+      </div>
+    </div>
+  );
+}
+
 function Leaderboard({ participants, matches, invoices }) {
   const [activeTab, setActiveTab] = useState("tabla");
 
@@ -584,46 +782,7 @@ function Leaderboard({ participants, matches, invoices }) {
         </div>
       )}
 
-      {activeTab==="tabla" && (
-        <>
-          <div style={{...S.card}}>
-            <div style={S.sectionTitle}>Sistema de Puntos</div>
-            <div style={{marginBottom:14}}>
-              <div style={{fontSize:"0.75rem",color:BRAND.red,fontWeight:700,marginBottom:8,letterSpacing:1}}>PRONOSTICOS</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:8}}>
-                {[["5 pts","Resultado exacto","#16a34a"],["3 pts","Ganador correcto","#2563eb"],["0 pts","Resultado fallado","#dc2626"]].map(([pts,desc,color])=>(
-                  <div key={pts} style={{background:BRAND.gray50,border:"1px solid "+color+"33",borderRadius:10,padding:"10px",textAlign:"center"}}>
-                    <div style={{fontSize:"1.5rem",fontWeight:800,color}}>{pts}</div>
-                    <div style={{color:"#6b7280",fontSize:"0.75rem",marginTop:2}}>{desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{marginBottom:14}}>
-              <div style={{fontSize:"0.75rem",color:BRAND.red,fontWeight:700,marginBottom:8,letterSpacing:1}}>CLASIFICADOS DE GRUPOS</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8}}>
-                {[["10 pts","Equipo + posicion correcta","#16a34a"],["5 pts","Solo equipo correcto","#2563eb"]].map(([pts,desc,color])=>(
-                  <div key={pts} style={{background:BRAND.gray50,border:"1px solid "+color+"33",borderRadius:10,padding:"10px",textAlign:"center"}}>
-                    <div style={{fontSize:"1.5rem",fontWeight:800,color}}>{pts}</div>
-                    <div style={{color:"#6b7280",fontSize:"0.75rem",marginTop:2}}>{desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div style={{fontSize:"0.75rem",color:BRAND.red,fontWeight:700,marginBottom:8,letterSpacing:1}}>FACTURAS (CAD)</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:8}}>
-                {[["1 pt","$10-$50","#16a34a"],["3 pts","$51-$100","#2563eb"],["6 pts","$101-$150","#7c3aed"],["9 pts","$151-$200",BRAND.red],["12 pts","+$201",BRAND.redDark]].map(([pts,range,color])=>(
-                  <div key={pts} style={{background:BRAND.gray50,border:"1px solid "+color+"33",borderRadius:10,padding:"10px",textAlign:"center"}}>
-                    <div style={{fontSize:"1.3rem",fontWeight:800,color}}>{pts}</div>
-                    <div style={{color:"#6b7280",fontSize:"0.75rem",marginTop:2}}>{range}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {activeTab==="tabla" && <ReglamentoView />}
     </div>
   );
 }
