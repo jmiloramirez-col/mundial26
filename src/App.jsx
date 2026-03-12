@@ -727,9 +727,7 @@ function getParticipationStatus(participantId, invoices) {
   return "invalid";
 }
 
-function Leaderboard({ participants, matches, invoices, currentUser }) {
-  const [activeTab, setActiveTab] = useState("tabla");
-
+function ClasificacionView({ participants, matches, invoices, currentUser }) {
   const ranked = [...participants]
     .map(p => {
       const userInvoices = (invoices||[]).filter(inv => inv.participantId === p.id && inv.status === "approved");
@@ -749,89 +747,74 @@ function Leaderboard({ participants, matches, invoices, currentUser }) {
     })
     .sort((a,b) => b.total - a.total || b.exact - a.exact);
 
-  const top20 = ranked.slice(0, 20);
-
   return (
     <div className="fi">
-      <div style={{display:"flex", gap:6, marginBottom:16, flexWrap:"wrap"}}>
-        {[["tabla","Normas"],["top20","Clasificacion General"]].map(([t,l])=>(
-          <button key={t} style={S.navBtn(activeTab===t)} onClick={()=>setActiveTab(t)}>{l}</button>
-        ))}
-      </div>
-
-      {activeTab==="top20" && (
-        <div>
-          {(()=>{
-            if (!currentUser) return null;
-            const ps = getParticipationStatus(currentUser.id, invoices);
-            if (ps==="valid") return (
-              <div style={{background:"#f0fdf4",border:"1px solid #86efac",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"center"}}>
-                <span style={{fontSize:"1.2rem"}}>✅</span>
-                <div style={{fontWeight:700,fontSize:"0.85rem",color:"#166534"}}>Tu participación es válida — factura aprobada con producto elegible.</div>
-              </div>
-            );
-            if (ps==="pending") return (
-              <div style={{background:"#eff6ff",border:"1px solid #93c5fd",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"flex-start"}}>
-                <span style={{fontSize:"1.2rem",flexShrink:0}}>🕐</span>
-                <div>
-                  <div style={{fontWeight:700,fontSize:"0.85rem",color:"#1e40af",marginBottom:2}}>Factura pendiente de aprobación</div>
-                  <div style={{fontSize:"0.8rem",color:"#1e40af",lineHeight:1.5}}>Tu factura de $50+ con producto elegible está siendo revisada por el administrador.</div>
-                </div>
-              </div>
-            );
-            const msg = ps==="no_product"
-              ? "Tienes una factura de $50+ pero no confirmaste que incluye un producto elegible. Edita tu factura en Mi Perfil."
-              : "Registra una factura de $50 o más que incluya alguno de los productos elegibles* para validar tu participación.";
-            return (
-              <div style={{background:"#fffbeb",border:"1px solid #f59e0b",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"flex-start"}}>
-                <span style={{fontSize:"1.2rem",flexShrink:0}}>⚠️</span>
-                <div>
-                  <div style={{fontWeight:700,fontSize:"0.85rem",color:"#92400e",marginBottom:2}}>Participación no válida</div>
-                  <div style={{fontSize:"0.8rem",color:"#92400e",lineHeight:1.5}}>{msg}</div>
-                </div>
-              </div>
-            );
-          })()}
-        <div style={{...S.card, padding:0, overflow:"hidden"}}>
-          <div style={{background:BRAND.red, padding:"12px 18px"}}>
-            <div style={{color:"#fff", fontWeight:800, fontSize:"1rem", letterSpacing:1}}>CLASIFICACION GENERAL — {ranked.length} PARTICIPANTES</div>
+      {currentUser && (()=>{
+        const ps = getParticipationStatus(currentUser.id, invoices);
+        if (ps==="valid") return (
+          <div style={{background:"#f0fdf4",border:"1px solid #86efac",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"center"}}>
+            <span style={{fontSize:"1.2rem"}}>✅</span>
+            <div style={{fontWeight:700,fontSize:"0.85rem",color:"#166534"}}>Tu participación es válida — factura aprobada con producto elegible.</div>
           </div>
-          {ranked.length===0 && (
-            <div style={{textAlign:"center", color:"#9ca3af", padding:30}}>Aun no hay participantes</div>
-          )}
-          {ranked.map((p, i) => (
-            <div key={p.id} style={{
-              display:"flex", alignItems:"center", gap:12,
-              padding:"10px 18px",
-              background: i%2===0 ? "#fff" : BRAND.gray50,
-              borderBottom:"1px solid "+BRAND.gray100,
-            }}>
-              <div style={{
-                width:32, height:32, borderRadius:"50%",
-                background: i===0?BRAND.red:i===1?"#9ca3af":i===2?"#d97706":BRAND.gray100,
-                color: i<3?"#fff":BRAND.gray600,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontWeight:800, fontSize:"0.85rem", flexShrink:0,
-              }}>{i+1}</div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:700, fontSize:"0.95rem", color:BRAND.gray900}}>{p.name}</div>
-                <div style={{fontSize:"0.72rem", color:"#9ca3af", marginTop:1}}>
-                  {p.exact} exactos · {p.correct} acertados
-                  {p.invPts > 0 && <span style={{color:BRAND.red}}> · +{p.invPts}pts facturas</span>}
-                  {p.classPts > 0 && <span style={{color:"#7c3aed"}}> · +{p.classPts}pts clasificados</span>}
-                </div>
-              </div>
-              <div style={{textAlign:"right"}}>
-                <div style={{fontSize:"1.4rem", fontWeight:800, color: i===0?BRAND.red:BRAND.gray900}}>{p.total}</div>
-                <div style={{fontSize:"0.65rem", color:"#9ca3af"}}>PTS</div>
+        );
+        if (ps==="pending") return (
+          <div style={{background:"#eff6ff",border:"1px solid #93c5fd",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"flex-start"}}>
+            <span style={{fontSize:"1.2rem",flexShrink:0}}>🕐</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:"0.85rem",color:"#1e40af",marginBottom:2}}>Factura pendiente de aprobación</div>
+              <div style={{fontSize:"0.8rem",color:"#1e40af",lineHeight:1.5}}>Tu factura de $50+ con producto elegible está siendo revisada por el administrador.</div>
+            </div>
+          </div>
+        );
+        const msg = ps==="no_product"
+          ? "Tienes una factura de $50+ pero no confirmaste que incluye un producto elegible. Edítala en Mi Perfil."
+          : "Registra una factura de $50 o más que incluya alguno de los productos elegibles* para validar tu participación.";
+        return (
+          <div style={{background:"#fffbeb",border:"1px solid #f59e0b",borderRadius:12,padding:"12px 16px",marginBottom:12,display:"flex",gap:10,alignItems:"flex-start"}}>
+            <span style={{fontSize:"1.2rem",flexShrink:0}}>⚠️</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:"0.85rem",color:"#92400e",marginBottom:2}}>Participación no válida</div>
+              <div style={{fontSize:"0.8rem",color:"#92400e",lineHeight:1.5}}>{msg}</div>
+            </div>
+          </div>
+        );
+      })()}
+      <div style={{...S.card, padding:0, overflow:"hidden"}}>
+        <div style={{background:BRAND.red, padding:"12px 18px"}}>
+          <div style={{color:"#fff", fontWeight:800, fontSize:"1rem", letterSpacing:1}}>CLASIFICACIÓN GENERAL — {ranked.length} PARTICIPANTES</div>
+        </div>
+        {ranked.length===0 && (
+          <div style={{textAlign:"center", color:"#9ca3af", padding:30}}>Aun no hay participantes</div>
+        )}
+        {ranked.map((p, i) => (
+          <div key={p.id} style={{
+            display:"flex", alignItems:"center", gap:12,
+            padding:"10px 18px",
+            background: i%2===0 ? "#fff" : BRAND.gray50,
+            borderBottom:"1px solid "+BRAND.gray100,
+          }}>
+            <div style={{
+              width:32, height:32, borderRadius:"50%",
+              background: i===0?BRAND.red:i===1?"#9ca3af":i===2?"#d97706":BRAND.gray100,
+              color: i<3?"#fff":BRAND.gray600,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontWeight:800, fontSize:"0.85rem", flexShrink:0,
+            }}>{i+1}</div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700, fontSize:"0.95rem", color:BRAND.gray900}}>{p.name}</div>
+              <div style={{fontSize:"0.72rem", color:"#9ca3af", marginTop:1}}>
+                {p.exact} exactos · {p.correct} acertados
+                {p.invPts > 0 && <span style={{color:BRAND.red}}> · +{p.invPts}pts facturas</span>}
+                {p.classPts > 0 && <span style={{color:"#7c3aed"}}> · +{p.classPts}pts clasificados</span>}
               </div>
             </div>
-          ))}
-        </div>
-        </div>
-      )}
-
-      {activeTab==="tabla" && <ReglamentoView />}
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:"1.4rem", fontWeight:800, color: i===0?BRAND.red:BRAND.gray900}}>{p.total}</div>
+              <div style={{fontSize:"0.65rem", color:"#9ca3af"}}>PTS</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -2409,6 +2392,7 @@ export default function App() {
 
   const tabs = [
     {id:"predictions", label:"Inicio"},
+    {id:"clasificacion", label:"Clasificación"},
     {id:"leaderboard", label:"Reglamento"},
     {id:"fixture", label:"Resultados"},
     ...(isAdmin ? [{id:"admin", label:"Admin"}] : []),
@@ -2483,7 +2467,8 @@ export default function App() {
       </header>
 
       <main style={S.main}>
-        {view==="leaderboard" && <Leaderboard participants={participants} matches={matches} invoices={invoices} currentUser={currentUser} />}
+        {view==="clasificacion" && <ClasificacionView participants={participants} matches={matches} invoices={invoices} currentUser={currentUser} />}
+        {view==="leaderboard" && <ReglamentoView />}
         {(view==="predictions"||view==="login") && <ParticipantForm participants={participants} setParticipants={setParticipants} matches={matches} adminUnlocked={adminUnlocked} invoices={invoices} setInvoices={setInvoices} currentUser={currentUser} setCurrentUser={setCurrentUser} initialStep={view==="login"?"login":undefined} />}
         {view==="fixture" && <FixtureView matches={matches} />}
         {view==="admin" && <AdminPanel matches={matches} setMatches={setMatches} participants={participants} setParticipants={setParticipants} adminUnlocked={adminUnlocked} setAdminUnlocked={setAdminUnlocked} invoices={invoices} setInvoices={setInvoices} pinRequests={pinRequests} setPinRequests={setPinRequests} />}
