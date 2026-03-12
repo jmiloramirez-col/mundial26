@@ -1539,7 +1539,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
         <div style={{color:"#6b7280",marginBottom:16}}>Hola <strong style={{color:"#111827"}}>{currentUser?.name}</strong></div>
         <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
           <button style={S.btn()} onClick={()=>setStep("form")}>Editar Pronosticos</button>
-          <button style={S.btn("#6b7280",true)} onClick={()=>{setStep("login");setCurrentUser(null);try{localStorage.removeItem("sl_user");}catch(e){}setLoginEmail("");setLoginPin("");setView?.("clasificacion");}}>Cambiar Usuario</button>
+          <button style={S.btn("#6b7280",true)} onClick={()=>{if(window.confirm(lang==="fr"?"Voulez-vous vraiment vous déconnecter ?":"¿Seguro que deseas cerrar sesión?")){setStep("login");setCurrentUser(null);try{localStorage.removeItem("sl_user");}catch(e){}setLoginEmail("");setLoginPin("");setView?.("clasificacion");}}}>Cambiar Usuario</button>
         </div>
       </div>
     </div>
@@ -1567,7 +1567,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
           <button style={{...S.btn("#27ae60"),fontSize:"0.8rem",padding:"6px 14px"}} onClick={handleSave} disabled={saving}>
             {saving?"Guardando...":"Guardar Todo"}
           </button>
-          <button style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"6px 12px",fontSize:"0.8rem",cursor:"pointer",fontWeight:600}} onClick={()=>{setStep("login");setCurrentUser(null);try{localStorage.removeItem("sl_user");}catch(e){}setLoginEmail("");setLoginPin("");setView?.("clasificacion");}}>
+          <button style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"6px 12px",fontSize:"0.8rem",cursor:"pointer",fontWeight:600}} onClick={()=>{if(window.confirm(lang==="fr"?"Voulez-vous vraiment vous déconnecter ?":"¿Seguro que deseas cerrar sesión?")){setStep("login");setCurrentUser(null);try{localStorage.removeItem("sl_user");}catch(e){}setLoginEmail("");setLoginPin("");setView?.("clasificacion");}}}>
             {lang==="fr"?"Déconnexion":"Salir"}
           </button>
         </div>
@@ -1615,6 +1615,27 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
 
       {activeTab==="pronosticos" && (
         <>
+          {/* Invoice status banner */}
+          {(()=>{
+            const status = getParticipationStatus(currentUser?.id, invoices);
+            if (status === "valid") return null;
+            const cfg = {
+              invalid:  { bg:"#fff5f5", border:"#fca5a5", icon:"🧾", color:"#991b1b", msg: lang==="fr" ? "Tu n'as pas encore de facture valide. Enregistre un achat de 50 $+ avec produit éligible pour participer." : "No tienes una factura válida aún. Registra una compra de $50+ con producto elegible para participar.", btn: lang==="fr"?"Enregistrer ma facture":"Registrar mi factura" },
+              no_product:{ bg:"#fffbeb", border:"#f59e0b", icon:"⚠️", color:"#92400e", msg: lang==="fr" ? "Ta facture de 50 $+ n'a pas de produit éligible confirmé. Modifie-la dans Mon Profil." : "Tu factura de $50+ no tiene producto elegible confirmado. Edítala en Mi Perfil.", btn: lang==="fr"?"Voir Mon Profil":"Ver Mi Perfil" },
+              pending:  { bg:"#eff6ff", border:"#93c5fd", icon:"🕐", color:"#1e40af", msg: lang==="fr" ? "Ta facture est en attente d'approbation par l'administrateur." : "Tu factura está pendiente de aprobación por el administrador.", btn: null },
+            };
+            const c = cfg[status];
+            if (!c) return null;
+            return (
+              <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:10,padding:"12px 16px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
+                <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                  <span style={{fontSize:"1.3rem"}}>{c.icon}</span>
+                  <span style={{fontSize:"0.82rem",color:c.color,fontWeight:600,lineHeight:1.4}}>{c.msg}</span>
+                </div>
+                {c.btn && <button style={{...S.btn(BRAND.red),fontSize:"0.78rem",padding:"6px 14px",whiteSpace:"nowrap"}} onClick={()=>setActiveTab("perfil")}>{c.btn}</button>}
+              </div>
+            );
+          })()}
           <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
             {["groups","elim"].map(ph=>(
               <button key={ph} style={S.navBtn(activePhase===ph)} onClick={()=>setActivePhase(ph)}>
