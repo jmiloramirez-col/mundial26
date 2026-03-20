@@ -1798,23 +1798,28 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
     setWinner(null);
     setSpinning(true);
 
-    // Pick random winner (weighted by entries)
-    const picked = entrants[Math.floor(Math.random() * entrants.length)];
-    const winnerIndex = wheelNames.indexOf(picked.name);
+    // Pick random winner
+    const pickedIndex = Math.floor(Math.random() * wheelNames.length);
+    const pickedName = wheelNames[pickedIndex];
     const segmentAngle = 360 / wheelNames.length;
 
-    // Calculate target rotation: many full spins + land on winner segment
-    const spins = 5 + Math.floor(Math.random() * 5); // 5-10 full rotations
-    const targetAngle = 360 - (winnerIndex * segmentAngle + segmentAngle / 2);
-    const totalRotation = rotation + spins * 360 + targetAngle;
+    // The pointer is at the top (0°). We need segment[pickedIndex] to stop under the pointer.
+    // Segment[i] starts at i*segmentAngle and its center is at i*segmentAngle + segmentAngle/2.
+    // After rotation R, the segment center is at: segmentCenter - R (mod 360).
+    // We want that to equal 0 (top), so R = segmentCenter + full spins.
+    const segmentCenter = pickedIndex * segmentAngle + segmentAngle / 2;
+    const spins = 5 + Math.floor(Math.random() * 5);
+    // Normalize current rotation to [0,360) to avoid huge accumulated values drifting
+    const currentNorm = ((rotation % 360) + 360) % 360;
+    const totalRotation = currentNorm + spins * 360 + segmentCenter;
 
     setRotation(totalRotation);
 
     setTimeout(async () => {
       setSpinning(false);
-      setWinner(picked.name);
+      setWinner(pickedName);
       // Save winner to Firebase
-      const newWinners = { ...savedWinners, [activeRuleta]: { name: picked.name, date: new Date().toISOString() } };
+      const newWinners = { ...savedWinners, [activeRuleta]: { name: pickedName, date: new Date().toISOString() } };
       try { await setDoc(RULETA_DOC, { winners: newWinners }); } catch(e){}
     }, 5000);
   }
