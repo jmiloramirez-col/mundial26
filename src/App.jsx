@@ -1955,7 +1955,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
               {/* Center highlight line top */}
               <div style={{position:"absolute",top:ITEM_HEIGHT*2,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent)",pointerEvents:"none"}} />
               {/* Center highlight line bottom */}
-              <div style={{position:"absolute",top:ITEM_HEIGHT*3,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent)",,pointerEvents:"none"}} />
+              <div style={{position:"absolute",top:ITEM_HEIGHT*3,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent)",pointerEvents:"none"}} />
 
               {/* Top fade */}
               <div style={{position:"absolute",top:0,left:0,right:0,height:ITEM_HEIGHT*2,background:`linear-gradient(to bottom,${BRAND.red} 0%,transparent 100%)`,pointerEvents:"none"}} />
