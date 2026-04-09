@@ -1907,8 +1907,8 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
               height: WINDOW_HEIGHT,
               overflow:"hidden",
               borderRadius:16,
-              background:"#0f172a",
-              boxShadow:`0 8px 40px rgba(0,0,0,0.35), inset 0 0 30px rgba(0,0,0,0.4)`,
+              background:BRAND.red,
+              boxShadow:`0 8px 40px rgba(211,23,46,0.4), inset 0 0 30px rgba(0,0,0,0.2)`,
               position:"relative",
             }}>
               {/* Scrolling list */}
@@ -1927,7 +1927,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
                   const blur = absDist === 0 ? 0 : absDist === 1 ? 2 : absDist === 2 ? 5 : 10;
                   const opacity = absDist === 0 ? 1 : absDist === 1 ? 0.65 : absDist === 2 ? 0.35 : 0.1;
                   const scale = absDist === 0 ? 1.15 : absDist === 1 ? 0.9 : 0.75;
-                  const color = isCenter ? (spinning ? "#fff" : accentColor) : "#94a3b8";
+                  const color = isCenter ? "#fff" : "rgba(255,255,255,0.5)";
                   return (
                     <div key={i} style={{
                       height: ITEM_HEIGHT,
@@ -1953,14 +1953,14 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
               </div>
 
               {/* Center highlight line top */}
-              <div style={{position:"absolute",top:ITEM_HEIGHT*2,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${accentColor},transparent)`,opacity:0.8,pointerEvents:"none"}} />
+              <div style={{position:"absolute",top:ITEM_HEIGHT*2,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent)",pointerEvents:"none"}} />
               {/* Center highlight line bottom */}
-              <div style={{position:"absolute",top:ITEM_HEIGHT*3,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${accentColor},transparent)`,opacity:0.8,pointerEvents:"none"}} />
+              <div style={{position:"absolute",top:ITEM_HEIGHT*3,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent)",,pointerEvents:"none"}} />
 
               {/* Top fade */}
-              <div style={{position:"absolute",top:0,left:0,right:0,height:ITEM_HEIGHT*2,background:"linear-gradient(to bottom,#0f172a 0%,transparent 100%)",pointerEvents:"none"}} />
+              <div style={{position:"absolute",top:0,left:0,right:0,height:ITEM_HEIGHT*2,background:`linear-gradient(to bottom,${BRAND.red} 0%,transparent 100%)`,pointerEvents:"none"}} />
               {/* Bottom fade */}
-              <div style={{position:"absolute",bottom:0,left:0,right:0,height:ITEM_HEIGHT*2,background:"linear-gradient(to top,#0f172a 0%,transparent 100%)",pointerEvents:"none"}} />
+              <div style={{position:"absolute",bottom:0,left:0,right:0,height:ITEM_HEIGHT*2,background:`linear-gradient(to top,${BRAND.red} 0%,transparent 100%)`,pointerEvents:"none"}} />
             </div>
           </div>
 
