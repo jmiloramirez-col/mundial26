@@ -1341,8 +1341,12 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
     if (exists) { setError("Este correo ya esta registrado. Inicia sesion."); return; }
     setSaving(true);
     try {
+      // Asignar número único al participante (siguiente disponible)
+      const usedNumbers = participants.map(p => p.participantNumber || 0);
+      const nextNumber = usedNumbers.length > 0 ? Math.max(...usedNumbers) + 1 : 1;
       const newUser = {
         id: Date.now(),
+        participantNumber: nextNumber,
         nombre: regNombre.trim(),
         apellido: regApellido.trim(),
         name: regNombre.trim()+" "+regApellido.trim(),
@@ -1735,76 +1739,93 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
 // ── RULETA VIEW ──────────────────────────────────────────────────────────────
 function RuletaView({ participants, matches, invoices, isAdmin }) {
   const lang = useLang();
-  const [activeRuleta, setActiveRuleta] = useState("premium");
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState(null);
-  const [savedWinners, setSavedWinners] = useState({ premium: null, general: null });
+  const [savedWinners, setSavedWinners] = useState({});
   const [offset, setOffset] = useState(0); // current scroll offset in px
   const rafRef = React.useRef(null);
   const offsetRef = React.useRef(0);
 
-  const ITEM_HEIGHT = 64; // px per name slot
+  const ITEM_HEIGHT = 68; // px per name slot
 
   useEffect(() => {
     const unsub = onSnapshot(RULETA_DOC, snap => {
-      if (snap.exists()) setSavedWinners(snap.data().winners || { premium: null, general: null });
+      if (snap.exists()) setSavedWinners(snap.data().winners || {});
     });
     return () => unsub();
   }, []);
 
-  function buildEntrants(type) {
+  // Calcular puntos totales de un participante
+  function getTotalPoints(p) {
+    const ui = (invoices||[]).filter(i => i.participantId === p.id && i.status === "approved");
+    const invPts = ui.reduce((s,i) => s + calcInvoicePoints(i.amount), 0);
+    let gamePts = 0;
+    matches.forEach(m => {
+      const pred = p.predictions?.[m.id];
+      if (!pred) return;
+      const pts = calcPoints(pred.home, pred.away, m.realHome, m.realAway);
+      if (pts !== null) gamePts += pts;
+    });
+    const {bonus: classPts} = calcClassificationBonus(p.predictions||{}, matches);
+    return gamePts + invPts + classPts;
+  }
+
+  function buildEntrants() {
     const entrants = [];
     participants.forEach(p => {
-      const validInvoices = invoices.filter(inv =>
-        inv.participantId === p.id && inv.status === "approved" && parseFloat(inv.amount) >= 50
-      );
-      if (validInvoices.length === 0) return;
+      const totalPts = getTotalPoints(p);
+      const entries = Math.floor(totalPts / 10); // cada 10 puntos = 1 entrada
+      if (entries === 0) return;
       const name = p.nombre ? p.nombre + " " + p.apellido : p.name;
-      if (type === "premium") {
-        const hasExact = matches.some(m => {
-          if (m.realHome === null || m.realAway === null) return false;
-          const pred = p.predictions?.[m.id];
-          if (!pred) return false;
-          return calcPoints(pred.home, pred.away, m.realHome, m.realAway) === 5;
-        });
-        if (!hasExact) return;
+      const num = p.participantNumber || null;
+      const label = num ? `#${String(num).padStart(3,"0")} – ${name}` : name;
+      for (let i = 0; i < entries; i++) {
+        entrants.push({ id: p.id, name, label, number: num, totalPts, entries });
       }
-      validInvoices.forEach(() => entrants.push({ id: p.id, name }));
     });
     return entrants;
   }
 
-  const premiumEntrants = buildEntrants("premium");
-  const generalEntrants = buildEntrants("general");
-  const entrants = activeRuleta === "premium" ? premiumEntrants : generalEntrants;
-  const wheelNames = entrants.map(e => e.name);
-  const uniqueNames = [...new Set(wheelNames)];
-  const isPremium = activeRuleta === "premium";
-  const accentColor = isPremium ? "#d3172e" : "#e67e22";
+  const entrants = buildEntrants();
+  const wheelLabels = entrants.map(e => e.label);
+  // Para la lista de participantes únicos
+  const uniqueParticipants = participants
+    .map(p => {
+      const totalPts = getTotalPoints(p);
+      const entries = Math.floor(totalPts / 10);
+      const name = p.nombre ? p.nombre + " " + p.apellido : p.name;
+      const num = p.participantNumber || null;
+      return { id: p.id, name, num, totalPts, entries };
+    })
+    .filter(p => p.entries > 0)
+    .sort((a,b) => b.entries - a.entries);
+  const uniqueNames = uniqueParticipants.map(p => p.name);
+  const accentColor = "#d3172e";
 
-  // Build infinite looping list (repeat names many times)
+  // Build infinite looping list (repeat labels many times)
   const REPEATS = 20;
-  const loopNames = wheelNames.length > 0
-    ? Array.from({length: REPEATS}, () => wheelNames).flat()
+  const loopNames = wheelLabels.length > 0
+    ? Array.from({length: REPEATS}, () => wheelLabels).flat()
     : [];
 
   function spin() {
-    if (spinning || wheelNames.length === 0) return;
+    if (spinning || wheelLabels.length === 0) return;
     setWinner(null);
     setSpinning(true);
 
     // Pick winner
-    const pickedIndex = Math.floor(Math.random() * wheelNames.length);
-    const pickedName = wheelNames[pickedIndex];
+    const pickedIndex = Math.floor(Math.random() * wheelLabels.length);
+    const pickedLabel = wheelLabels[pickedIndex];
+    const pickedEntry = entrants[pickedIndex];
 
-    // We want to land on an occurrence of pickedName in the middle of loopNames
+    // We want to land on an occurrence of pickedLabel in the middle of loopNames
     // Start from middle of the loop to avoid edge issues
     const midRepeat = Math.floor(REPEATS / 2);
-    const targetIndexInLoop = midRepeat * wheelNames.length + pickedIndex;
+    const targetIndexInLoop = midRepeat * wheelLabels.length + pickedIndex;
     const targetOffset = targetIndexInLoop * ITEM_HEIGHT;
 
     // Add extra spins for drama (full loops)
-    const extraSpins = (3 + Math.floor(Math.random() * 3)) * wheelNames.length * ITEM_HEIGHT;
+    const extraSpins = (3 + Math.floor(Math.random() * 3)) * wheelLabels.length * ITEM_HEIGHT;
     const finalOffset = targetOffset + extraSpins;
 
     const startOffset = offsetRef.current;
@@ -1825,8 +1846,9 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
         offsetRef.current = finalOffset;
         setOffset(finalOffset);
         setSpinning(false);
-        setWinner(pickedName);
-        const newWinners = { ...savedWinners, [activeRuleta]: { name: pickedName, date: new Date().toISOString() } };
+        const winnerData = { label: pickedLabel, name: pickedEntry.name, number: pickedEntry.number, totalPts: pickedEntry.totalPts };
+        setWinner(winnerData);
+        const newWinners = { ...savedWinners, ruleta: { label: pickedLabel, name: pickedEntry.name, number: pickedEntry.number, date: new Date().toISOString() } };
         setDoc(RULETA_DOC, { winners: newWinners }).catch(() => {});
       }
     }
@@ -1838,12 +1860,12 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
     setOffset(0);
     setWinner(null);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [activeRuleta]);
+  }, []);
 
-  const currentSaved = savedWinners[activeRuleta];
+  const currentSaved = savedWinners;
 
   // Visible window: show 5 items, center is item index 2
-  const VISIBLE = 5;
+  const VISIBLE = 7;
   const WINDOW_HEIGHT = ITEM_HEIGHT * VISIBLE;
   const centerOffset = Math.round(offset / ITEM_HEIGHT);
 
@@ -1860,28 +1882,15 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
         </div>
       </div>
 
-      {/* Toggle */}
-      <div style={{display:"flex",marginBottom:20,borderRadius:10,overflow:"hidden",border:"2px solid #e5e7eb"}}>
-        {[["premium","🏆 Premium","#d3172e"],["general","🎟️ "+(lang==="fr"?"Général":"General"),"#e67e22"]].map(([id,label,color])=>(
-          <button key={id} onClick={()=>{if(!spinning){setActiveRuleta(id);setWinner(null);}}}
-            style={{flex:1,padding:"10px",border:"none",cursor:"pointer",fontWeight:700,fontSize:"0.85rem",
-              background:activeRuleta===id?color:"#fff",color:activeRuleta===id?"#fff":"#6b7280",transition:"all 0.2s"}}>
-            {label}
-          </button>
-        ))}
-      </div>
-
       {/* Info */}
-      <div style={{background:isPremium?"#fff5f5":"#fff7ed",border:`1px solid ${isPremium?"#fca5a5":"#fed7aa"}`,borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:"0.8rem",color:isPremium?"#991b1b":"#92400e"}}>
-        {isPremium
-          ? (lang==="fr"?"1 entrée par facture approuvée 50$+ — participants avec au moins 1 pronostic exact 🎯":"1 entrada por factura aprobada $50+ — solo participantes con al menos 1 pronóstico exacto 🎯")
-          : (lang==="fr"?"1 entrée par facture approuvée 50$+. Plus de factures = plus de chances ! 🧾":"1 entrada por factura aprobada $50+. ¡Más facturas = más chances! 🧾")}
+      <div style={{background:"#fff5f5",border:"1px solid #fca5a5",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:"0.8rem",color:"#991b1b"}}>
+        🎯 Cada <strong>10 puntos acumulados</strong> = 1 entrada en la ruleta. ¡Más puntos = más chances!
       </div>
 
       {/* Stats */}
       <div style={{display:"flex",gap:10,marginBottom:24}}>
-        {[["🧾", entrants.length, lang==="fr"?"entrées":"entradas"],
-          ["👥", uniqueNames.length, lang==="fr"?"participants":"participantes"]
+        {[["🎟️", entrants.length, "entradas totales"],
+          ["👥", uniqueParticipants.length, "participantes"]
         ].map(([icon,val,label],i)=>(
           <div key={i} style={{flex:1,background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px",textAlign:"center"}}>
             <div style={{fontSize:"1.1rem"}}>{icon}</div>
@@ -1891,7 +1900,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
         ))}
       </div>
 
-      {wheelNames.length === 0 ? (
+      {wheelLabels.length === 0 ? (
         <div style={{textAlign:"center",padding:"40px 20px",color:"#9ca3af"}}>
           <div style={{fontSize:"3rem",marginBottom:10}}>🎱</div>
           <div style={{fontWeight:600}}>
@@ -1985,48 +1994,59 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
 
           {/* Winner card */}
           {winner && !spinning && (
-            <div style={{background:`linear-gradient(135deg,${accentColor} 0%,${isPremium?"#7f0d1a":"#a84300"} 100%)`,
+            <div style={{background:`linear-gradient(135deg,${accentColor} 0%,#7f0d1a 100%)`,
               borderRadius:16,padding:"24px 20px",textAlign:"center",marginBottom:20,
               boxShadow:`0 12px 40px ${accentColor}55`,animation:"fadeIn 0.5s ease"}}>
               <div style={{fontSize:"2.5rem",marginBottom:8}}>🎉</div>
+              {winner.number && (
+                <div style={{color:"rgba(255,255,255,0.9)",fontSize:"1.1rem",fontWeight:900,letterSpacing:2,marginBottom:4}}>
+                  #{String(winner.number).padStart(3,"0")}
+                </div>
+              )}
               <div style={{color:"rgba(255,255,255,0.75)",fontSize:"0.72rem",fontWeight:700,letterSpacing:3,marginBottom:6}}>
-                {lang==="fr"?"GAGNANT · WINNER":"GANADOR · WINNER"}
+                GANADOR · WINNER
               </div>
-              <div style={{color:"#fff",fontWeight:900,fontSize:"1.6rem",letterSpacing:0.5,marginBottom:6}}>{winner}</div>
+              <div style={{color:"#fff",fontWeight:900,fontSize:"1.6rem",letterSpacing:0.5,marginBottom:6}}>{winner.name}</div>
               <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.78rem"}}>
-                {isPremium?"🏆 Premio Principal / Grand Prix":"🎟️ Premio General / Prix Général"}
+                🏆 {winner.totalPts} puntos · {winner.totalPts ? Math.floor(winner.totalPts/10) : 0} entradas
               </div>
             </div>
           )}
 
           {/* Last saved winner */}
-          {!winner && currentSaved && (
+          {!winner && currentSaved && currentSaved.ruleta && (
             <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px",textAlign:"center",marginBottom:16}}>
               <div style={{fontSize:"0.7rem",color:"#9ca3af",marginBottom:4,letterSpacing:1,fontWeight:600}}>
-                {lang==="fr"?"DERNIER GAGNANT":"ÚLTIMO GANADOR"}
+                ÚLTIMO GANADOR
               </div>
-              <div style={{fontWeight:700,color:BRAND.gray900,fontSize:"1.1rem"}}>{currentSaved.name}</div>
-              <div style={{fontSize:"0.7rem",color:"#9ca3af",marginTop:4}}>{new Date(currentSaved.date).toLocaleDateString()}</div>
+              {currentSaved.ruleta.number && (
+                <div style={{fontSize:"0.8rem",color:accentColor,fontWeight:800}}>#{String(currentSaved.ruleta.number).padStart(3,"0")}</div>
+              )}
+              <div style={{fontWeight:700,color:BRAND.gray900,fontSize:"1.1rem"}}>{currentSaved.ruleta.name}</div>
+              <div style={{fontSize:"0.7rem",color:"#9ca3af",marginTop:4}}>{new Date(currentSaved.ruleta.date).toLocaleDateString()}</div>
             </div>
           )}
 
           {/* Entrants list */}
           <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px"}}>
             <div style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900,marginBottom:10}}>
-              {lang==="fr"?"Participants":"Participantes en la ruleta"}
+              Participantes en la ruleta
             </div>
-            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-              {uniqueNames.map(name => {
-                const count = entrants.filter(e=>e.name===name).length;
-                return (
-                  <div key={name} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:8,padding:"4px 10px",fontSize:"0.78rem",display:"flex",alignItems:"center",gap:5}}>
-                    <span style={{fontWeight:600,color:BRAND.gray900}}>{name}</span>
-                    <span style={{background:count>1?accentColor:"#e5e7eb",color:count>1?"#fff":"#9ca3af",borderRadius:6,padding:"1px 6px",fontSize:"0.65rem",fontWeight:800}}>
-                      {count} {lang==="fr"?count===1?"entrée":"entrées":count===1?"entrada":"entradas"}
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {uniqueParticipants.map(p => (
+                <div key={p.id} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:8,padding:"6px 12px",fontSize:"0.78rem",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    {p.num && <span style={{background:accentColor,color:"#fff",borderRadius:6,padding:"2px 7px",fontSize:"0.65rem",fontWeight:800}}>#{String(p.num).padStart(3,"0")}</span>}
+                    <span style={{fontWeight:600,color:BRAND.gray900}}>{p.name}</span>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:"0.7rem",color:"#9ca3af"}}>{p.totalPts} pts</span>
+                    <span style={{background:p.entries>1?accentColor:"#e5e7eb",color:p.entries>1?"#fff":"#9ca3af",borderRadius:6,padding:"2px 8px",fontSize:"0.65rem",fontWeight:800}}>
+                      {p.entries} {p.entries===1?"entrada":"entradas"}
                     </span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         </>
