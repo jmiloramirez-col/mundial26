@@ -1940,7 +1940,8 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
   }
 
   function buildEntrants() {
-    const entrants = [];
+    // Construir pool de participantes con sus entradas
+    const pool = [];
     participants.forEach(p => {
       if (sucursalFiltro && p.sucursal !== sucursalFiltro) return;
       const entries = getTotalEntradas(p);
@@ -1949,10 +1950,22 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
       const name = p.nombre ? p.nombre + " " + p.apellido : p.name;
       const num = p.participantNumber || null;
       const label = num ? `#${String(num).padStart(3,"0")} – ${name}` : name;
-      for (let i = 0; i < entries; i++) {
-        entrants.push({ id: p.id, name, label, number: num, totalPts, entries });
-      }
+      pool.push({ id: p.id, name, label, number: num, totalPts, entries, remaining: entries });
     });
+
+    // Round-robin: repartir entradas intercaladas vuelta a vuelta
+    // Vuelta 1: todos los que tienen >= 1 entrada (1 entrada c/u)
+    // Vuelta 2: todos los que tienen >= 2 entradas (1 entrada c/u)
+    // ... hasta agotar todas las entradas
+    const entrants = [];
+    const maxEntries = pool.reduce((m, p) => Math.max(m, p.entries), 0);
+    for (let round = 1; round <= maxEntries; round++) {
+      pool.forEach(p => {
+        if (p.entries >= round) {
+          entrants.push({ id: p.id, name: p.name, label: p.label, number: p.number, totalPts: p.totalPts, entries: p.entries });
+        }
+      });
+    }
     return entrants;
   }
 
