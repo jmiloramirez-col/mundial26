@@ -2272,6 +2272,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
 }
 
 function FixtureView({ matches }) {
+  const lang = useLang();
   const [activeGroup, setActiveGroup] = useState("A");
   const [activePhase, setActivePhase] = useState("groups");
   const phaseColors = {round32:"#0369a1",round16:"#7c3aed",quarters:"#c0392b",semis:"#e67e22",third:"#2980b9",final:"#d3172e"};
