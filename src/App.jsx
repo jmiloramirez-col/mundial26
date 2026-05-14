@@ -1899,11 +1899,82 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
 
 // FIXTURE VIEW
 // ── RULETA VIEW ──────────────────────────────────────────────────────────────
+// ─── VISTA DE GANADORES (clientes) ────────────────────────────────────────────
+function GanadoresView() {
+  const lang = useLang();
+  const [ganadores, setGanadores] = useState([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(RULETA_DOC, snap => {
+      if (snap.exists()) setGanadores(snap.data().ganadoresPublicados || []);
+    });
+    return () => unsub();
+  }, []);
+
+  return (
+    <div className="fi" style={{maxWidth:560,margin:"0 auto"}}>
+      {/* Header */}
+      <div style={{background:"linear-gradient(135deg,#d3172e,#7f0d1a)",borderRadius:14,padding:"20px",marginBottom:20,textAlign:"center",color:"#fff"}}>
+        <div style={{fontSize:"2rem",marginBottom:6}}>🏆</div>
+        <div style={{fontWeight:800,fontSize:"1.2rem",letterSpacing:0.5}}>
+          {lang==="fr"?"Gagnants du Tirage":"Ganadores del Sorteo"}
+        </div>
+        <div style={{fontSize:"0.78rem",opacity:0.8,marginTop:4}}>
+          {lang==="fr"?"Concours Mundial 2026 · Sabor Latino":"Concurso Mundial 2026 · Sabor Latino"}
+        </div>
+      </div>
+
+      {ganadores.length === 0 ? (
+        <div style={{textAlign:"center",padding:"40px 20px",background:"#f9fafb",borderRadius:14,border:"1px solid #e5e7eb"}}>
+          <div style={{fontSize:"3rem",marginBottom:12}}>🎰</div>
+          <div style={{fontWeight:700,color:"#374151",fontSize:"1rem",marginBottom:6}}>
+            {lang==="fr"?"Le tirage n'a pas encore eu lieu":"El sorteo aún no se ha realizado"}
+          </div>
+          <div style={{fontSize:"0.84rem",color:"#9ca3af"}}>
+            {lang==="fr"?"Les gagnants seront publiés ici après le tirage officiel.":"Los ganadores serán publicados aquí después del sorteo oficial."}
+          </div>
+        </div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          {ganadores.map((g, i) => (
+            <div key={g.id} style={{background:"#fff",border:"2px solid #d3172e22",borderRadius:14,padding:"18px",boxShadow:"0 4px 20px rgba(211,23,46,0.08)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+                <div style={{background:"linear-gradient(135deg,#d3172e,#7f0d1a)",borderRadius:10,padding:"10px 14px",textAlign:"center",minWidth:56}}>
+                  <div style={{color:"rgba(255,255,255,0.7)",fontSize:"0.6rem",fontWeight:700,letterSpacing:1}}>
+                    {lang==="fr"?"GAGNANT":"GANADOR"}
+                  </div>
+                  {g.number && <div style={{color:"#fff",fontWeight:900,fontSize:"1rem"}}>#{String(g.number).padStart(3,"0")}</div>}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:800,fontSize:"1.05rem",color:"#111827"}}>{g.name}</div>
+                  {g.sucursal && <div style={{fontSize:"0.76rem",color:"#6b7280",marginTop:2}}>📍 {g.sucursal}</div>}
+                  <div style={{fontSize:"0.72rem",color:"#9ca3af",marginTop:2}}>{new Date(g.fecha).toLocaleDateString(lang==="fr"?"fr-CA":"es-CO",{year:"numeric",month:"long",day:"numeric"})}</div>
+                </div>
+              </div>
+              {g.premio && (
+                <div style={{background:"linear-gradient(135deg,#fef3c7,#fde68a)",border:"1px solid #f59e0b",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:"1.3rem"}}>🎁</span>
+                  <div>
+                    <div style={{fontSize:"0.7rem",fontWeight:700,color:"#92400e",letterSpacing:1}}>{lang==="fr"?"PRIX":"PREMIO"}</div>
+                    <div style={{fontWeight:700,color:"#78350f",fontSize:"0.92rem"}}>{g.premio}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RuletaView({ participants, matches, invoices, isAdmin }) {
   const lang = useLang();
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState(null);
   const [savedWinners, setSavedWinners] = useState({});
+  const [ganadoresPublicados, setGanadoresPublicados] = useState([]);
+  const [premioInput, setPremioInput] = useState("");
   const [sucursalFiltro, setSucursalFiltro] = useState(null); // null = todas, "St-Hubert" | "Brossard"
   const [offset, setOffset] = useState(0); // current scroll offset in px
   const rafRef = React.useRef(null);
@@ -1913,7 +1984,10 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
 
   useEffect(() => {
     const unsub = onSnapshot(RULETA_DOC, snap => {
-      if (snap.exists()) setSavedWinners(snap.data().winners || {});
+      if (snap.exists()) {
+        setSavedWinners(snap.data().winners || {});
+        setGanadoresPublicados(snap.data().ganadoresPublicados || []);
+      }
     });
     return () => unsub();
   }, []);
@@ -2221,38 +2295,93 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
             </div>
           )}
 
-          {/* Winner card */}
+          {/* Winner card + panel publicación admin */}
           {winner && !spinning && (
-            <div style={{background:`linear-gradient(135deg,${accentColor} 0%,#7f0d1a 100%)`,
-              borderRadius:16,padding:"24px 20px",textAlign:"center",marginBottom:20,
-              boxShadow:`0 12px 40px ${accentColor}55`,animation:"fadeIn 0.5s ease"}}>
-              <div style={{fontSize:"2.5rem",marginBottom:8}}>🎉</div>
-              {winner.number && (
-                <div style={{color:"rgba(255,255,255,0.9)",fontSize:"1.1rem",fontWeight:900,letterSpacing:2,marginBottom:4}}>
-                  #{String(winner.number).padStart(3,"0")}
+            <div style={{marginBottom:20}}>
+              {/* Tarjeta ganador */}
+              <div style={{background:`linear-gradient(135deg,${accentColor} 0%,#7f0d1a 100%)`,
+                borderRadius:16,padding:"24px 20px",textAlign:"center",marginBottom:14,
+                boxShadow:`0 12px 40px ${accentColor}55`}}>
+                <div style={{fontSize:"2.5rem",marginBottom:8}}>🎉</div>
+                {winner.number && (
+                  <div style={{color:"rgba(255,255,255,0.9)",fontSize:"1.1rem",fontWeight:900,letterSpacing:2,marginBottom:4}}>
+                    #{String(winner.number).padStart(3,"0")}
+                  </div>
+                )}
+                <div style={{color:"rgba(255,255,255,0.75)",fontSize:"0.72rem",fontWeight:700,letterSpacing:3,marginBottom:6}}>
+                  GANADOR · WINNER
+                </div>
+                <div style={{color:"#fff",fontWeight:900,fontSize:"1.6rem",letterSpacing:0.5,marginBottom:4}}>{winner.name}</div>
+                {sucursalFiltro && <div style={{color:"rgba(255,255,255,0.7)",fontSize:"0.78rem"}}>📍 {sucursalFiltro}</div>}
+              </div>
+
+              {/* Panel admin: asignar premio y publicar */}
+              {isAdmin && (
+                <div style={{background:"#fff",border:"2px solid #d3172e44",borderRadius:12,padding:"16px"}}>
+                  <div style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900,marginBottom:10}}>
+                    🎁 Asignar premio y publicar
+                  </div>
+                  <input
+                    placeholder="Ej: Canasta de productos, Gift card $50..."
+                    value={premioInput}
+                    onChange={e=>setPremioInput(e.target.value)}
+                    style={{...S.input,marginBottom:10,fontSize:"0.85rem"}}
+                  />
+                  <div style={{display:"flex",gap:8}}>
+                    <button style={{...S.btn("#16a34a"),flex:1,fontSize:"0.82rem"}} onClick={async ()=>{
+                      if (!premioInput.trim()) { alert("Ingresa el premio antes de publicar"); return; }
+                      const nuevo = {
+                        id: Date.now(),
+                        name: winner.name,
+                        number: winner.number,
+                        sucursal: sucursalFiltro || "Todas",
+                        premio: premioInput.trim(),
+                        fecha: new Date().toISOString(),
+                      };
+                      const updated = [...ganadoresPublicados, nuevo];
+                      await setDoc(RULETA_DOC, {
+                        winners: savedWinners,
+                        ganadoresPublicados: updated,
+                      });
+                      setPremioInput("");
+                      setWinner(null);
+                      alert("✅ Ganador publicado correctamente");
+                    }}>
+                      ✅ Publicar ganador
+                    </button>
+                    <button style={{...S.btn("#6b7280"),fontSize:"0.82rem",padding:"10px 14px"}} onClick={()=>{setWinner(null);setPremioInput("");}}>
+                      ✕ Descartar
+                    </button>
+                  </div>
                 </div>
               )}
-              <div style={{color:"rgba(255,255,255,0.75)",fontSize:"0.72rem",fontWeight:700,letterSpacing:3,marginBottom:6}}>
-                GANADOR · WINNER
-              </div>
-              <div style={{color:"#fff",fontWeight:900,fontSize:"1.6rem",letterSpacing:0.5,marginBottom:6}}>{winner.name}</div>
-              <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.78rem"}}>
-                🏆 {winner.totalPts} puntos · {winner.totalPts ? Math.floor(winner.totalPts/10) : 0} entradas
-              </div>
             </div>
           )}
 
-          {/* Last saved winner */}
-          {isAdmin && !winner && currentSaved && currentSaved.ruleta && (
-            <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px",textAlign:"center",marginBottom:16}}>
-              <div style={{fontSize:"0.7rem",color:"#9ca3af",marginBottom:4,letterSpacing:1,fontWeight:600}}>
-                ÚLTIMO GANADOR
+          {/* Ganadores publicados (admin los ve aquí con opción de borrar) */}
+          {isAdmin && ganadoresPublicados.length > 0 && !winner && (
+            <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px",marginBottom:16}}>
+              <div style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900,marginBottom:10}}>
+                📋 Ganadores publicados ({ganadoresPublicados.length})
               </div>
-              {currentSaved.ruleta.number && (
-                <div style={{fontSize:"0.8rem",color:accentColor,fontWeight:800}}>#{String(currentSaved.ruleta.number).padStart(3,"0")}</div>
-              )}
-              <div style={{fontWeight:700,color:BRAND.gray900,fontSize:"1.1rem"}}>{currentSaved.ruleta.name}</div>
-              <div style={{fontSize:"0.7rem",color:"#9ca3af",marginTop:4}}>{new Date(currentSaved.ruleta.date).toLocaleDateString()}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {ganadoresPublicados.map(g=>(
+                  <div key={g.id} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:8,padding:"10px 12px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
+                    <div>
+                      {g.number && <span style={{background:accentColor,color:"#fff",borderRadius:5,padding:"1px 7px",fontSize:"0.65rem",fontWeight:800,marginRight:6}}>#{String(g.number).padStart(3,"0")}</span>}
+                      <span style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900}}>{g.name}</span>
+                      <div style={{fontSize:"0.75rem",color:"#6b7280",marginTop:3}}>🎁 {g.premio} · 📍 {g.sucursal}</div>
+                    </div>
+                    <button style={{...S.btn("#dc2626"),fontSize:"0.72rem",padding:"5px 10px",flexShrink:0}} onClick={async ()=>{
+                      if(!confirm("¿Borrar este ganador publicado?")) return;
+                      const updated = ganadoresPublicados.filter(x=>x.id!==g.id);
+                      await setDoc(RULETA_DOC, { winners: savedWinners, ganadoresPublicados: updated });
+                    }}>
+                      🗑️ Borrar
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -3159,7 +3288,10 @@ export default function App() {
     {id:"clasificacion", label:t.nav.clasificacion},
     {id:"leaderboard", label:t.nav.reglamento},
     {id:"fixture", label:t.nav.resultados},
-    {id:"ruleta", label:t.nav.ruleta},
+    ...(isAdmin
+      ? [{id:"ruleta", label:t.nav.ruleta}]
+      : [{id:"ganadores", label:lang==="fr"?"🏆 Gagnants":"🏆 Ganadores"}]
+    ),
     ...(isAdmin ? [{id:"admin", label:t.nav.admin}] : []),
   ];
 
@@ -3255,6 +3387,7 @@ export default function App() {
         {(view==="predictions"||view==="login") && <ParticipantForm participants={participants} setParticipants={setParticipants} matches={matches} adminUnlocked={adminUnlocked} invoices={invoices} setInvoices={setInvoices} currentUser={currentUser} setCurrentUser={setCurrentUser} setView={setView} initialStep={view==="login"?"login":undefined} />}
         {view==="fixture" && <FixtureView matches={matches} />}
         {view==="ruleta" && <RuletaView participants={participants} matches={matches} invoices={invoices} isAdmin={isAdmin} />}
+        {view==="ganadores" && <GanadoresView />}
         {view==="admin" && <AdminPanel matches={matches} setMatches={setMatches} participants={participants} setParticipants={setParticipants} adminUnlocked={adminUnlocked} setAdminUnlocked={setAdminUnlocked} invoices={invoices} setInvoices={setInvoices} pinRequests={pinRequests} setPinRequests={setPinRequests} />}
         </ErrorBoundary>
       </main>
