@@ -721,7 +721,7 @@ function ReglamentoView() {
 
       <Section icon="📋" title="2. ¿Cómo participar?" color="#2563eb">
         <p style={{fontSize:"0.86rem",color:"#374151",marginBottom:10,fontWeight:600}}>Para participar de forma válida debes cumplir <u>todos</u> los siguientes requisitos:</p>
-        <BulletItem text="Registrarte en la plataforma oficial: mundial26.vercel.app antes del 10 de junio de 2026." />
+        <BulletItem text="Registrarte en la plataforma oficial: mundial26.vercel.app. Puedes participar en cualquier momento hasta el 19 de julio de 2026." />
         <BulletItem text="Realizar al menos UNA compra de $50.00 CAD o más en Sabor Latino que incluya un producto participante*." />
         <BulletItem text="Registrar esa factura en la plataforma (sección Mi Perfil) para que sea aprobada por el administrador." />
         <Alerta tipo="warning">
@@ -837,7 +837,7 @@ function ReglamentoView() {
 
       <Section icon="📋" title="2. Comment participer ?" color="#2563eb">
         <p style={{fontSize:"0.86rem",color:"#374151",marginBottom:10,fontWeight:600}}>Pour participer de façon valide, tu dois remplir <u>toutes</u> les conditions suivantes :</p>
-        <BulletItem text="T'inscrire sur la plateforme officielle : mundial26.vercel.app avant le 10 juin 2026." />
+        <BulletItem text="T'inscrire sur la plateforme officielle : mundial26.vercel.app. Tu peux participer à tout moment jusqu'au 19 juillet 2026." />
         <BulletItem text="Avoir effectué au moins UN achat de 50,00 $ CAD ou plus chez Sabor Latino incluant un produit participant*." />
         <BulletItem text="Enregistrer cette facture sur la plateforme (section Mon Profil) pour qu'elle soit approuvée par l'administrateur." />
         <Alerta tipo="warning">
@@ -956,7 +956,7 @@ function ReglamentoView() {
 
       {/* Toggle idioma */}
       <div style={{display:"flex",marginBottom:18,borderRadius:10,overflow:"hidden",border:"2px solid #e5e7eb"}}>
-        {[["es","🇨🇴 Español"],["fr","🇫🇷 Français"]].map(([l,label])=>(
+        {[["es","🇪🇸 Español"],["fr","🇫🇷 Français"]].map(([l,label])=>(
           <button key={l} onClick={()=>setShowLang(l)}
             style={{flex:1,padding:"10px",border:"none",cursor:"pointer",fontWeight:700,fontSize:"0.88rem",
               background:showLang===l?"#d3172e":"#fff",color:showLang===l?"#fff":"#6b7280",transition:"all 0.2s"}}>
