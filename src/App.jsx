@@ -2092,7 +2092,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
 
       {/* Info */}
       <div style={{background:"#fff5f5",border:"1px solid #fca5a5",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:"0.8rem",color:"#991b1b"}}>
-        🎰 Cada factura registrada y aprobada te da entradas directas a la ruleta. ¡Más compras = más entradas!
+        {lang==="fr" ? "🎰 Chaque facture enregistrée et approuvée te donne des entrées directes à la roulette. Plus d'achats = plus d'entrées !" : "🎰 Cada factura registrada y aprobada te da entradas directas a la ruleta. ¡Más compras = más entradas!"}
       </div>
 
       {/* Entradas registradas — mensaje motivacional */}
@@ -2149,9 +2149,9 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
                   const distFromCenter = i - centerOffset;
                   const absDist = Math.abs(distFromCenter);
                   const isCenter = absDist === 0;
-                  const blur = absDist === 0 ? 0 : absDist === 1 ? 2 : absDist === 2 ? 5 : 10;
-                  const opacity = absDist === 0 ? 1 : absDist === 1 ? 0.65 : absDist === 2 ? 0.35 : 0.1;
-                  const scale = absDist === 0 ? 1.15 : absDist === 1 ? 0.9 : 0.75;
+                  const blur = 0; // sin difuminado
+                  const opacity = absDist === 0 ? 1 : absDist === 1 ? 0.92 : absDist === 2 ? 0.82 : 0.7;
+                  const scale = absDist === 0 ? 1.12 : absDist === 1 ? 0.88 : absDist === 2 ? 0.78 : 0.70;
                   const color = isCenter ? "#fff" : "rgba(255,255,255,0.5)";
                   return (
                     <div key={i} style={{
@@ -2230,7 +2230,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
           )}
 
           {/* Last saved winner */}
-          {!winner && currentSaved && currentSaved.ruleta && (
+          {isAdmin && !winner && currentSaved && currentSaved.ruleta && (
             <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px",textAlign:"center",marginBottom:16}}>
               <div style={{fontSize:"0.7rem",color:"#9ca3af",marginBottom:4,letterSpacing:1,fontWeight:600}}>
                 ÚLTIMO GANADOR
@@ -2246,7 +2246,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
           {/* Entrants list */}
           <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px"}}>
             <div style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900,marginBottom:10}}>
-              Participantes en la ruleta
+              {lang==="fr"?"Participants à la roulette":"Participantes en la ruleta"}
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {uniqueParticipants.map(p => (
@@ -2302,7 +2302,7 @@ function FixtureView({ matches }) {
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
         {["groups","elim"].map(ph=>(
           <button key={ph} style={S.navBtn(activePhase===ph)} onClick={()=>setActivePhase(ph)}>
-            {ph==="groups"?"Grupos":"Playoffs"}
+            {ph==="groups"?(lang==="fr"?"Groupes":"Grupos"):(lang==="fr"?"Éliminatoires":"Playoffs")}
           </button>
         ))}
       </div>
@@ -2310,10 +2310,10 @@ function FixtureView({ matches }) {
         <>
           <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
             {Object.keys(GROUPS).map(g=>(
-              <button key={g} style={{...S.navBtn(activeGroup===g),background:activeGroup===g?GROUP_COLORS[g]:"transparent",borderColor:GROUP_COLORS[g],color:activeGroup===g?"#fff":GROUP_COLORS[g],padding:"4px 10px",fontSize:"0.75rem"}} onClick={()=>setActiveGroup(g)}>Grp {g}</button>
+              <button key={g} style={{...S.navBtn(activeGroup===g),background:activeGroup===g?GROUP_COLORS[g]:"transparent",borderColor:GROUP_COLORS[g],color:activeGroup===g?"#fff":GROUP_COLORS[g],padding:"4px 10px",fontSize:"0.75rem"}} onClick={()=>setActiveGroup(g)}>{lang==="fr"?"Grpe":"Grp"} {g}</button>
             ))}
           </div>
-          <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>GRUPO {activeGroup}</div>
+          <div style={S.groupHeader(GROUP_COLORS[activeGroup])}>{lang==="fr"?"GROUPE":"GRUPO"} {activeGroup}</div>
           {groupMatches.filter(m=>m.group===activeGroup).map(m=>(
             <div key={m.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
               <span style={{color:"#9ca3af",fontSize:"0.72rem",minWidth:38}}>{m.date}</span>
@@ -2339,7 +2339,7 @@ function FixtureView({ matches }) {
             });
             const table=Object.values(stats).sort((a,b)=>b.pts-a.pts||(b.gf-b.gc)-(a.gf-a.gc)||b.gf-a.gf);
             const hasData=table.some(s=>s.pj>0);
-            return <GroupTable grp={activeGroup} table={table} hasData={hasData} emptyMsg="Aun no hay resultados para este grupo" />;
+            return <GroupTable grp={activeGroup} table={table} hasData={hasData} emptyMsg={lang==="fr"?"Pas encore de résultats pour ce groupe":"Aun no hay resultados para este grupo"} />;
           })()}
         </>
       )}
