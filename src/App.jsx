@@ -2057,53 +2057,63 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
         </div>
       </div>
 
-      {/* Selector de sucursal */}
-      <div style={{marginBottom:18}}>
-        <div style={{fontSize:"0.78rem",color:"#6b7280",fontWeight:600,marginBottom:8,textAlign:"center",letterSpacing:1}}>
-          SELECCIONAR SUCURSAL
-        </div>
-        <div style={{display:"flex",gap:8,borderRadius:12,overflow:"hidden",border:"2px solid #e5e7eb"}}>
-          {[
-            [null,        "🌎 Todas"],
-            ["St-Hubert",  "📍 St-Hubert"],
-            ["Brossard",   "📍 Brossard"],
-          ].map(([val, label]) => {
-            const active = sucursalFiltro === val;
-            return (
-              <button key={String(val)} onClick={()=>{ if(!spinning){ setSucursalFiltro(val); setWinner(null); offsetRef.current=0; setOffset(0); } }}
-                style={{flex:1,padding:"11px 6px",border:"none",cursor:spinning?"not-allowed":"pointer",fontWeight:700,
-                  fontSize:"0.8rem",transition:"all 0.2s",
-                  background: active ? BRAND.red : "#fff",
-                  color: active ? "#fff" : "#6b7280",
-                }}>
-                {label}
-              </button>
-            );
-          })}
-        </div>
-        {sucursalFiltro && (
-          <div style={{textAlign:"center",marginTop:6,fontSize:"0.72rem",color:BRAND.red,fontWeight:600}}>
-            Mostrando participantes de <strong>{sucursalFiltro}</strong>
+      {/* Selector de sucursal — solo visible para admin */}
+      {isAdmin && (
+        <div style={{marginBottom:18}}>
+          <div style={{fontSize:"0.78rem",color:"#6b7280",fontWeight:600,marginBottom:8,textAlign:"center",letterSpacing:1}}>
+            SELECCIONAR SUCURSAL
           </div>
-        )}
-      </div>
+          <div style={{display:"flex",gap:8,borderRadius:12,overflow:"hidden",border:"2px solid #e5e7eb"}}>
+            {[
+              [null,        "🌎 Todas"],
+              ["St-Hubert",  "📍 St-Hubert"],
+              ["Brossard",   "📍 Brossard"],
+            ].map(([val, label]) => {
+              const active = sucursalFiltro === val;
+              return (
+                <button key={String(val)} onClick={()=>{ if(!spinning){ setSucursalFiltro(val); setWinner(null); offsetRef.current=0; setOffset(0); } }}
+                  style={{flex:1,padding:"11px 6px",border:"none",cursor:spinning?"not-allowed":"pointer",fontWeight:700,
+                    fontSize:"0.8rem",transition:"all 0.2s",
+                    background: active ? BRAND.red : "#fff",
+                    color: active ? "#fff" : "#6b7280",
+                  }}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {sucursalFiltro && (
+            <div style={{textAlign:"center",marginTop:6,fontSize:"0.72rem",color:BRAND.red,fontWeight:600}}>
+              Mostrando participantes de <strong>{sucursalFiltro}</strong>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Info */}
       <div style={{background:"#fff5f5",border:"1px solid #fca5a5",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:"0.8rem",color:"#991b1b"}}>
         🎰 Cada factura registrada y aprobada te da entradas directas a la ruleta. ¡Más compras = más entradas!
       </div>
 
-      {/* Stats */}
-      <div style={{display:"flex",gap:10,marginBottom:24}}>
-        {[["🎟️", entrants.length, "entradas totales"],
-          ["👥", uniqueParticipants.length, "participantes"]
-        ].map(([icon,val,label],i)=>(
-          <div key={i} style={{flex:1,background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:10,padding:"10px",textAlign:"center"}}>
-            <div style={{fontSize:"1.1rem"}}>{icon}</div>
-            <div style={{fontWeight:800,fontSize:"1.4rem",color:accentColor}}>{val}</div>
-            <div style={{fontSize:"0.7rem",color:"#9ca3af"}}>{label}</div>
+      {/* Entradas registradas — mensaje motivacional */}
+      <div style={{background:"linear-gradient(135deg,#1a1a2e,#16213e)",border:"2px solid #d3172e44",borderRadius:14,padding:"18px 20px",marginBottom:24,textAlign:"center"}}>
+        <div style={{fontSize:"2rem",marginBottom:6}}>🎟️</div>
+        <div style={{color:"rgba(255,255,255,0.6)",fontSize:"0.72rem",letterSpacing:2,fontWeight:600,marginBottom:4}}>
+          ENTRADAS REGISTRADAS
+        </div>
+        <div style={{color:"#facc15",fontWeight:900,fontSize:"3rem",lineHeight:1,marginBottom:8}}>
+          {entrants.length}
+        </div>
+        <div style={{color:"rgba(255,255,255,0.85)",fontSize:"0.88rem",fontWeight:600}}>
+          {lang==="fr"
+            ? `${entrants.length} entrées enregistrées — Bonne chance ! 🍀`
+            : `${entrants.length} entradas registradas, ¡Buena suerte! 🍀`}
+        </div>
+        {isAdmin && (
+          <div style={{marginTop:8,fontSize:"0.72rem",color:"rgba(255,255,255,0.4)"}}>
+            👥 {uniqueParticipants.length} participantes
           </div>
-        ))}
+        )}
       </div>
 
       {wheelLabels.length === 0 ? (
