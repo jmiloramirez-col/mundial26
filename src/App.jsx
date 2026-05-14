@@ -682,14 +682,20 @@ function ReglamentoView() {
   const Tabla = ({rows, header}) => (
     <div style={{border:"1px solid #e5e7eb",borderRadius:10,overflow:"hidden",marginBottom:10}}>
       {header && (
-        <div style={{display:"flex",justifyContent:"space-between",background:"#d3172e",padding:"7px 14px"}}>
-          {header.map((h,i)=><span key={i} style={{fontSize:"0.75rem",fontWeight:800,color:"#fff",letterSpacing:0.5}}>{h}</span>)}
+        <div style={{display:"flex",background:"#d3172e",padding:"7px 14px",gap:8}}>
+          {header.map((h,i)=>(
+            <span key={i} style={{fontSize:"0.75rem",fontWeight:800,color:"#fff",letterSpacing:0.5,
+              flex: i===0 ? 2 : 1, textAlign: i===0 ? "left" : "center"}}>{h}</span>
+          ))}
         </div>
       )}
-      {rows.map(([desc,pts],i)=>(
-        <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 14px",background:i%2===0?"#fff":"#f9fafb",borderBottom:i<rows.length-1?"1px solid #f3f4f6":"none"}}>
-          <span style={{fontSize:"0.84rem",color:"#374151",lineHeight:1.5}}>{desc}</span>
-          <span style={{fontWeight:800,color:"#d3172e",fontSize:"0.9rem",flexShrink:0,marginLeft:12,background:"#fff5f5",borderRadius:6,padding:"2px 8px"}}>{pts}</span>
+      {rows.map((cols,i)=>(
+        <div key={i} style={{display:"flex",alignItems:"center",padding:"9px 14px",gap:8,background:i%2===0?"#fff":"#f9fafb",borderBottom:i<rows.length-1?"1px solid #f3f4f6":"none"}}>
+          <span style={{fontSize:"0.84rem",color:"#374151",lineHeight:1.5,flex:2}}>{cols[0]}</span>
+          <span style={{fontWeight:800,color:"#d3172e",fontSize:"0.88rem",flex:1,textAlign:"center",background:"#fff5f5",borderRadius:6,padding:"2px 6px"}}>{cols[1]}</span>
+          {cols[2] !== undefined && (
+            <span style={{fontWeight:700,color:cols[2]==="0 pts"||cols[2]==="0 pt"?"#9ca3af":"#059669",fontSize:"0.88rem",flex:1,textAlign:"center",background:cols[2]==="0 pts"||cols[2]==="0 pt"?"#f9fafb":"#f0fdf4",borderRadius:6,padding:"2px 6px"}}>{cols[2]}</span>
+          )}
         </div>
       ))}
     </div>
