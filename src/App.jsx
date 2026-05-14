@@ -1285,7 +1285,7 @@ function GroupTable({ grp, table, hasData, emptyMsg }) {
 }
 
 // PARTICIPANT FORM
-const SUCURSALES = ["St-Hubert", "St-Laurent", "Brossard"];
+const SUCURSALES = ["St-Hubert", "Brossard"];
 
 
 function ProfileTab({ currentUser, setCurrentUser, participants, setParticipants, matches, invoices, setInvoices, preds }) {
