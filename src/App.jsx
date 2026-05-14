@@ -75,7 +75,7 @@ const T = {
       misFacturas:"MIS FACTURAS", ptsAcumulados:"puntos acumulados",
       aprobada:"Aprobada", rechazada:"Rechazada", pendiente:"Pendiente",
       productoIncluido:"✅ Producto participante incluido", sinProducto:"⚠️ Sin producto participante",
-      facturaMinima:"El monto minimo es $10 CAD", facturaRepetida:"Esta factura ya fue registrada", facturaNum:"Ingresa el numero de factura",
+      facturaMinima:"Ingresa un monto válido", facturaRepetida:"Esta factura ya fue registrada", facturaNum:"Ingresa el numero de factura",
     },
     login: {
       login:"Iniciar Sesión", register:"Registrarse", logout:"Cerrar Sesión",
@@ -120,7 +120,7 @@ const T = {
       misFacturas:"MES FACTURES", ptsAcumulados:"points accumulés",
       aprobada:"Approuvée", rechazada:"Rejetée", pendiente:"En attente",
       productoIncluido:"✅ Produit participant inclus", sinProducto:"⚠️ Sans produit participant",
-      facturaMinima:"Le montant minimum est de 10 $ CAD", facturaRepetida:"Cette facture a déjà été enregistrée", facturaNum:"Entrez le numéro de facture",
+      facturaMinima:"Veuillez entrer un montant valide", facturaRepetida:"Cette facture a déjà été enregistrée", facturaNum:"Entrez le numéro de facture",
     },
     login: {
       login:"Connexion", register:"S'inscrire", logout:"Déconnexion",
@@ -166,14 +166,33 @@ const LOCK_DATES = {
 };
 
 // INVOICE POINTS SCALE (CAD)
+// Nueva tabla por factura:
+// < $20   → 1 entrada, 0 pts
+// $21-$40  → 2 entradas, 2 pts
+// $41-$60  → 3 entradas, 4 pts
+// $61-$80  → 4 entradas, 6 pts
+// $81-$100 → 5 entradas, 8 pts
+// $101+    → 8 entradas, 0 pts adicionales (solo entradas)
 function calcInvoicePoints(amount) {
   const a = parseFloat(amount);
-  if (isNaN(a) || a < 10) return 0;
-  if (a <= 50)  return 1;
-  if (a <= 100) return 3;
-  if (a <= 150) return 6;
-  if (a <= 200) return 9;
-  return 12;
+  if (isNaN(a) || a <= 0) return 0;
+  if (a <= 20)  return 0;
+  if (a <= 40)  return 2;
+  if (a <= 60)  return 4;
+  if (a <= 80)  return 6;
+  if (a <= 100) return 8;
+  return 8; // $101+ mismos puntos, pero más entradas
+}
+
+function calcInvoiceEntradas(amount) {
+  const a = parseFloat(amount);
+  if (isNaN(a) || a <= 0) return 0;
+  if (a <= 20)  return 1;
+  if (a <= 40)  return 2;
+  if (a <= 60)  return 3;
+  if (a <= 80)  return 4;
+  if (a <= 100) return 5;
+  return 8; // $101+
 }
 
 function isPhaseLocked(phase, adminUnlocked = {}) {
@@ -699,7 +718,6 @@ function ReglamentoView() {
         <BulletItem text="Registrarte en la plataforma oficial: mundial26.vercel.app antes del 10 de junio de 2026." />
         <BulletItem text="Realizar al menos UNA compra de $50.00 CAD o más en Sabor Latino que incluya un producto participante*." />
         <BulletItem text="Registrar esa factura en la plataforma (sección Mi Perfil) para que sea aprobada por el administrador." />
-        <BulletItem text="Si ganas un premio, aceptar que se publique una fotografía tuya recibiéndolo en las redes sociales oficiales de Sabor Latino." />
         <Alerta tipo="warning">
           <strong>Importante:</strong> Compras menores de $50.00 CAD sí generan puntos adicionales, pero <strong>NO validan tu participación</strong> para ganar premios. Si resultaras ganador sin una factura válida de $50+, el premio pasaría al siguiente en la ruleta.
         </Alerta>
@@ -720,7 +738,7 @@ function ReglamentoView() {
       </Section>
 
       <Section icon="⭐" title="4. ¿Cómo se acumulan los puntos?">
-        <Alerta tipo="success">Recuerda: cada 10 puntos acumulados = 1 entrada en la ruleta del sorteo final.</Alerta>
+        <Alerta tipo="success">Las entradas en la ruleta se determinan por tus facturas aprobadas (no por puntos). Registra más compras para tener más chances 🎰</Alerta>
 
         <div style={{fontWeight:700,fontSize:"0.88rem",color:"#374151",margin:"14px 0 6px"}}>4.1 Pronósticos de partidos</div>
         <Tabla
@@ -752,24 +770,25 @@ function ReglamentoView() {
           ]}
         />
 
-        <div style={{fontWeight:700,fontSize:"0.88rem",color:"#374151",margin:"14px 0 6px"}}>4.3 Puntos por facturas de compra</div>
-        <p style={{fontSize:"0.83rem",color:"#6b7280",marginBottom:8,lineHeight:1.6}}>Cada factura aprobada de Sabor Latino te da puntos adicionales según su monto. Puedes registrar múltiples facturas.</p>
+        <div style={{fontWeight:700,fontSize:"0.88rem",color:"#374151",margin:"14px 0 6px"}}>4.3 Entradas a la ruleta por factura de compra</div>
+        <p style={{fontSize:"0.83rem",color:"#6b7280",marginBottom:8,lineHeight:1.6}}>Cada factura aprobada de Sabor Latino te da <strong>entradas en la ruleta</strong> y puntos adicionales según su monto. Puedes registrar múltiples facturas para acumular más entradas.</p>
         <Tabla
-          header={["Monto de la factura (CAD)","Puntos"]}
+          header={["Monto de la factura (CAD)","Entradas ruleta","Puntos extra"]}
           rows={[
-            ["$10 – $50","1 pt"],
-            ["$51 – $100","3 pts"],
-            ["$101 – $150","6 pts"],
-            ["$151 – $200","9 pts"],
-            ["$201 o más","12 pts"],
+            ["Hasta $20","1 entrada","0 pts"],
+            ["$21 – $40","2 entradas","+ 2 pts"],
+            ["$41 – $60","3 entradas","+ 4 pts"],
+            ["$61 – $80","4 entradas","+ 6 pts"],
+            ["$81 – $100","5 entradas","+ 8 pts"],
+            ["$101 o más","8 entradas","+ 8 pts"],
           ]}
         />
         <EjemploBox titulo="Ejemplo de entradas en la ruleta"
           items={[
-            "Ana tiene 45 pts → 4 entradas en la ruleta",
-            "Carlos tiene 100 pts → 10 entradas en la ruleta",
-            "María tiene 23 pts → 2 entradas en la ruleta",
-            "¡Más puntos = más chances de ganar!",
+            "Ana registra una factura de $55 → 3 entradas + 4 pts",
+            "Carlos registra dos facturas: $35 + $90 → 7 entradas en total",
+            "María registra una factura de $120 → 8 entradas + 8 pts",
+            "¡Más compras = más entradas = más chances de ganar!",
           ]}
         />
       </Section>
@@ -781,13 +800,14 @@ function ReglamentoView() {
         <BulletItem text="El administrador revisará y aprobará o rechazará cada factura." />
         <BulletItem text="Solo las facturas aprobadas generan puntos." />
         <BulletItem text="No se puede registrar la misma factura dos veces." />
-        <Alerta tipo="info">Monto mínimo para obtener puntos: <strong>$10.00 CAD</strong>. Para validar tu participación en el concurso: mínimo <strong>$50.00 CAD con producto participante</strong>.</Alerta>
+        <Alerta tipo="info">Cualquier compra te da al menos 1 entrada en la ruleta. Para validar tu participación y poder ganar premios necesitas mínimo <strong>$50.00 CAD con producto participante</strong>.</Alerta>
       </Section>
 
       <Section icon="🔒" title="6. Cierre de pronósticos" color="#7c3aed">
-        <BulletItem highlight text="Fase de grupos: todos los pronósticos deben ingresarse antes del 10 de junio de 2026 a las 00:00 (medianoche). No se aceptan cambios después de esa hora." />
-        <BulletItem highlight text="Fases eliminatorias (octavos, cuartos, semis, final): cada partido se bloquea automáticamente 24 horas antes de su horario oficial de juego." />
-        <Alerta tipo="warning">No dejes tus pronósticos para último momento — una vez bloqueado un partido ya no puedes modificarlo.</Alerta>
+        <BulletItem highlight text="Puedes ingresar y modificar tus pronósticos en cualquier momento durante el Mundial, siempre que el partido aún no haya sido bloqueado." />
+        <BulletItem highlight text="Fase de grupos: cada partido se bloquea automáticamente 1 hora antes de su horario oficial de inicio." />
+        <BulletItem highlight text="Fases eliminatorias (octavos, cuartos, semis, final): cada partido se bloquea 24 horas antes de su horario oficial de juego." />
+        <Alerta tipo="warning">Una vez bloqueado un partido ya no puedes modificar ese pronóstico — pero los demás partidos del torneo siguen abiertos hasta su propio cierre.</Alerta>
       </Section>
 
       <Section icon="⚖️" title="7. Condiciones generales" color="#6b7280">
@@ -814,7 +834,6 @@ function ReglamentoView() {
         <BulletItem text="T'inscrire sur la plateforme officielle : mundial26.vercel.app avant le 10 juin 2026." />
         <BulletItem text="Avoir effectué au moins UN achat de 50,00 $ CAD ou plus chez Sabor Latino incluant un produit participant*." />
         <BulletItem text="Enregistrer cette facture sur la plateforme (section Mon Profil) pour qu'elle soit approuvée par l'administrateur." />
-        <BulletItem text="Si tu remportes un prix, accepter qu'une photo te montrant en train de le recevoir soit publiée sur les réseaux sociaux officiels de Sabor Latino." />
         <Alerta tipo="warning">
           <strong>Important :</strong> Les achats inférieurs à 50,00 $ CAD génèrent des points supplémentaires, mais <strong>NE valident PAS ta participation</strong> pour gagner des prix. Si tu étais déclaré gagnant sans facture valide de 50 $+, le prix passerait au suivant dans la roulette.
         </Alerta>
@@ -835,7 +854,7 @@ function ReglamentoView() {
       </Section>
 
       <Section icon="⭐" title="4. Comment accumuler des points ?">
-        <Alerta tipo="success">Rappel : chaque 10 points accumulés = 1 entrée dans la roulette du tirage final.</Alerta>
+        <Alerta tipo="success">Les entrées dans la roulette dépendent de tes factures approuvées (pas des points). Plus tu achètes, plus tu as de chances 🎰</Alerta>
 
         <div style={{fontWeight:700,fontSize:"0.88rem",color:"#374151",margin:"14px 0 6px"}}>4.1 Pronostics de matchs</div>
         <Tabla
@@ -867,24 +886,25 @@ function ReglamentoView() {
           ]}
         />
 
-        <div style={{fontWeight:700,fontSize:"0.88rem",color:"#374151",margin:"14px 0 6px"}}>4.3 Points par factures d'achat</div>
-        <p style={{fontSize:"0.83rem",color:"#6b7280",marginBottom:8,lineHeight:1.6}}>Chaque facture approuvée de Sabor Latino te donne des points supplémentaires selon son montant. Tu peux enregistrer plusieurs factures.</p>
+        <div style={{fontWeight:700,fontSize:"0.88rem",color:"#374151",margin:"14px 0 6px"}}>4.3 Entrées à la roulette par facture d'achat</div>
+        <p style={{fontSize:"0.83rem",color:"#6b7280",marginBottom:8,lineHeight:1.6}}>Chaque facture approuvée de Sabor Latino te donne des <strong>entrées dans la roulette</strong> et des points supplémentaires selon son montant. Tu peux enregistrer plusieurs factures pour accumuler plus d'entrées.</p>
         <Tabla
-          header={["Montant de la facture (CAD)","Points"]}
+          header={["Montant de la facture (CAD)","Entrées roulette","Points extra"]}
           rows={[
-            ["10 $ – 50 $","1 pt"],
-            ["51 $ – 100 $","3 pts"],
-            ["101 $ – 150 $","6 pts"],
-            ["151 $ – 200 $","9 pts"],
-            ["201 $ ou plus","12 pts"],
+            ["Jusqu'à 20 $","1 entrée","0 pt"],
+            ["21 $ – 40 $","2 entrées","+ 2 pts"],
+            ["41 $ – 60 $","3 entrées","+ 4 pts"],
+            ["61 $ – 80 $","4 entrées","+ 6 pts"],
+            ["81 $ – 100 $","5 entrées","+ 8 pts"],
+            ["101 $ ou plus","8 entrées","+ 8 pts"],
           ]}
         />
         <EjemploBox titulo="Exemple d'entrées dans la roulette"
           items={[
-            "Ana a 45 pts → 4 entrées dans la roulette",
-            "Carlos a 100 pts → 10 entrées dans la roulette",
-            "María a 23 pts → 2 entrées dans la roulette",
-            "Plus de points = plus de chances de gagner !",
+            "Ana enregistre une facture de 55 $ → 3 entrées + 4 pts",
+            "Carlos enregistre deux factures : 35 $ + 90 $ → 7 entrées au total",
+            "María enregistre une facture de 120 $ → 8 entrées + 8 pts",
+            "Plus d'achats = plus d'entrées = plus de chances de gagner !",
           ]}
         />
       </Section>
@@ -896,13 +916,14 @@ function ReglamentoView() {
         <BulletItem text="L'administrateur examinera et approuvera ou rejettera chaque facture." />
         <BulletItem text="Seules les factures approuvées génèrent des points." />
         <BulletItem text="Une même facture ne peut pas être enregistrée deux fois." />
-        <Alerta tipo="info">Montant minimum pour obtenir des points : <strong>10,00 $ CAD</strong>. Pour valider ta participation au concours : minimum <strong>50,00 $ CAD avec un produit participant</strong>.</Alerta>
+        <Alerta tipo="info">Tout achat te donne au moins 1 entrée dans la roulette. Pour valider ta participation et pouvoir gagner des prix, tu as besoin d'au moins <strong>50,00 $ CAD avec un produit participant</strong>.</Alerta>
       </Section>
 
       <Section icon="🔒" title="6. Clôture des pronostics" color="#7c3aed">
-        <BulletItem highlight text="Phase de groupes : tous les pronostics doivent être saisis avant le 10 juin 2026 à 00 h 00 (minuit). Aucune modification acceptée après cette heure." />
-        <BulletItem highlight text="Phases éliminatoires (huitièmes, quarts, demis, finale) : chaque match est automatiquement verrouillé 24 heures avant son coup d'envoi officiel." />
-        <Alerta tipo="warning">Ne reporte pas tes pronostics à la dernière minute — une fois un match verrouillé, tu ne peux plus le modifier.</Alerta>
+        <BulletItem highlight text="Tu peux saisir et modifier tes pronostics à tout moment pendant le Mondial, tant que le match n'a pas encore été verrouillé." />
+        <BulletItem highlight text="Phase de groupes : chaque match est automatiquement verrouillé 1 heure avant son coup d'envoi officiel." />
+        <BulletItem highlight text="Phases éliminatoires (huitièmes, quarts, demis, finale) : chaque match est verrouillé 24 heures avant son coup d'envoi officiel." />
+        <Alerta tipo="warning">Une fois un match verrouillé, tu ne peux plus modifier ce pronostic — mais les autres matchs du tournoi restent ouverts jusqu'à leur propre clôture.</Alerta>
       </Section>
 
       <Section icon="⚖️" title="7. Conditions générales" color="#6b7280">
@@ -1074,7 +1095,7 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
 
   async function handleSubmit() {
     if (!invoiceNum.trim()) { alert(tp.facturaNum); return; }
-    if (!amount || parseFloat(amount)<10) { alert(tp.facturaMinima); return; }
+    if (!amount || parseFloat(amount)<=0) { alert(tp.facturaMinima); return; }
     const alreadyExists = invoices.find(inv=>inv.invoiceNum===invoiceNum.trim());
     if (alreadyExists) { alert(tp.facturaRepetida); return; }
 
@@ -1125,9 +1146,11 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
             value={amount} onChange={e=>setAmount(e.target.value)} />
         </div>
       </div>
-      {amount && parseFloat(amount)>=10 && (
-        <div style={{background:"#0d2215",border:"1px solid #27ae6044",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:"0.85rem"}}>
-          {tp.facturaVale} <strong style={{color:"#16a34a",fontSize:"1rem"}}>{calcInvoicePoints(amount)} {tp.puntos}</strong> {tp.siAprobada}
+      {amount && parseFloat(amount)>0 && (
+        <div style={{background:"#0d2215",border:"1px solid #27ae6044",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:"0.85rem",display:"flex",gap:16,flexWrap:"wrap",alignItems:"center"}}>
+          <span style={{color:"#94a3b8"}}>Esta factura genera:</span>
+          <span>🎰 <strong style={{color:"#facc15",fontSize:"1rem"}}>{calcInvoiceEntradas(amount)}</strong> <span style={{color:"#94a3b8",fontSize:"0.8rem"}}>entradas en ruleta</span></span>
+          {calcInvoicePoints(amount)>0 && <span>⭐ <strong style={{color:"#16a34a",fontSize:"1rem"}}>+{calcInvoicePoints(amount)}</strong> <span style={{color:"#94a3b8",fontSize:"0.8rem"}}>puntos</span></span>}
         </div>
       )}
 
@@ -1904,14 +1927,19 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
     return gamePts + invPts + classPts;
   }
 
+  // Calcular entradas totales en ruleta: suma de entradas por cada factura aprobada
+  function getTotalEntradas(p) {
+    const ui = (invoices||[]).filter(i => i.participantId === p.id && i.status === "approved");
+    return ui.reduce((s,i) => s + calcInvoiceEntradas(i.amount), 0);
+  }
+
   function buildEntrants() {
     const entrants = [];
     participants.forEach(p => {
-      // Filtrar por sucursal si hay una seleccionada
       if (sucursalFiltro && p.sucursal !== sucursalFiltro) return;
-      const totalPts = getTotalPoints(p);
-      const entries = Math.floor(totalPts / 10); // cada 10 puntos = 1 entrada
+      const entries = getTotalEntradas(p);
       if (entries === 0) return;
+      const totalPts = getTotalPoints(p);
       const name = p.nombre ? p.nombre + " " + p.apellido : p.name;
       const num = p.participantNumber || null;
       const label = num ? `#${String(num).padStart(3,"0")} – ${name}` : name;
@@ -1928,8 +1956,8 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
   const uniqueParticipants = participants
     .filter(p => !sucursalFiltro || p.sucursal === sucursalFiltro)
     .map(p => {
+      const entries = getTotalEntradas(p);
       const totalPts = getTotalPoints(p);
-      const entries = Math.floor(totalPts / 10);
       const name = p.nombre ? p.nombre + " " + p.apellido : p.name;
       const num = p.participantNumber || null;
       return { id: p.id, name, num, totalPts, entries, sucursal: p.sucursal };
@@ -2056,7 +2084,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
 
       {/* Info */}
       <div style={{background:"#fff5f5",border:"1px solid #fca5a5",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:"0.8rem",color:"#991b1b"}}>
-        🎯 Cada <strong>10 puntos acumulados</strong> = 1 entrada en la ruleta. ¡Más puntos = más chances!
+        🎰 Cada factura registrada y aprobada te da entradas directas a la ruleta. ¡Más compras = más entradas!
       </div>
 
       {/* Stats */}
@@ -2974,7 +3002,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
               const headers = ["#","Posicion","Nombre","Apellido","Correo","Telefono","Sucursal","Pts Pronosticos","Pts Clasificados","Pts Facturas","Total Puntos","Entradas Ruleta","Facturas Registradas","Facturas Aprobadas","Fecha Registro"];
               const rows = ranked.map((p,i)=>{
                 const totalPts = p._total;
-                const entradasRuleta = Math.floor(totalPts/10);
+                const entradasRuleta = (invoices||[]).filter(inv=>inv.participantId===p.id&&inv.status==="approved").reduce((s,inv)=>s+calcInvoiceEntradas(inv.amount),0);
                 const facturasAprobadas = (invoices||[]).filter(inv=>inv.participantId===p.id&&inv.status==="approved").length;
                 const facturasTotal = (invoices||[]).filter(inv=>inv.participantId===p.id).length;
                 return [
