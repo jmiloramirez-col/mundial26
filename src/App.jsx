@@ -803,9 +803,9 @@ function ReglamentoView() {
         <BulletItem text="Ve a la sección Mi Perfil dentro de la plataforma." />
         <BulletItem text="Ingresa el número de factura y el monto total en dólares canadienses (CAD)." />
         <BulletItem text="Indica si la factura incluye un producto participante (obligatorio para validar tu participación)." />
-        <BulletItem text="El administrador revisará y aprobará o rechazará cada factura." />
-        <BulletItem text="Solo las facturas aprobadas generan puntos." />
+        <BulletItem text="Los puntos y entradas se acumulan automáticamente al registrar la factura." />
         <BulletItem text="No se puede registrar la misma factura dos veces." />
+        <Alerta tipo="warning"><strong>Verificación en el sorteo:</strong> Al momento de realizar la rifa, se verificará que cada factura sea real y que el monto registrado sea correcto. Si se detecta que una factura es falsa o tiene un monto diferente al real, el premio no será válido y pasará al siguiente participante.</Alerta>
         <Alerta tipo="info">Cualquier compra te da al menos 1 entrada en la ruleta. Para validar tu participación y poder ganar premios necesitas mínimo <strong>$50.00 CAD con producto participante</strong>.</Alerta>
       </Section>
 
@@ -919,9 +919,9 @@ function ReglamentoView() {
         <BulletItem text="Va dans la section Mon Profil sur la plateforme." />
         <BulletItem text="Saisis le numéro de facture et le montant total en dollars canadiens (CAD)." />
         <BulletItem text="Indique si la facture inclut un produit participant (obligatoire pour valider ta participation)." />
-        <BulletItem text="L'administrateur examinera et approuvera ou rejettera chaque facture." />
-        <BulletItem text="Seules les factures approuvées génèrent des points." />
+        <BulletItem text="Les points et entrées s'accumulent automatiquement dès l'enregistrement de la facture." />
         <BulletItem text="Une même facture ne peut pas être enregistrée deux fois." />
+        <Alerta tipo="warning"><strong>Vérification lors du tirage :</strong> Au moment du tirage, chaque facture sera vérifiée pour s'assurer qu'elle est réelle et que le montant enregistré est exact. Si une facture s'avère fausse ou avec un montant différent, le prix ne sera pas remis et passera au participant suivant.</Alerta>
         <Alerta tipo="info">Tout achat te donne au moins 1 entrée dans la roulette. Pour valider ta participation et pouvoir gagner des prix, tu as besoin d'au moins <strong>50,00 $ CAD avec un produit participant</strong>.</Alerta>
       </Section>
 
@@ -1115,7 +1115,7 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
         amount: parseFloat(amount),
         points: calcInvoicePoints(amount),
         hasProduct: hasProduct,
-        status: "pending",
+        status: "approved", // Auto-aprobada; se verificará en el sorteo
         createdAt: new Date().toISOString(),
       };
       const updated = [...invoices, newInvoice];
@@ -1194,10 +1194,18 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
       )}
 
       {success && (
-        <div style={{background:"#0d2215",border:"1px solid #27ae60",borderRadius:8,padding:"10px 14px",marginBottom:12,color:"#16a34a",fontSize:"0.85rem",fontWeight:700}}>
-          Factura enviada! Pendiente de aprobacion por el administrador.
+        <div style={{background:"#0d2215",border:"1px solid #27ae60",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:"0.85rem"}}>
+          <div style={{color:"#16a34a",fontWeight:700,marginBottom:4}}>✅ ¡Factura registrada! Tus puntos y entradas ya están acumulados.</div>
+          <div style={{color:"#94a3b8",fontSize:"0.78rem",lineHeight:1.5}}>⚠️ En el momento del sorteo se verificará que la factura sea válida y que el monto registrado sea correcto. Si se encuentra alguna irregularidad, el premio no será entregado.</div>
         </div>
       )}
+      {/* Advertencia verificación sorteo */}
+      <div style={{background:"#fff7ed",border:"1px solid #f59e0b",borderRadius:8,padding:"10px 14px",marginBottom:12,display:"flex",gap:8,alignItems:"flex-start"}}>
+        <span style={{flexShrink:0}}>⚠️</span>
+        <span style={{fontSize:"0.78rem",color:"#92400e",lineHeight:1.5}}>
+          <strong>Importante:</strong> Al registrar una factura, tus puntos y entradas se acumulan de inmediato. Sin embargo, <strong>en el momento del sorteo se verificará</strong> que la factura sea real y que el monto registrado sea correcto. Si se detecta alguna irregularidad, el premio no será válido.
+        </span>
+      </div>
       <button style={S.btn()} onClick={handleSubmit} disabled={saving}>
         {saving?tp.enviando:tp.enviarFactura}
       </button>
