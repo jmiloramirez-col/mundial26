@@ -714,7 +714,7 @@ function ReglamentoView() {
     <>
       <Section icon="🎯" title="1. ¿En qué consiste el concurso?">
         <p style={{fontSize:"0.86rem",color:"#374151",lineHeight:1.7,margin:"0 0 8px"}}>
-          El <strong>Concurso Mundial 2026 de Sabor Latino</strong> es una competencia de pronósticos deportivos. Tú predices los resultados de los partidos de la Copa Mundial de Fútbol 2026 y acumulas puntos. Al final del torneo se realizará un <strong>sorteo por ruleta</strong> — entre más puntos tengas, más entradas en la ruleta obtienes y más chances de ganar.
+          El <strong>Concurso El Sabor del Gol de Sabor Latino</strong> es una competencia de pronósticos deportivos. Tú predices los resultados de los partidos de la Copa Mundial de Fútbol 2026 y acumulas puntos. Al final del torneo se realizará un <strong>sorteo por ruleta</strong> — entre más puntos tengas, más entradas en la ruleta obtienes y más chances de ganar.
         </p>
         <Alerta tipo="info">El sorteo final se realiza por ruleta, no por mayor puntaje. Cada 10 puntos acumulados = 1 entrada en la ruleta 🎰</Alerta>
       </Section>
@@ -819,7 +819,6 @@ function ReglamentoView() {
       <Section icon="⚖️" title="7. Condiciones generales" color="#6b7280">
         <BulletItem text="Sabor Latino se reserva el derecho de modificar, suspender o cancelar el concurso en caso de fuerza mayor." />
         <BulletItem text="La decisión del administrador sobre la validez de facturas y pronósticos es definitiva." />
-        <BulletItem text="En caso de empate en puntos (para desempatar en la tabla de clasificación): (1) mayor número de resultados exactos, (2) mayor número de ganadores correctos, (3) mayor puntaje en facturas." />
         <BulletItem text="El sorteo final se realiza por ruleta, segmentado por sucursal (St-Hubert y Brossard)." />
         <BulletItem text="Al participar, el concursante acepta todas las condiciones de este reglamento." />
       </Section>
@@ -830,7 +829,7 @@ function ReglamentoView() {
     <>
       <Section icon="🎯" title="1. En quoi consiste le concours ?">
         <p style={{fontSize:"0.86rem",color:"#374151",lineHeight:1.7,margin:"0 0 8px"}}>
-          Le <strong>Concours Mundial 2026 de Sabor Latino</strong> est une compétition de pronostics sportifs. Tu prédis les résultats des matchs de la Coupe du Monde de Football 2026 et tu accumules des points. À la fin du tournoi, un <strong>tirage au sort par roulette</strong> est organisé — plus tu as de points, plus tu as d'entrées dans la roulette et plus tu as de chances de gagner.
+          Le <strong>Concours El Sabor del Gol de Sabor Latino</strong> est une compétition de pronostics sportifs. Tu prédis les résultats des matchs de la Coupe du Monde de Football 2026 et tu accumules des points. À la fin du tournoi, un <strong>tirage au sort par roulette</strong> est organisé — plus tu as de points, plus tu as d'entrées dans la roulette et plus tu as de chances de gagner.
         </p>
         <Alerta tipo="info">Le tirage final se fait par roulette, pas par score le plus élevé. Chaque 10 points accumulés = 1 entrée dans la roulette 🎰</Alerta>
       </Section>
@@ -935,7 +934,6 @@ function ReglamentoView() {
       <Section icon="⚖️" title="7. Conditions générales" color="#6b7280">
         <BulletItem text="Sabor Latino se réserve le droit de modifier, suspendre ou annuler le concours en cas de force majeure." />
         <BulletItem text="La décision de l'administrateur sur la validité des factures et pronostics est définitive." />
-        <BulletItem text="En cas d'égalité de points (pour le classement) : (1) plus de résultats exacts, (2) plus de vainqueurs corrects, (3) score de factures le plus élevé." />
         <BulletItem text="Le tirage final se fait par roulette, séparé par succursale (St-Hubert et Brossard)." />
         <BulletItem text="En participant, le concurrent accepte toutes les conditions du présent règlement." />
       </Section>
@@ -951,7 +949,7 @@ function ReglamentoView() {
         <div style={{fontSize:"1.05rem",fontWeight:800,letterSpacing:0.5,lineHeight:1.3}}>
           {showLang==="es" ? "REGLAMENTO OFICIAL" : "RÈGLEMENT OFFICIEL"}
         </div>
-        <div style={{fontSize:"0.8rem",opacity:0.8,marginTop:4}}>Concurso / Concours — Mundial 2026</div>
+        <div style={{fontSize:"0.8rem",opacity:0.8,marginTop:4}}>Concurso / Concours — El Sabor del Gol</div>
       </div>
 
       {/* Toggle idioma */}
@@ -1928,7 +1926,7 @@ function GanadoresView() {
           {lang==="fr"?"Gagnants du Tirage":"Ganadores del Sorteo"}
         </div>
         <div style={{fontSize:"0.78rem",opacity:0.8,marginTop:4}}>
-          {lang==="fr"?"Concours Mundial 2026 · Sabor Latino":"Concurso Mundial 2026 · Sabor Latino"}
+          {lang==="fr"?"Concours El Sabor del Gol · Sabor Latino":"Concurso El Sabor del Gol · Sabor Latino"}
         </div>
       </div>
 
@@ -3335,7 +3333,7 @@ export default function App() {
             />
             <div>
               <div style={{fontSize:"0.65rem",color:BRAND.red,fontWeight:800,letterSpacing:2,textTransform:"uppercase"}}>Concurso</div>
-              <div style={{fontSize:"1rem",fontWeight:800,color:BRAND.gray900,letterSpacing:1}}>Mundial 2026</div>
+              <div style={{fontSize:"1rem",fontWeight:800,color:BRAND.gray900,letterSpacing:1}}>El Sabor del Gol</div>
             </div>
           </div>
           <nav style={{...S.nav, alignItems:"center"}}>
