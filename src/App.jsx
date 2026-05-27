@@ -714,7 +714,7 @@ function ReglamentoView() {
     <>
       <Section icon="🎯" title="1. ¿En qué consiste el concurso?">
         <p style={{fontSize:"0.86rem",color:"#374151",lineHeight:1.7,margin:"0 0 8px"}}>
-          El <strong>Concurso El Sabor del Gol de Sabor Latino</strong> es una competencia de pronósticos deportivos. Tú predices los resultados de los partidos de la Copa Mundial de Fútbol 2026 y acumulas puntos. Al final del torneo se realizará un <strong>sorteo por ruleta</strong> — entre más puntos tengas, más entradas en la ruleta obtienes y más chances de ganar.
+          El <strong>Concurso Copa con Sabor de Sabor Latino</strong> es una competencia de pronósticos deportivos. Tú predices los resultados de los partidos de la Copa Mundial de Fútbol 2026 y acumulas puntos. Al final del torneo se realizará un <strong>sorteo por ruleta</strong> — entre más puntos tengas, más entradas en la ruleta obtienes y más chances de ganar.
         </p>
         <Alerta tipo="info">El sorteo final se realiza por ruleta, no por mayor puntaje. Cada 10 puntos acumulados = 1 entrada en la ruleta 🎰</Alerta>
       </Section>
@@ -829,7 +829,7 @@ function ReglamentoView() {
     <>
       <Section icon="🎯" title="1. En quoi consiste le concours ?">
         <p style={{fontSize:"0.86rem",color:"#374151",lineHeight:1.7,margin:"0 0 8px"}}>
-          Le <strong>Concours El Sabor del Gol de Sabor Latino</strong> est une compétition de pronostics sportifs. Tu prédis les résultats des matchs de la Coupe du Monde de Football 2026 et tu accumules des points. À la fin du tournoi, un <strong>tirage au sort par roulette</strong> est organisé — plus tu as de points, plus tu as d'entrées dans la roulette et plus tu as de chances de gagner.
+          Le <strong>Concours Copa con Sabor de Sabor Latino</strong> est une compétition de pronostics sportifs. Tu prédis les résultats des matchs de la Coupe du Monde de Football 2026 et tu accumules des points. À la fin du tournoi, un <strong>tirage au sort par roulette</strong> est organisé — plus tu as de points, plus tu as d'entrées dans la roulette et plus tu as de chances de gagner.
         </p>
         <Alerta tipo="info">Le tirage final se fait par roulette, pas par score le plus élevé. Chaque 10 points accumulés = 1 entrée dans la roulette 🎰</Alerta>
       </Section>
@@ -949,7 +949,7 @@ function ReglamentoView() {
         <div style={{fontSize:"1.05rem",fontWeight:800,letterSpacing:0.5,lineHeight:1.3}}>
           {showLang==="es" ? "REGLAMENTO OFICIAL" : "RÈGLEMENT OFFICIEL"}
         </div>
-        <div style={{fontSize:"0.8rem",opacity:0.8,marginTop:4}}>Concurso / Concours — El Sabor del Gol</div>
+        <div style={{fontSize:"0.8rem",opacity:0.8,marginTop:4}}>Concurso / Concours — Copa con Sabor</div>
       </div>
 
       {/* Toggle idioma */}
@@ -1926,7 +1926,7 @@ function GanadoresView() {
           {lang==="fr"?"Gagnants du Tirage":"Ganadores del Sorteo"}
         </div>
         <div style={{fontSize:"0.78rem",opacity:0.8,marginTop:4}}>
-          {lang==="fr"?"Concours El Sabor del Gol · Sabor Latino":"Concurso El Sabor del Gol · Sabor Latino"}
+          {lang==="fr"?"Concours Copa con Sabor · Sabor Latino":"Concurso Copa con Sabor · Sabor Latino"}
         </div>
       </div>
 
@@ -3333,7 +3333,7 @@ export default function App() {
             />
             <div>
               <div style={{fontSize:"0.65rem",color:BRAND.red,fontWeight:800,letterSpacing:2,textTransform:"uppercase"}}>Concurso</div>
-              <div style={{fontSize:"1rem",fontWeight:800,color:BRAND.gray900,letterSpacing:1}}>El Sabor del Gol</div>
+              <div style={{fontSize:"1rem",fontWeight:800,color:BRAND.gray900,letterSpacing:1}}>Copa con Sabor</div>
             </div>
           </div>
           <nav style={{...S.nav, alignItems:"center"}}>
