@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://copaconsabor.saborlatino.ca/$1",
+      "permanent": true
+    }
+  ]
+}
