@@ -2328,8 +2328,11 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
               {/* Panel admin: asignar premio y publicar */}
               {isAdmin && (
                 <div style={{background:"#fff",border:"2px solid #d3172e44",borderRadius:12,padding:"16px"}}>
-                  <div style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900,marginBottom:10}}>
+                  <div style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900,marginBottom:4}}>
                     🎁 Asignar premio y publicar
+                  </div>
+                  <div style={{fontSize:"0.75rem",color:"#9ca3af",marginBottom:10}}>
+                    Si es una prueba, usa "🗑️ Eliminar prueba" sin publicar.
                   </div>
                   <input
                     placeholder="Ej: Canasta de productos, Gift card $50..."
@@ -2337,8 +2340,8 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
                     onChange={e=>setPremioInput(e.target.value)}
                     style={{...S.input,marginBottom:10,fontSize:"0.85rem"}}
                   />
-                  <div style={{display:"flex",gap:8}}>
-                    <button style={{...S.btn("#16a34a"),flex:1,fontSize:"0.82rem"}} onClick={async ()=>{
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    <button style={{...S.btn("#16a34a"),flex:2,fontSize:"0.82rem",minWidth:140}} onClick={async ()=>{
                       if (!premioInput.trim()) { alert("Ingresa el premio antes de publicar"); return; }
                       const nuevo = {
                         id: Date.now(),
@@ -2359,8 +2362,15 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
                     }}>
                       ✅ Publicar ganador
                     </button>
-                    <button style={{...S.btn("#6b7280"),fontSize:"0.82rem",padding:"10px 14px"}} onClick={()=>{setWinner(null);setPremioInput("");}}>
-                      ✕ Descartar
+                    <button style={{...S.btn("#dc2626"),flex:1,fontSize:"0.82rem",minWidth:120}} onClick={async ()=>{
+                      // Borrar ganador de prueba: limpiar winners en Firebase y estado local
+                      const newWinners = {...savedWinners};
+                      delete newWinners.ruleta;
+                      await setDoc(RULETA_DOC, { winners: newWinners, ganadoresPublicados });
+                      setWinner(null);
+                      setPremioInput("");
+                    }}>
+                      🗑️ Eliminar prueba
                     </button>
                   </div>
                 </div>
