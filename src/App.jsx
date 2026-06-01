@@ -166,33 +166,35 @@ const LOCK_DATES = {
 };
 
 // INVOICE POINTS SCALE (CAD)
-// Nueva tabla por factura:
-// < $20   → 1 entrada, 0 pts
-// $21-$40  → 2 entradas, 2 pts
-// $41-$60  → 3 entradas, 4 pts
-// $61-$80  → 4 entradas, 6 pts
-// $81-$100 → 5 entradas, 8 pts
-// $101+    → 8 entradas, 0 pts adicionales (solo entradas)
+// Tabla por factura (progresiva y equilibrada):
+// $10-$25  → 1 entrada,  0 pts
+// $26-$50  → 2 entradas, 2 pts
+// $51-$75  → 3 entradas, 4 pts
+// $76-$100 → 4 entradas, 6 pts
+// $101-$150→ 6 entradas, 8 pts
+// $151-$200→ 8 entradas, 8 pts
+// $201+    → 10 entradas, 8 pts
+// Nota: puntos máx 8 para que no generen entrada adicional (cada 10 pts = 1 entrada)
 function calcInvoicePoints(amount) {
   const a = parseFloat(amount);
   if (isNaN(a) || a <= 0) return 0;
-  if (a <= 20)  return 0;
-  if (a <= 40)  return 2;
-  if (a <= 60)  return 4;
-  if (a <= 80)  return 6;
-  if (a <= 100) return 8;
-  return 8; // $101+ mismos puntos, pero más entradas
+  if (a <= 25)  return 0;
+  if (a <= 50)  return 2;
+  if (a <= 75)  return 4;
+  if (a <= 100) return 6;
+  return 8; // $101+ (capped at 8 to avoid extra ruleta entry)
 }
 
 function calcInvoiceEntradas(amount) {
   const a = parseFloat(amount);
   if (isNaN(a) || a <= 0) return 0;
-  if (a <= 20)  return 1;
-  if (a <= 40)  return 2;
-  if (a <= 60)  return 3;
-  if (a <= 80)  return 4;
-  if (a <= 100) return 5;
-  return 8; // $101+
+  if (a <= 25)  return 1;
+  if (a <= 50)  return 2;
+  if (a <= 75)  return 3;
+  if (a <= 100) return 4;
+  if (a <= 150) return 6;
+  if (a <= 200) return 8;
+  return 10; // $201+
 }
 
 function isPhaseLocked(phase, adminUnlocked = {}) {
@@ -781,19 +783,20 @@ function ReglamentoView() {
         <Tabla
           header={["Monto de la factura (CAD)","Entradas ruleta","Puntos extra"]}
           rows={[
-            ["Hasta $20","1 entrada","0 pts"],
-            ["$21 – $40","2 entradas","+ 2 pts"],
-            ["$41 – $60","3 entradas","+ 4 pts"],
-            ["$61 – $80","4 entradas","+ 6 pts"],
-            ["$81 – $100","5 entradas","+ 8 pts"],
-            ["$101 o más","8 entradas","+ 8 pts"],
+            ["$10 – $25","1 entrada","0 pts"],
+            ["$26 – $50","2 entradas","+ 2 pts"],
+            ["$51 – $75","3 entradas","+ 4 pts"],
+            ["$76 – $100","4 entradas","+ 6 pts"],
+            ["$101 – $150","6 entradas","+ 8 pts"],
+            ["$151 – $200","8 entradas","+ 8 pts"],
+            ["$201 o más","10 entradas","+ 8 pts"],
           ]}
         />
         <EjemploBox titulo="Ejemplo de entradas en la ruleta"
           items={[
-            "Ana registra una factura de $55 → 3 entradas + 4 pts",
-            "Carlos registra dos facturas: $35 + $90 → 7 entradas en total",
-            "María registra una factura de $120 → 8 entradas + 8 pts",
+            "Ana registra una factura de $60 → 3 entradas + 4 pts",
+            "Carlos registra dos facturas: $40 + $90 → 6 entradas en total",
+            "María registra una factura de $170 → 8 entradas + 8 pts",
             "¡Más compras = más entradas = más chances de ganar!",
           ]}
         />
@@ -806,7 +809,7 @@ function ReglamentoView() {
         <BulletItem text="Los puntos y entradas se acumulan automáticamente al registrar la factura." />
         <BulletItem text="No se puede registrar la misma factura dos veces." />
         <Alerta tipo="warning"><strong>Verificación en el sorteo:</strong> Al momento de realizar la rifa, se verificará que cada factura sea real y que el monto registrado sea correcto. Si se detecta que una factura es falsa o tiene un monto diferente al real, el premio no será válido y pasará al siguiente participante.</Alerta>
-        <Alerta tipo="info">Cualquier compra te da al menos 1 entrada en la ruleta. Para validar tu participación y poder ganar premios necesitas mínimo <strong>$50.00 CAD con producto participante</strong>.</Alerta>
+        <Alerta tipo="info">Compras desde $10 CAD te dan al menos 1 entrada en la ruleta. Para validar tu participación y poder ganar premios necesitas mínimo <strong>$50.00 CAD con producto participante</strong>.</Alerta>
       </Section>
 
       <Section icon="🔒" title="6. Cierre de pronósticos" color="#7c3aed">
@@ -896,19 +899,20 @@ function ReglamentoView() {
         <Tabla
           header={["Montant de la facture (CAD)","Entrées roulette","Points extra"]}
           rows={[
-            ["Jusqu'à 20 $","1 entrée","0 pt"],
-            ["21 $ – 40 $","2 entrées","+ 2 pts"],
-            ["41 $ – 60 $","3 entrées","+ 4 pts"],
-            ["61 $ – 80 $","4 entrées","+ 6 pts"],
-            ["81 $ – 100 $","5 entrées","+ 8 pts"],
-            ["101 $ ou plus","8 entrées","+ 8 pts"],
+            ["10 $ – 25 $","1 entrée","0 pt"],
+            ["26 $ – 50 $","2 entrées","+ 2 pts"],
+            ["51 $ – 75 $","3 entrées","+ 4 pts"],
+            ["76 $ – 100 $","4 entrées","+ 6 pts"],
+            ["101 $ – 150 $","6 entrées","+ 8 pts"],
+            ["151 $ – 200 $","8 entrées","+ 8 pts"],
+            ["201 $ ou plus","10 entrées","+ 8 pts"],
           ]}
         />
         <EjemploBox titulo="Exemple d'entrées dans la roulette"
           items={[
-            "Ana enregistre une facture de 55 $ → 3 entrées + 4 pts",
-            "Carlos enregistre deux factures : 35 $ + 90 $ → 7 entrées au total",
-            "María enregistre une facture de 120 $ → 8 entrées + 8 pts",
+            "Ana enregistre une facture de 60 $ → 3 entrées + 4 pts",
+            "Carlos enregistre deux factures : 40 $ + 90 $ → 6 entrées au total",
+            "María enregistre une facture de 170 $ → 8 entrées + 8 pts",
             "Plus d'achats = plus d'entrées = plus de chances de gagner !",
           ]}
         />
@@ -921,7 +925,7 @@ function ReglamentoView() {
         <BulletItem text="Les points et entrées s'accumulent automatiquement dès l'enregistrement de la facture." />
         <BulletItem text="Une même facture ne peut pas être enregistrée deux fois." />
         <Alerta tipo="warning"><strong>Vérification lors du tirage :</strong> Au moment du tirage, chaque facture sera vérifiée pour s'assurer qu'elle est réelle et que le montant enregistré est exact. Si une facture s'avère fausse ou avec un montant différent, le prix ne sera pas remis et passera au participant suivant.</Alerta>
-        <Alerta tipo="info">Tout achat te donne au moins 1 entrée dans la roulette. Pour valider ta participation et pouvoir gagner des prix, tu as besoin d'au moins <strong>50,00 $ CAD avec un produit participant</strong>.</Alerta>
+        <Alerta tipo="info">Les achats à partir de 10 $ CAD te donnent au moins 1 entrée dans la roulette. Pour valider ta participation et pouvoir gagner des prix, tu as besoin d'au moins <strong>50,00 $ CAD avec un produit participant</strong>.</Alerta>
       </Section>
 
       <Section icon="🔒" title="6. Clôture des pronostics" color="#7c3aed">
@@ -3379,8 +3383,8 @@ export default function App() {
           {participants.length} {t.status.participants} &nbsp;|&nbsp; {totalMatches} {t.status.matches} &nbsp;|&nbsp; 11 JUN - 19 JUL 2026
           {(() => {
             const diff = Math.ceil((new Date("2026-06-11") - new Date()) / (1000*60*60*24));
-            if (diff > 0) return <> &nbsp;|&nbsp; 🏆 {diff} {lang==="fr"?`jour${diff!==1?"s":""} avant le Mondial`:`día${diff!==1?"s":""} para el Mundial`}</>;
-            if (diff === 0) return <> &nbsp;|&nbsp; 🏆 {lang==="fr"?"Le Mondial commence aujourd'hui !":"¡El Mundial empieza hoy!"}</>;
+            if (diff > 0) return <> &nbsp;|&nbsp; 🏆 {diff} {lang==="fr"?`jour${diff!==1?"s":""} avant la Coupe`:`día${diff!==1?"s":""} para la Copa`}</>;
+            if (diff === 0) return <> &nbsp;|&nbsp; 🏆 {lang==="fr"?"La Coupe commence aujourd'hui !":"¡La Copa empieza hoy!"}</>;
             return null;
           })()}
         </div>
