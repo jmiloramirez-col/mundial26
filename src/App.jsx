@@ -714,14 +714,14 @@ function ReglamentoView() {
     <>
       <Section icon="🎯" title="1. ¿En qué consiste el concurso?">
         <p style={{fontSize:"0.86rem",color:"#374151",lineHeight:1.7,margin:"0 0 8px"}}>
-          El <strong>Concurso Copa con Sabor de Sabor Latino</strong> es una competencia de pronósticos deportivos. Tú predices los resultados de los partidos de la Copa Mundial de Fútbol 2026 y acumulas puntos. Al final del torneo se realizará un <strong>sorteo por ruleta</strong> — entre más puntos tengas, más entradas en la ruleta obtienes y más chances de ganar.
+          El <strong>Concurso Copa con Sabor de Sabor Latino</strong> es una competencia de pronósticos deportivos. Tú predices los resultados de los partidos de la Copa y acumulas puntos. Al final del torneo se realizará un <strong>sorteo por ruleta</strong> — entre más puntos tengas, más entradas en la ruleta obtienes y más chances de ganar.
         </p>
         <Alerta tipo="info">El sorteo final se realiza por ruleta, no por mayor puntaje. Cada 10 puntos acumulados = 1 entrada en la ruleta 🎰</Alerta>
       </Section>
 
       <Section icon="📋" title="2. ¿Cómo participar?" color="#2563eb">
         <p style={{fontSize:"0.86rem",color:"#374151",marginBottom:10,fontWeight:600}}>Para participar de forma válida debes cumplir <u>todos</u> los siguientes requisitos:</p>
-        <BulletItem text="Registrarte en la plataforma oficial: mundial26.vercel.app. Puedes participar en cualquier momento hasta el 19 de julio de 2026." />
+        <BulletItem text="Registrarte en la plataforma oficial: copaconsabor.saborlatino.ca. Puedes participar en cualquier momento hasta el 19 de julio de 2026." />
         <BulletItem text="Realizar al menos UNA compra de $50.00 CAD o más en Sabor Latino que incluya un producto participante*." />
         <BulletItem text="Registrar esa factura en la plataforma (sección Mi Perfil) para que sea aprobada por el administrador." />
         <Alerta tipo="warning">
@@ -810,7 +810,7 @@ function ReglamentoView() {
       </Section>
 
       <Section icon="🔒" title="6. Cierre de pronósticos" color="#7c3aed">
-        <BulletItem highlight text="Puedes ingresar y modificar tus pronósticos en cualquier momento durante el Mundial, siempre que el partido aún no haya sido bloqueado." />
+        <BulletItem highlight text="Puedes ingresar y modificar tus pronósticos en cualquier momento durante la Copa, siempre que el partido aún no haya sido bloqueado." />
         <BulletItem highlight text="Fase de grupos: cada partido se bloquea automáticamente 1 hora antes de su horario oficial de inicio." />
         <BulletItem highlight text="Fases eliminatorias (octavos, cuartos, semis, final): cada partido se bloquea 24 horas antes de su horario oficial de juego." />
         <Alerta tipo="warning">Una vez bloqueado un partido ya no puedes modificar ese pronóstico — pero los demás partidos del torneo siguen abiertos hasta su propio cierre.</Alerta>
@@ -829,14 +829,14 @@ function ReglamentoView() {
     <>
       <Section icon="🎯" title="1. En quoi consiste le concours ?">
         <p style={{fontSize:"0.86rem",color:"#374151",lineHeight:1.7,margin:"0 0 8px"}}>
-          Le <strong>Concours Copa con Sabor de Sabor Latino</strong> est une compétition de pronostics sportifs. Tu prédis les résultats des matchs de la Coupe du Monde de Football 2026 et tu accumules des points. À la fin du tournoi, un <strong>tirage au sort par roulette</strong> est organisé — plus tu as de points, plus tu as d'entrées dans la roulette et plus tu as de chances de gagner.
+          Le <strong>Concours Copa con Sabor de Sabor Latino</strong> est une compétition de pronostics sportifs. Tu prédis les résultats des matchs de la Coupe et tu accumules des points. À la fin du tournoi, un <strong>tirage au sort par roulette</strong> est organisé — plus tu as de points, plus tu as d'entrées dans la roulette et plus tu as de chances de gagner.
         </p>
         <Alerta tipo="info">Le tirage final se fait par roulette, pas par score le plus élevé. Chaque 10 points accumulés = 1 entrée dans la roulette 🎰</Alerta>
       </Section>
 
       <Section icon="📋" title="2. Comment participer ?" color="#2563eb">
         <p style={{fontSize:"0.86rem",color:"#374151",marginBottom:10,fontWeight:600}}>Pour participer de façon valide, tu dois remplir <u>toutes</u> les conditions suivantes :</p>
-        <BulletItem text="T'inscrire sur la plateforme officielle : mundial26.vercel.app. Tu peux participer à tout moment jusqu'au 19 juillet 2026." />
+        <BulletItem text="T'inscrire sur la plateforme officielle : copaconsabor.saborlatino.ca. Tu peux participer à tout moment jusqu'au 19 juillet 2026." />
         <BulletItem text="Avoir effectué au moins UN achat de 50,00 $ CAD ou plus chez Sabor Latino incluant un produit participant*." />
         <BulletItem text="Enregistrer cette facture sur la plateforme (section Mon Profil) pour qu'elle soit approuvée par l'administrateur." />
         <Alerta tipo="warning">
@@ -925,7 +925,7 @@ function ReglamentoView() {
       </Section>
 
       <Section icon="🔒" title="6. Clôture des pronostics" color="#7c3aed">
-        <BulletItem highlight text="Tu peux saisir et modifier tes pronostics à tout moment pendant le Mondial, tant que le match n'a pas encore été verrouillé." />
+        <BulletItem highlight text="Tu peux saisir et modifier tes pronostics à tout moment pendant la Coupe, tant que le match n'a pas encore été verrouillé." />
         <BulletItem highlight text="Phase de groupes : chaque match est automatiquement verrouillé 1 heure avant son coup d'envoi officiel." />
         <BulletItem highlight text="Phases éliminatoires (huitièmes, quarts, demis, finale) : chaque match est verrouillé 24 heures avant son coup d'envoi officiel." />
         <Alerta tipo="warning">Une fois un match verrouillé, tu ne peux plus modifier ce pronostic — mais les autres matchs du tournoi restent ouverts jusqu'à leur propre clôture.</Alerta>
@@ -969,7 +969,7 @@ function ReglamentoView() {
       </div>
 
       <div style={{textAlign:"center",fontSize:"0.72rem",color:"#9ca3af",marginTop:12,marginBottom:8}}>
-        mundial26.vercel.app · Sabor Latino © 2026
+        copaconsabor.saborlatino.ca · Sabor Latino © 2026
       </div>
     </div>
   );
@@ -1098,7 +1098,7 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
     .reduce((sum,inv)=>sum+calcInvoicePoints(inv.amount),0);
 
   async function handleSubmit() {
-    if (!invoiceNum.trim()) { alert(tp.facturaNum); return; }
+    if (!invoiceNum.trim() || invoiceNum.length < 4) { alert("El número de factura debe tener entre 4 y 7 dígitos"); return; }
     if (!amount || parseFloat(amount)<=0) { alert(tp.facturaMinima); return; }
     const alreadyExists = invoices.find(inv=>inv.invoiceNum===invoiceNum.trim());
     if (alreadyExists) { alert(tp.facturaRepetida); return; }
@@ -1139,8 +1139,8 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
           <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>
             NUMERO DE FACTURA
           </label>
-          <input style={S.input} placeholder="Ej: FAC-001234"
-            value={invoiceNum} onChange={e=>setInvoiceNum(e.target.value)} />
+          <input style={S.input} placeholder="Ej: 001234"
+            value={invoiceNum} onChange={e=>{ if(e.target.value.length<=7) setInvoiceNum(e.target.value.replace(/\D/g,"")); }} maxLength={7} inputMode="numeric" />
         </div>
         <div>
           <label style={{fontSize:"0.75rem",color:"#d3172e",letterSpacing:2,display:"block",marginBottom:5}}>
