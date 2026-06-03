@@ -79,7 +79,7 @@ const T = {
     },
     login: {
       login:"Iniciar Sesión", register:"Registrarse", logout:"Cerrar Sesión",
-      email:"CORREO ELECTRÓNICO", pin:"PIN (4 dígitos)", nombre:"NOMBRE", apellido:"APELLIDO", tel:"TELÉFONO", sucursal:"SUCURSAL",
+      email:"CORREO ELECTRÓNICO", pin:"PIN (6 dígitos)", nombre:"NOMBRE", apellido:"APELLIDO", tel:"TELÉFONO", sucursal:"SUCURSAL",
       btnLogin:"Entrar", btnRegister:"Crear Cuenta", btnLogout:"Cerrar Sesión",
       forgotPin:"¿Olvidaste tu PIN?", backLogin:"← Volver al inicio de sesión",
       noAccount:"¿No tienes cuenta?", hasAccount:"¿Ya tienes cuenta?",
@@ -124,7 +124,7 @@ const T = {
     },
     login: {
       login:"Connexion", register:"S'inscrire", logout:"Déconnexion",
-      email:"ADRESSE COURRIEL", pin:"NIP (4 chiffres)", nombre:"PRÉNOM", apellido:"NOM", tel:"TÉLÉPHONE", sucursal:"SUCCURSALE",
+      email:"ADRESSE COURRIEL", pin:"NIP (6 chiffres)", nombre:"PRÉNOM", apellido:"NOM", tel:"TÉLÉPHONE", sucursal:"SUCCURSALE",
       btnLogin:"Entrer", btnRegister:"Créer un compte", btnLogout:"Se déconnecter",
       forgotPin:"Mot de passe oublié ?", backLogin:"← Retour à la connexion",
       noAccount:"Pas encore de compte ?", hasAccount:"Déjà un compte ?",
@@ -1490,7 +1490,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
   function handleLogin() {
     setError("");
     if (!loginEmail.trim()) { setError("Ingresa tu correo"); return; }
-    if (!loginPin.trim()||loginPin.length<4) { setError("PIN minimo 4 digitos"); return; }
+    if (!loginPin.trim()||loginPin.length<6) { setError("PIN mínimo 6 dígitos"); return; }
     const existing = participants.find(p=>p.email&&p.email.toLowerCase()===loginEmail.trim().toLowerCase());
     if (!existing) { setError("Correo no registrado. Crea una cuenta nueva."); return; }
     if (existing.pin!==loginPin) { setError("PIN incorrecto"); return; }
@@ -1687,12 +1687,12 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
               <div>
-                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>PIN (min. 4 dig.)</label>
-                <input style={S.input} type="password" placeholder="****" value={regPin} onChange={e=>setRegPin(e.target.value.replace(/\D/g,""))} />
+                <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>PIN (6 dígitos)</label>
+                <input style={S.input} type="password" placeholder="******" maxLength={6} value={regPin} onChange={e=>setRegPin(e.target.value.replace(/\D/g,""))} />
               </div>
               <div>
                 <label style={{fontSize:"0.72rem",color:BRAND.red,letterSpacing:1,display:"block",marginBottom:4,fontWeight:700}}>CONFIRMAR PIN</label>
-                <input style={S.input} type="password" placeholder="****" value={regPin2} onChange={e=>setRegPin2(e.target.value.replace(/\D/g,""))} />
+                <input style={S.input} type="password" placeholder="******" maxLength={6} value={regPin2} onChange={e=>setRegPin2(e.target.value.replace(/\D/g,""))} />
               </div>
             </div>
             {error && <div style={{color:"#dc2626",marginBottom:12,fontSize:"0.85rem",background:"#fef2f2",padding:"8px 12px",borderRadius:6}}>{error}</div>}
@@ -3305,7 +3305,6 @@ export default function App() {
   const t = T[lang];
   const tabs = [
     ...(currentUser ? [{id:"predictions", label:t.nav.inicio}] : []),
-    {id:"clasificacion", label:t.nav.clasificacion},
     {id:"leaderboard", label:t.nav.reglamento},
     {id:"fixture", label:t.nav.resultados},
     ...(isAdmin
@@ -3402,7 +3401,6 @@ export default function App() {
 
       <main style={S.main}>
         <ErrorBoundary>
-        {view==="clasificacion" && <ClasificacionView participants={participants} matches={matches} invoices={invoices} currentUser={currentUser} />}
         {view==="leaderboard" && <ReglamentoView />}
         {(view==="predictions"||view==="login") && <ParticipantForm participants={participants} setParticipants={setParticipants} matches={matches} adminUnlocked={adminUnlocked} invoices={invoices} setInvoices={setInvoices} currentUser={currentUser} setCurrentUser={setCurrentUser} setView={setView} initialStep={view==="login"?"login":undefined} />}
         {view==="fixture" && <FixtureView matches={matches} />}
