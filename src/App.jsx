@@ -3251,7 +3251,7 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
 // MAIN APP
 export default function App() {
   const isAdmin = typeof window !== "undefined" && window.location.search.includes("admin");
-  const [view, setView] = useState("leaderboard");
+  const [view, setView] = useState("login");
   const [lang, setLang] = useState("fr");
   const [matches, setMatches] = useState(INITIAL_MATCHES);
   const [participants, setParticipants] = useState([]);
