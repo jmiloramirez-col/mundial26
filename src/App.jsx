@@ -50,10 +50,10 @@ const T = {
       exactos:"exactos", acertados:"acertados", ptsFact:"pts facturas", ptsClas:"pts clasificados",
       validOk:"Tu participación es válida — factura aprobada con producto elegible.",
       pendingTitle:"Factura pendiente de aprobación",
-      pendingMsg:"Tu factura de $50+ con producto elegible está siendo revisada por el administrador.",
+      pendingMsg:"Tus facturas con producto elegible están siendo revisadas. Suma acumulada en proceso.",
       invalidTitle:"Participación no válida",
-      noProductMsg:"Tienes una factura de $50+ pero no confirmaste que incluye un producto elegible. Edítala en Mi Perfil.",
-      invalidMsg:"Registra una factura de $50 o más que incluya alguno de los productos elegibles* para validar tu participación.",
+      noProductMsg:"Algunas facturas no tienen producto elegible confirmado. Edítalas en Mi Perfil.",
+      invalidMsg:"Registra facturas de más de $10 con producto elegible que sumen al menos $50 para validar tu participación.",
     },
     profile: {
       totalPts:"TOTAL DE PUNTOS", position:"POSICIÓN",
@@ -62,7 +62,7 @@ const T = {
       validTitle:"Participación válida",
       pendingTitle:"Pendiente de aprobación", pendingMsg:"Tu factura de $50+ con producto elegible está siendo revisada por el administrador.",
       noProductTitle:"Producto elegible no confirmado", noProductMsg:"Tienes una factura de $50+ pero no confirmaste que incluye un producto elegible. Sin esto tu participación no es válida.",
-      invalidTitle:"Participación no válida", invalidMsg:"Necesitas una factura de $50+ con producto elegible* aprobada para participar. Registra tu compra abajo.",
+      invalidTitle:"Participación no válida", invalidMsg:"Necesitas facturas de más de $10 con producto elegible que sumen al menos $50 para participar. Registra tus compras abajo.",
       misDatos:"Mis datos", nombre:"NOMBRE", apellido:"APELLIDO", email:"CORREO", tel:"TELÉFONO", sucursal:"SUCURSAL", pin:"NUEVO PIN", pin2:"CONFIRMAR PIN",
       editarPerfil:"Editar Perfil", guardar:"Guardar", cancelar:"Cancelar", perfilActualizado:"✅ Perfil actualizado",
       registrarFactura:"Registrar Factura", numFactura:"NUMERO DE FACTURA", monto:"MONTO (CAD $)",
@@ -98,7 +98,7 @@ const T = {
       pendingMsg:"Ta facture de 50 $+ avec produit éligible est en cours de vérification par l'administrateur.",
       invalidTitle:"Participation non valide",
       noProductMsg:"Tu as une facture de 50 $+ mais tu n'as pas confirmé qu'elle inclut un produit éligible. Modifie-la dans Mon Profil.",
-      invalidMsg:"Enregistre une facture de 50 $ ou plus incluant un des produits éligibles* pour valider ta participation.",
+      invalidMsg:"Enregistre des factures de plus de 10 $ avec produit éligible totalisant au moins 50 $ pour valider ta participation.",
     },
     profile: {
       totalPts:"TOTAL DE POINTS", position:"POSITION",
@@ -107,7 +107,7 @@ const T = {
       validTitle:"Participation valide",
       pendingTitle:"En attente d'approbation", pendingMsg:"Ta facture de 50 $+ avec produit éligible est en cours de vérification par l'administrateur.",
       noProductTitle:"Produit éligible non confirmé", noProductMsg:"Tu as une facture de 50 $+ mais tu n'as pas confirmé qu'elle inclut un produit éligible. Sans cela, ta participation n'est pas valide.",
-      invalidTitle:"Participation non valide", invalidMsg:"Tu as besoin d'une facture de 50 $+ avec produit éligible* approuvée pour participer. Enregistre ton achat ci-dessous.",
+      invalidTitle:"Participation non valide", invalidMsg:"Tu as besoin de factures de plus de 10 $ avec produit éligible totalisant au moins 50 $ pour participer. Enregistre tes achats ci-dessous.",
       misDatos:"Mes informations", nombre:"PRÉNOM", apellido:"NOM", email:"COURRIEL", tel:"TÉLÉPHONE", sucursal:"SUCCURSALE", pin:"NOUVEAU NIP", pin2:"CONFIRMER NIP",
       editarPerfil:"Modifier le profil", guardar:"Enregistrer", cancelar:"Annuler", perfilActualizado:"✅ Profil mis à jour",
       registrarFactura:"Enregistrer une facture", numFactura:"NUMÉRO DE FACTURE", monto:"MONTANT (CAD $)",
@@ -724,10 +724,10 @@ function ReglamentoView() {
       <Section icon="📋" title="2. ¿Cómo participar?" color="#2563eb">
         <p style={{fontSize:"0.86rem",color:"#374151",marginBottom:10,fontWeight:600}}>Para participar de forma válida debes cumplir <u>todos</u> los siguientes requisitos:</p>
         <BulletItem text="Registrarte en la plataforma oficial: copaconsabor.saborlatino.ca. Puedes participar en cualquier momento hasta el 19 de julio de 2026." />
-        <BulletItem text="Realizar al menos UNA compra de $50.00 CAD o más en Sabor Latino que incluya un producto participante*." />
+        <BulletItem text="Registrar compras en Sabor Latino de más de $10 CAD que incluyan un producto participante* y que en total sumen mínimo $50.00 CAD." />
         <BulletItem text="Registrar esa factura en la plataforma (sección Mi Perfil) para que sea aprobada por el administrador." />
         <Alerta tipo="warning">
-          <strong>Importante:</strong> Compras menores de $50.00 CAD sí generan puntos adicionales, pero <strong>NO validan tu participación</strong> para ganar premios. Si resultaras ganador sin una factura válida de $50+, el premio pasaría al siguiente en la ruleta.
+          <strong>Importante:</strong> Facturas de $10 o menos no cuentan para la validación. Las facturas de más de $10 con producto participante se van sumando — cuando la suma llegue a $50 o más tu participación queda validada. Si resultaras ganador sin cumplir esto, el premio pasaría al siguiente en la ruleta.
         </Alerta>
         <div style={{fontSize:"0.78rem",color:"#9ca3af",marginTop:4}}>* Los productos participantes serán publicados en las redes sociales de Sabor Latino.</div>
       </Section>
@@ -809,7 +809,7 @@ function ReglamentoView() {
         <BulletItem text="Los puntos y entradas se acumulan automáticamente al registrar la factura." />
         <BulletItem text="No se puede registrar la misma factura dos veces." />
         <Alerta tipo="warning"><strong>Verificación en el sorteo:</strong> Al momento de realizar la rifa, se verificará que cada factura sea real y que el monto registrado sea correcto. Si se detecta que una factura es falsa o tiene un monto diferente al real, el premio no será válido y pasará al siguiente participante.</Alerta>
-        <Alerta tipo="info">Compras desde $10 CAD te dan al menos 1 entrada en la ruleta. Para validar tu participación y poder ganar premios necesitas mínimo <strong>$50.00 CAD con producto participante</strong>.</Alerta>
+        <Alerta tipo="info">Compras de más de $10 CAD te dan entradas en la ruleta. Para validar tu participación necesitas que tus facturas con producto participante <strong>sumen al menos $50.00 CAD</strong>.</Alerta>
       </Section>
 
       <Section icon="🔒" title="6. Cierre de pronósticos" color="#7c3aed">
@@ -840,10 +840,10 @@ function ReglamentoView() {
       <Section icon="📋" title="2. Comment participer ?" color="#2563eb">
         <p style={{fontSize:"0.86rem",color:"#374151",marginBottom:10,fontWeight:600}}>Pour participer de façon valide, tu dois remplir <u>toutes</u> les conditions suivantes :</p>
         <BulletItem text="T'inscrire sur la plateforme officielle : copaconsabor.saborlatino.ca. Tu peux participer à tout moment jusqu'au 19 juillet 2026." />
-        <BulletItem text="Avoir effectué au moins UN achat de 50,00 $ CAD ou plus chez Sabor Latino incluant un produit participant*." />
+        <BulletItem text="Enregistrer des achats chez Sabor Latino de plus de 10 $ CAD incluant un produit participant* et totalisant au moins 50,00 $ CAD." />
         <BulletItem text="Enregistrer cette facture sur la plateforme (section Mon Profil) pour qu'elle soit approuvée par l'administrateur." />
         <Alerta tipo="warning">
-          <strong>Important :</strong> Les achats inférieurs à 50,00 $ CAD génèrent des points supplémentaires, mais <strong>NE valident PAS ta participation</strong> pour gagner des prix. Si tu étais déclaré gagnant sans facture valide de 50 $+, le prix passerait au suivant dans la roulette.
+          <strong>Important :</strong> Les factures de 10 $ ou moins ne comptent pas pour la validation. Les factures de plus de 10 $ avec produit participant s'accumulent — quand la somme atteint 50 $ ou plus, ta participation est validée. Si tu étais déclaré gagnant sans remplir cette condition, le prix passerait au suivant dans la roulette.
         </Alerta>
         <div style={{fontSize:"0.78rem",color:"#9ca3af",marginTop:4}}>* Les produits participants seront publiés sur les réseaux sociaux de Sabor Latino.</div>
       </Section>
@@ -925,7 +925,7 @@ function ReglamentoView() {
         <BulletItem text="Les points et entrées s'accumulent automatiquement dès l'enregistrement de la facture." />
         <BulletItem text="Une même facture ne peut pas être enregistrée deux fois." />
         <Alerta tipo="warning"><strong>Vérification lors du tirage :</strong> Au moment du tirage, chaque facture sera vérifiée pour s'assurer qu'elle est réelle et que le montant enregistré est exact. Si une facture s'avère fausse ou avec un montant différent, le prix ne sera pas remis et passera au participant suivant.</Alerta>
-        <Alerta tipo="info">Les achats à partir de 10 $ CAD te donnent au moins 1 entrée dans la roulette. Pour valider ta participation et pouvoir gagner des prix, tu as besoin d'au moins <strong>50,00 $ CAD avec un produit participant</strong>.</Alerta>
+        <Alerta tipo="info">Les achats de plus de 10 $ CAD te donnent des entrées dans la roulette. Pour valider ta participation, tes factures avec produit participant doivent <strong>totaliser au moins 50,00 $ CAD</strong>.</Alerta>
       </Section>
 
       <Section icon="🔒" title="6. Clôture des pronostics" color="#7c3aed">
@@ -980,18 +980,20 @@ function ReglamentoView() {
 }
 
 // Helper: verifica si un participante tiene participación válida
+// Nueva regla: suma de facturas >$10 con producto elegible debe ser >= $50
 function getParticipationStatus(participantId, invoices) {
   const myInv = (invoices||[]).filter(inv=>inv.participantId===participantId);
-  // Válida: $50+ con producto elegible Y aprobada
-  if (myInv.find(inv=>parseFloat(inv.amount)>=50 && inv.hasProduct && inv.status==="approved"))
-    return "valid";
-  // Pendiente: $50+ con producto elegible pero aún pendiente
-  if (myInv.find(inv=>parseFloat(inv.amount)>=50 && inv.hasProduct && inv.status==="pending"))
-    return "pending";
-  // Sin producto: tiene $50+ pero sin marcar producto elegible
-  if (myInv.find(inv=>parseFloat(inv.amount)>=50 && !inv.hasProduct))
+  // Facturas aprobadas >$10 con producto elegible
+  const approvedWithProduct = myInv.filter(inv=>parseFloat(inv.amount)>10 && inv.hasProduct && inv.status==="approved");
+  const sumApproved = approvedWithProduct.reduce((s,inv)=>s+parseFloat(inv.amount),0);
+  if (sumApproved >= 50) return "valid";
+  // Pendientes >$10 con producto elegible (suma aprobadas + pendientes >= $50)
+  const pendingWithProduct = myInv.filter(inv=>parseFloat(inv.amount)>10 && inv.hasProduct && inv.status==="pending");
+  const sumTotal = sumApproved + pendingWithProduct.reduce((s,inv)=>s+parseFloat(inv.amount),0);
+  if (sumTotal >= 50) return "pending";
+  // Tiene facturas >$10 pero sin producto elegible marcado
+  if (myInv.find(inv=>parseFloat(inv.amount)>10 && !inv.hasProduct))
     return "no_product";
-  // Sin factura válida (incluye casos donde fue rechazada)
   return "invalid";
 }
 
@@ -1162,8 +1164,8 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
         </div>
       )}
 
-      {/* Producto participante checkbox - solo mostrar si monto >= 50 */}
-      {amount && parseFloat(amount)>=50 && (
+      {/* Producto participante checkbox - mostrar si monto > 10 */}
+      {amount && parseFloat(amount)>10 && (
         <div style={{marginBottom:14}}>
           <label style={{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",userSelect:"none"}}>
             <input
@@ -1180,7 +1182,7 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
             <div style={{marginTop:8,background:"#fffbeb",border:"1px solid #f59e0b",borderRadius:8,padding:"9px 12px",display:"flex",gap:8,alignItems:"flex-start"}}>
               <span style={{fontSize:"1rem",flexShrink:0}}>⚠️</span>
               <span style={{fontSize:"0.78rem",color:"#92400e",lineHeight:1.5}}>
-                Sin producto participante, esta factura <strong>no valida tu participación</strong> aunque sea de $50+. Igual genera puntos.
+                Sin producto participante confirmado, esta factura <strong>no suma para validar tu participación</strong>. Igual genera puntos y entradas.
               </span>
             </div>
           )}
@@ -1224,7 +1226,7 @@ function InvoiceForm({ currentUser, invoices, setInvoices }) {
                 <div style={{color:"#6b7280",fontSize:"0.78rem",marginTop:2}}>
                   ${inv.amount} CAD &nbsp;|&nbsp; {inv.points} pts potenciales
                 </div>
-                {inv.amount>=50 && (
+                {parseFloat(inv.amount)>10 && (
                   <div style={{fontSize:"0.72rem",marginTop:3,fontWeight:600,color:inv.hasProduct?"#16a34a":"#f59e0b"}}>
                     {inv.hasProduct?tp.productoIncluido:tp.sinProducto}
                   </div>
@@ -1794,8 +1796,8 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
             const status = getParticipationStatus(currentUser?.id, invoices);
             if (status === "valid") return null;
             const cfg = {
-              invalid:  { bg:"#fff5f5", border:"#fca5a5", icon:"🧾", color:"#991b1b", msg: lang==="fr" ? "Tu n'as pas encore de facture valide. Enregistre un achat de 50 $+ avec produit éligible pour participer." : "No tienes una factura válida aún. Registra una compra de $50+ con producto elegible para participar.", btn: lang==="fr"?"Enregistrer ma facture":"Registrar mi factura" },
-              no_product:{ bg:"#fffbeb", border:"#f59e0b", icon:"⚠️", color:"#92400e", msg: lang==="fr" ? "Ta facture de 50 $+ n'a pas de produit éligible confirmé. Modifie-la dans Mon Profil." : "Tu factura de $50+ no tiene producto elegible confirmado. Edítala en Mi Perfil.", btn: lang==="fr"?"Voir Mon Profil":"Ver Mi Perfil" },
+              invalid:  { bg:"#fff5f5", border:"#fca5a5", icon:"🧾", color:"#991b1b", msg: lang==="fr" ? "Enregistre des achats de plus de 10 $+ avec produit éligible totalisant au moins 50 $ pour valider ta participation." : "Registra compras de más de $10 con producto elegible que sumen al menos $50 para validar tu participación.", btn: lang==="fr"?"Enregistrer ma facture":"Registrar mi factura" },
+              no_product:{ bg:"#fffbeb", border:"#f59e0b", icon:"⚠️", color:"#92400e", msg: lang==="fr" ? "Tes factures n'ont pas de produit éligible confirmé. Modifie-les dans Mon Profil." : "Tus facturas no tienen producto elegible confirmado. Edítalas en Mi Perfil.", btn: lang==="fr"?"Voir Mon Profil":"Ver Mi Perfil" },
               pending:  { bg:"#eff6ff", border:"#93c5fd", icon:"🕐", color:"#1e40af", msg: lang==="fr" ? "Ta facture est en attente d'approbation par l'administrateur." : "Tu factura está pendiente de aprobación por el administrador.", btn: null },
             };
             const c = cfg[status];
@@ -2748,7 +2750,7 @@ function AdminInvoicesTab({ invoices, handleInvoice, pendingInvoices }) {
               </div>
               <div style={{fontSize:"0.72rem",marginTop:3,display:"flex",gap:8,flexWrap:"wrap"}}>
                 <span style={{color:"#9ca3af"}}>{new Date(inv.createdAt).toLocaleDateString()}</span>
-                {inv.amount>=50 && (
+                {parseFloat(inv.amount)>10 && (
                   <span style={{fontWeight:600,color:inv.hasProduct?"#16a34a":"#f59e0b"}}>
                     {inv.hasProduct ? ti.withProduct : ti.noProduct}
                   </span>
