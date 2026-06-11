@@ -646,6 +646,64 @@ const FontStyle = () => (
 
 // LEADERBOARD
 // REGLAMENTO VIEW
+// ─── CARRUSEL DE LOGOS DE MARCAS PARTICIPANTES ────────────────────────────────
+const LOGOS_MARCAS = [
+  { src: "/logos/goya.jpg",          name: "Goya" },
+  { src: "/logos/charras.png",        name: "Charras" },
+  { src: "/logos/mama-nelly.png",     name: "Mamá Nelly Foods" },
+  { src: "/logos/festival.png",       name: "Festival" },
+  { src: "/logos/postobon.png",       name: "Postobón" },
+  { src: "/logos/tortilla-veloz.png", name: "La Tortilla Veloz" },
+];
+
+function LogosCarrusel({ titulo }) {
+  const lang = useLang();
+  const track = [...LOGOS_MARCAS, ...LOGOS_MARCAS]; // duplicar para loop continuo
+
+  return (
+    <div style={{marginBottom:16}}>
+      {titulo && (
+        <div style={{textAlign:"center",fontSize:"0.72rem",color:"#9ca3af",fontWeight:700,
+          letterSpacing:2,marginBottom:8}}>
+          {lang==="fr" ? "PRODUITS PARTICIPANTS" : "PRODUCTOS PARTICIPANTES"}
+        </div>
+      )}
+      <div style={{overflow:"hidden",borderRadius:10,background:"#fff",
+        border:"1px solid #e5e7eb",padding:"10px 0",position:"relative"}}>
+        {/* Fade izquierda */}
+        <div style={{position:"absolute",left:0,top:0,bottom:0,width:32,
+          background:"linear-gradient(to right,#fff,transparent)",zIndex:2,pointerEvents:"none"}}/>
+        {/* Fade derecha */}
+        <div style={{position:"absolute",right:0,top:0,bottom:0,width:32,
+          background:"linear-gradient(to left,#fff,transparent)",zIndex:2,pointerEvents:"none"}}/>
+        <div style={{
+          display:"flex", gap:24, alignItems:"center",
+          animation:"scrollLogos 18s linear infinite",
+          width:"max-content",
+        }}>
+          {track.map((logo, i) => (
+            <div key={i} style={{
+              width:90, height:60, flexShrink:0,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              background:"#fff", borderRadius:8, padding:"4px",
+            }}>
+              <img src={logo.src} alt={logo.name}
+                style={{maxWidth:"100%", maxHeight:"100%",
+                  objectFit:"contain", filter:"none"}} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <style>{`
+        @keyframes scrollLogos {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function ReglamentoView() {
   const lang = useLang();
   const [showLang, setShowLang] = useState("es");
@@ -818,6 +876,20 @@ function ReglamentoView() {
         <BulletItem highlight text="Fases eliminatorias (octavos, cuartos, semis, final): cada partido se bloquea 24 horas antes de su horario oficial de juego." />
         <Alerta tipo="warning">Una vez bloqueado un partido ya no puedes modificar ese pronóstico — pero los demás partidos del torneo siguen abiertos hasta su propio cierre.</Alerta>
       </Section>
+
+      {/* Logos marcas participantes */}
+      <div style={{marginBottom:24}}>
+        <div style={{fontWeight:800,fontSize:"1rem",color:"#d3172e",borderBottom:"2px solid #d3172e",
+          paddingBottom:6,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+          <span>🏷️</span>{lang==="fr"?"Produits participants":"Productos participantes"}
+        </div>
+        <p style={{fontSize:"0.84rem",color:"#6b7280",marginBottom:12,lineHeight:1.6}}>
+          {lang==="fr"
+            ? "Les achats de ces marques comptent pour valider ta participation au concours."
+            : "Las compras de estas marcas cuentan para validar tu participación en el concurso."}
+        </p>
+        <LogosCarrusel titulo={false} />
+      </div>
 
       <Section icon="⚖️" title="7. Condiciones generales" color="#6b7280">
         <BulletItem text="Sabor Latino se reserva el derecho de modificar, suspender o cancelar el concurso en caso de fuerza mayor." />
@@ -1600,6 +1672,7 @@ function ParticipantForm({ participants, setParticipants, matches, adminUnlocked
 
   if (step==="login") return (
     <div className="fi" style={{maxWidth:460,margin:"0 auto"}}>
+      <LogosCarrusel titulo={true} />
       <div style={S.card}>
         <div style={{display:"flex",borderBottom:"2px solid "+BRAND.gray100,marginBottom:20}}>
           {[["login","Ya tengo cuenta"],["register","Registrarme"]].map(([t,l])=>(
