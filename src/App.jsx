@@ -2728,6 +2728,7 @@ function resolveRound32Teams(matches) {
 
 function AdminParticipantRow({ p, i, participants, setParticipants, invoices, matches, removeParticipant }) {
   const [editing, setEditing] = useState(false);
+  const [showPreds, setShowPreds] = useState(false);
   const [eNombre, setENombre] = useState(p.nombre||p.name||"");
   const [eApellido, setEApellido] = useState(p.apellido||"");
   const [eTel, setETel] = useState(p.telefono||"");
@@ -2775,6 +2776,11 @@ function AdminParticipantRow({ p, i, participants, setParticipants, invoices, ma
             <div style={{fontSize:"1.3rem", fontWeight:800, color:BRAND.red}}>{p._total}</div>
             <div style={{fontSize:"0.68rem", color:"#9ca3af"}}>pts</div>
           </div>
+          <button onClick={()=>setShowPreds(e=>!e)}
+            style={{background:showPreds?"#eff6ff":"transparent", border:"1px solid #2563eb44", color:"#2563eb", borderRadius:6, padding:"3px 8px", cursor:"pointer", fontSize:"0.78rem"}}
+            title="Ver pronósticos">
+            👁️
+          </button>
           <button onClick={()=>setEditing(e=>!e)}
             style={{background:editing?"#f3f4f6":"transparent", border:"1px solid #2563eb44", color:"#2563eb", borderRadius:6, padding:"3px 8px", cursor:"pointer", fontSize:"0.78rem"}}>
             ✏️
@@ -2801,6 +2807,71 @@ function AdminParticipantRow({ p, i, participants, setParticipants, invoices, ma
           <button style={{...S.btn("#6b7280",true), padding:"6px 10px", fontSize:"0.82rem"}} onClick={()=>setEditing(false)}>✕</button>
         </div>
       )}
+
+      {/* Panel de pronósticos */}
+      {showPreds && (()=>{
+        const phases = ["groups","round32","round16","quarters","semis","third","final"];
+        const phaseLabels = {groups:"Fase de Grupos",round32:"Ronda de 32",round16:"Ronda de 16",quarters:"Cuartos",semis:"Semifinales",third:"Tercer Lugar",final:"Final"};
+        const preds = p.predictions || {};
+        let totalPts = 0;
+        const rows = matches
+          .filter(m => preds[m.id] && (preds[m.id].home!==null && preds[m.id].home!==undefined))
+          .sort((a,b)=>{
+            const pi = phases.indexOf(a.phase) - phases.indexOf(b.phase);
+            return pi !== 0 ? pi : a.id - b.id;
+          });
+
+        let lastPhase = null;
+        return (
+          <div style={{background:"#f0f7ff",border:"1px solid #bfdbfe",borderRadius:8,padding:"12px",marginTop:4}}>
+            <div style={{fontWeight:700,fontSize:"0.82rem",color:"#1e40af",marginBottom:10}}>
+              👁️ Pronósticos de {p.nombre||p.name} ({rows.length} pronósticos)
+            </div>
+            {rows.length === 0
+              ? <div style={{fontSize:"0.8rem",color:"#9ca3af"}}>Sin pronósticos registrados</div>
+              : rows.map(m => {
+                  const pred = preds[m.id];
+                  const pts = calcPoints(pred.home, pred.away, m.realHome, m.realAway);
+                  if (pts !== null) totalPts += pts;
+                  const showHeader = m.phase !== lastPhase;
+                  lastPhase = m.phase;
+                  const hasResult = m.realHome !== null && m.realAway !== null;
+                  const ptColor = pts === null ? "#9ca3af" : pts === 5 ? "#16a34a" : pts === 3 ? "#2563eb" : pts === 0 ? "#dc2626" : "#9ca3af";
+                  return (
+                    <div key={m.id}>
+                      {showHeader && (
+                        <div style={{fontSize:"0.68rem",fontWeight:800,color:"#6b7280",letterSpacing:2,marginTop:8,marginBottom:4}}>
+                          {phaseLabels[m.phase]||m.phase}
+                        </div>
+                      )}
+                      <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",background:"#fff",borderRadius:6,marginBottom:3,flexWrap:"wrap"}}>
+                        <span style={{fontSize:"0.72rem",color:"#9ca3af",minWidth:36}}>{m.date}</span>
+                        {m.group && <span style={{fontSize:"0.68rem",background:"#e0e7ff",color:"#3730a3",borderRadius:4,padding:"1px 5px",fontWeight:700}}>G{m.group}</span>}
+                        <span style={{fontSize:"0.8rem",color:"#374151",flex:1,minWidth:100}}>{m.home} vs {m.away}</span>
+                        <span style={{fontSize:"0.8rem",fontWeight:700,color:"#2563eb",background:"#eff6ff",borderRadius:6,padding:"1px 8px"}}>
+                          {pred.home} – {pred.away}
+                        </span>
+                        {hasResult && (
+                          <span style={{fontSize:"0.75rem",color:"#6b7280"}}>
+                            ({m.realHome}–{m.realAway})
+                          </span>
+                        )}
+                        <span style={{fontSize:"0.75rem",fontWeight:800,color:ptColor,minWidth:32,textAlign:"right"}}>
+                          {pts !== null ? `${pts}pts` : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+            }
+            {rows.length > 0 && (
+              <div style={{textAlign:"right",marginTop:8,fontWeight:800,color:BRAND.red,fontSize:"0.85rem"}}>
+                Total pronósticos: {totalPts} pts
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
