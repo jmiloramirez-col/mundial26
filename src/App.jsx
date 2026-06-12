@@ -213,8 +213,12 @@ function isMatchLocked(match, adminUnlocked = {}) {
   // Phase-level override (admin)
   if (adminUnlocked[match.phase]) return false;
   if (adminUnlocked[match.phase+"_forced"]) return true;
-  // All matches: lock 24h before their lockTime
-  if (match.lockTime) return new Date() >= new Date(new Date(match.lockTime).getTime() - 24*60*60*1000);
+  // Partidos de grupos: bloquear 1h antes del lockTime
+  // Partidos eliminatorios: bloquear 24h antes del lockTime
+  if (match.lockTime) {
+    const offset = match.phase === "groups" ? 1*60*60*1000 : 24*60*60*1000;
+    return new Date() >= new Date(new Date(match.lockTime).getTime() - offset);
+  }
   // Fallback to phase lock
   return isPhaseLocked(match.phase, adminUnlocked);
 }
@@ -416,15 +420,15 @@ function calcAllClassified(allMatches, getScore) {
 }
 
 // Calculate bonus points for classification predictions
+// Los puntos de cada grupo solo se suman cuando TODOS los partidos del grupo están completos
 function calcClassificationBonus(predictions, allMatches) {
-  // Check if real results have enough data
   const realGroupMatches = allMatches.filter(m=>m.phase==="groups"&&m.realHome!==null);
   if (realGroupMatches.length === 0) return {bonus:0, details:[]};
 
   // Real classified
   const realClassified = calcAllClassified(allMatches, m=>({h:m.realHome, a:m.realAway}));
 
-  // Predicted classified (from participant's predictions)
+  // Predicted classified
   const predClassified = calcAllClassified(allMatches, m=>{
     const pred = predictions?.[m.id];
     if (!pred||pred.home===null||pred.away===null) return null;
@@ -435,7 +439,12 @@ function calcClassificationBonus(predictions, allMatches) {
   const details = [];
 
   // Check 1st and 2nd place for each group
+  // Solo calcular si TODOS los partidos de ese grupo tienen resultado
   Object.keys(GROUPS).forEach(grp => {
+    const grpMatches = allMatches.filter(m=>m.phase==="groups"&&m.group===grp);
+    const grpComplete = grpMatches.length > 0 && grpMatches.every(m=>m.realHome!==null&&m.realAway!==null);
+    if (!grpComplete) return; // grupo incompleto, no sumar puntos aún
+
     ["1st","2nd"].forEach(pos => {
       const key = grp+"_"+pos;
       const real = realClassified.byGroup[key];
@@ -445,7 +454,6 @@ function calcClassificationBonus(predictions, allMatches) {
         bonus+=10;
         details.push({type:"group_pos", grp, pos, team:real, pts:10, msg:"Acerto "+pos+" del Grupo "+grp+": "+real+" (10pts)"});
       } else {
-        // Check if predicted team classified but wrong position
         const realGrp = realClassified.byGroup[grp];
         if (realGrp && realGrp.slice(0,2).some(s=>s.team===pred)) {
           bonus+=5;
@@ -455,19 +463,26 @@ function calcClassificationBonus(predictions, allMatches) {
     });
   });
 
-  // Check best 8 thirds
-  const realTop8 = realClassified.top8thirds;
-  const predTop8 = predClassified.top8thirds;
-  if (realTop8.length>0 && predTop8.length>0) {
-    predTop8.forEach((team,i) => {
-      if (realTop8[i]===team) {
-        bonus+=10;
-        details.push({type:"third_pos", team, pts:10, msg:"Acerto mejor 3ro posicion "+(i+1)+": "+team+" (10pts)"});
-      } else if (realTop8.includes(team)) {
-        bonus+=5;
-        details.push({type:"third_team", team, pts:5, msg:"Acerto mejor 3ro: "+team+" (5pts)"});
-      }
-    });
+  // Check best 8 thirds — solo cuando TODOS los grupos están completos
+  const allGroupsComplete = Object.keys(GROUPS).every(grp => {
+    const grpMatches = allMatches.filter(m=>m.phase==="groups"&&m.group===grp);
+    return grpMatches.length > 0 && grpMatches.every(m=>m.realHome!==null&&m.realAway!==null);
+  });
+
+  if (allGroupsComplete) {
+    const realTop8 = realClassified.top8thirds;
+    const predTop8 = predClassified.top8thirds;
+    if (realTop8.length>0 && predTop8.length>0) {
+      predTop8.forEach((team,i) => {
+        if (realTop8[i]===team) {
+          bonus+=10;
+          details.push({type:"third_pos", team, pts:10, msg:"Acerto mejor 3ro posicion "+(i+1)+": "+team+" (10pts)"});
+        } else if (realTop8.includes(team)) {
+          bonus+=5;
+          details.push({type:"third_team", team, pts:5, msg:"Acerto mejor 3ro: "+team+" (5pts)"});
+        }
+      });
+    }
   }
 
   return {bonus, details};
@@ -685,11 +700,15 @@ function LogosCarrusel({ titulo }) {
             <div key={i} style={{
               width:90, height:60, flexShrink:0,
               display:"flex", alignItems:"center", justifyContent:"center",
-              background:"#fff", borderRadius:8, padding:"4px",
+              background:"#fff", borderRadius:8, padding:"6px",
+              boxShadow:"0 1px 4px rgba(0,0,0,0.08)",
             }}>
               <img src={logo.src} alt={logo.name}
                 style={{maxWidth:"100%", maxHeight:"100%",
-                  objectFit:"contain", filter:"none"}} />
+                  objectFit:"contain",
+                  backgroundColor:"#fff",
+                  borderRadius:4,
+                }} />
             </div>
           ))}
         </div>
@@ -3060,37 +3079,55 @@ function AdminPanel({ matches, setMatches, participants, setParticipants, adminU
           <p style={{color:"#6b7280",marginBottom:14,fontSize:"0.85rem"}}>Bloquea o desbloquea manualmente cada fase para pruebas o correcciones.</p>
 
 
-          {/* GRUPOS - bloqueo general */}
+          {/* GRUPOS - bloqueo partido a partido */}
           {(()=>{
-            const phase="groups";
-            const color="#1F618D";
-            const manLocked=!!adminUnlocked[phase+"_forced"];
-            const autoLocked=isPhaseLocked(phase,adminUnlocked);
-            const manUnlocked=!!adminUnlocked[phase];
-            const isLocked = manLocked || (autoLocked && !manUnlocked);
+            const color = "#1F618D";
+            const groupMatches = matches.filter(m=>m.phase==="groups");
+            const groups = [...new Set(groupMatches.map(m=>m.group))].sort();
             return (
               <div style={{marginBottom:20}}>
-                <div style={{fontWeight:800,fontSize:"0.8rem",color:"#6b7280",letterSpacing:2,marginBottom:8}}>FASE DE GRUPOS</div>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f9fafb",border:"1px solid "+color+"44",borderRadius:10,padding:"12px 16px",flexWrap:"wrap",gap:8}}>
-                  <div>
-                    <div style={{fontWeight:700,fontSize:"0.95rem",color:"#111827"}}>Todos los grupos</div>
-                    <div style={{fontSize:"0.75rem",color:"#9ca3af",marginTop:2}}>Bloqueo automático: 10 Jun 2026 00:00</div>
-                    <div style={{fontSize:"0.8rem",marginTop:3,fontWeight:600,color:isLocked?"#e74c3c":"#16a34a"}}>
-                      {isLocked ? "🔒 BLOQUEADO" : "🔓 ABIERTO"}
-                    </div>
-                  </div>
-                  <button
-                    style={{...S.btn(isLocked?"#16a34a":"#e74c3c",true),fontSize:"0.78rem",padding:"6px 14px"}}
-                    onClick={async ()=>{
-                      const updated = isLocked
-                        ? {...adminUnlocked, [phase]:true, [phase+"_forced"]:false}
-                        : {...adminUnlocked, [phase]:false, [phase+"_forced"]:true};
-                      setAdminUnlocked(updated);
-                      await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
-                    }}>
-                    {isLocked ? "Desbloquear" : "Bloquear"}
-                  </button>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,flexWrap:"wrap",gap:6}}>
+                  <div style={{fontWeight:800,fontSize:"0.8rem",color:"#6b7280",letterSpacing:2}}>FASE DE GRUPOS</div>
+                  <div style={{fontSize:"0.72rem",color:"#9ca3af"}}>Auto: 1h antes de cada partido</div>
                 </div>
+                {groups.map(grp => (
+                  <div key={grp} style={{marginBottom:10}}>
+                    <div style={{fontWeight:700,fontSize:"0.78rem",color:color,marginBottom:4,letterSpacing:1}}>GRUPO {grp}</div>
+                    {groupMatches.filter(m=>m.group===grp).map(m => {
+                      const matchLocked = isMatchLocked(m, adminUnlocked);
+                      const manLocked = !!adminUnlocked["match_"+m.id+"_forced"];
+                      const manUnlocked = !!adminUnlocked["match_"+m.id];
+                      const lockMoment = m.lockTime ? new Date(new Date(m.lockTime).getTime()-60*60*1000) : null;
+                      return (
+                        <div key={m.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#f9fafb",border:"1px solid "+color+"33",borderRadius:8,padding:"8px 12px",marginBottom:4,flexWrap:"wrap",gap:6}}>
+                          <div>
+                            <div style={{fontWeight:600,fontSize:"0.82rem",color:"#111827"}}>{m.home} vs {m.away}</div>
+                            <div style={{fontSize:"0.7rem",color:"#9ca3af",marginTop:1}}>
+                              {m.date} · Auto: {lockMoment ? lockMoment.toLocaleString("es-CA",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) : "-"}
+                              {manLocked && <span style={{color:"#e74c3c",marginLeft:6}}>· Bloqueado manualmente</span>}
+                              {manUnlocked && <span style={{color:"#16a34a",marginLeft:6}}>· Desbloqueado manualmente</span>}
+                            </div>
+                            <div style={{fontSize:"0.75rem",fontWeight:600,color:matchLocked?"#e74c3c":"#16a34a",marginTop:2}}>
+                              {matchLocked ? "🔒 BLOQUEADO" : "🔓 ABIERTO"}
+                            </div>
+                          </div>
+                          <button
+                            style={{...S.btn(matchLocked?"#16a34a":"#e74c3c",true),fontSize:"0.72rem",padding:"5px 10px"}}
+                            onClick={async ()=>{
+                              const key = "match_"+m.id;
+                              const updated = matchLocked
+                                ? {...adminUnlocked, [key]:true, [key+"_forced"]:false}
+                                : {...adminUnlocked, [key]:false, [key+"_forced"]:true};
+                              setAdminUnlocked(updated);
+                              await setDoc(SETTINGS_DOC, {adminUnlocked: updated});
+                            }}>
+                            {matchLocked ? "Desbloquear" : "Bloquear"}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             );
           })()}
