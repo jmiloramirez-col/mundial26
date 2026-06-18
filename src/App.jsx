@@ -2300,11 +2300,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
             ? `${entrants.length} entrées enregistrées — Bonne chance ! 🍀`
             : `${entrants.length} entradas registradas, ¡Buena suerte! 🍀`}
         </div>
-        {isAdmin && (
-          <div style={{marginTop:8,fontSize:"0.72rem",color:"rgba(255,255,255,0.4)"}}>
-            👥 {uniqueParticipants.length} participantes
-          </div>
-        )}
+
       </div>
 
       {wheelLabels.length === 0 ? (
