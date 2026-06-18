@@ -2495,28 +2495,7 @@ function RuletaView({ participants, matches, invoices, isAdmin }) {
             </div>
           )}
 
-          {/* Entrants list */}
-          <div style={{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:12,padding:"14px"}}>
-            <div style={{fontWeight:700,fontSize:"0.85rem",color:BRAND.gray900,marginBottom:10}}>
-              {lang==="fr"?"Participants à la roulette":"Participantes en la ruleta"}
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {uniqueParticipants.map(p => (
-                <div key={p.id} style={{background:"#fff",border:"1px solid #e5e7eb",borderRadius:8,padding:"6px 12px",fontSize:"0.78rem",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    {p.num && <span style={{background:accentColor,color:"#fff",borderRadius:6,padding:"2px 7px",fontSize:"0.65rem",fontWeight:800}}>#{String(p.num).padStart(3,"0")}</span>}
-                    <span style={{fontWeight:600,color:BRAND.gray900}}>{p.name}</span>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <span style={{fontSize:"0.7rem",color:"#9ca3af"}}>{p.totalPts} pts</span>
-                    <span style={{background:p.entries>1?accentColor:"#e5e7eb",color:p.entries>1?"#fff":"#9ca3af",borderRadius:6,padding:"2px 8px",fontSize:"0.65rem",fontWeight:800}}>
-                      {p.entries} {p.entries===1?"entrada":"entradas"}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+
         </>
       )}
     </div>
