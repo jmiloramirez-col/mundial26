@@ -3436,8 +3436,11 @@ export default function App() {
           if (m.phase === "groups") {
             // Groups: keep new team names, only restore real results
             return {...m, realHome: old.realHome, realAway: old.realAway};
+          } else if (m.phase === "round32") {
+            // Round32: ALWAYS use team names from code (INITIAL_MATCHES), only restore results
+            return {...m, realHome: old.realHome, realAway: old.realAway};
           } else {
-            // Playoffs: restore team names + results (admin edits them)
+            // Playoffs (round16+): restore team names + results (admin edits them)
             return {...m, home: old.home||m.home, away: old.away||m.away, realHome: old.realHome, realAway: old.realAway};
           }
         });
